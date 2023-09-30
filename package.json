@@ -1,0 +1,9 @@
+{
+  "name": "self-js",
+  "version": "1.0.0",
+  "description": "Interfaz de usuario similar a la del lenguaje Self para Javascript",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Facundo Javier Gelatti",
+  "license": "MIT"
+}
