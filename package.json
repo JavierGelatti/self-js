@@ -1,9 +1,16 @@
 {
   "name": "self-js",
   "version": "1.0.0",
-  "description": "Interfaz de usuario similar a la del lenguaje Self para Javascript",
+  "description": "Interfaz de usuario, similar a la del lenguaje Self, para JavaScript",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
   "author": "Facundo Javier Gelatti",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.4.11"
+  }
 }
