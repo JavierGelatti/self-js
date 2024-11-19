@@ -11,13 +11,13 @@ class Mundo {
         document.body.append(this._elementoCursor);
         this._flechaACursor = null;
     }
-    
+
     pegarseACursor(inspector, offset) {
         inspector.elementoDom().style.transformOrigin = `${offset[0]}px ${offset[1]}px`;
-        this._elementoAgarrado = { elemento: inspector, offset };
+        this._elementoAgarrado = {elemento: inspector, offset};
         this._actualizarPosicionDeElementoAgarrado();
     }
-    
+
     despegarseDeCursor(inspector) {
         inspector.elementoDom().style.transformOrigin = '';
         this._elementoAgarrado = null;
@@ -34,7 +34,7 @@ class Mundo {
                 return true;
             }
         })
-        
+
         this._flechaACursor = new LeaderLine(
             elementoFuente,
             this._elementoCursor,
@@ -63,7 +63,7 @@ class Mundo {
             this._flechaACursor = null;
             document.body.removeEventListener("mouseup", onMouseUp);
             document.body.removeEventListener("mousemove", onMouseMove);
-            
+
             if (elementoEncontrado !== null) {
                 try {
                     callback(elementoEncontrado[Outliner.outlinerFor]);
@@ -103,7 +103,7 @@ class Mundo {
         document.body.addEventListener("mouseup", onMouseUp);
         document.body.addEventListener("mousemove", onMouseMove);
     }
-    
+
     mostrarOutlinerVinculadoA(objeto, outlinerFuente, keyFuente, elementoFuente) {
         const {x, y} = elementoFuente.getBoundingClientRect();
         this.mostarOutlinerDe(objeto, [x + 100, y]);
@@ -152,7 +152,7 @@ class Mundo {
 
         outliner = Outliner.nuevoPara(objeto, this, posicionInicial);
         this._outliners.set(objeto, outliner);
-        
+
         document.body.appendChild(
             outliner.elementoDom()
         );
@@ -190,6 +190,7 @@ class Mundo {
             relacion.outlinerFuente === outliner || relacion.outlinerDestino === outliner,
         );
     }
+
     actualizarOutliners() {
         this._outliners.forEach(outliner => outliner.actualizar());
         this._relaciones.forEach(relacion => this.actualizarRelacion(relacion));
@@ -210,12 +211,12 @@ class Mundo {
             this._flechaACursor.position();
             handled = true;
         }
-        
+
         if (this._elementoAgarrado !== null) {
             this._actualizarPosicionDeElementoAgarrado();
             handled = true;
         }
-        
+
         return handled;
     }
 
@@ -232,7 +233,7 @@ class Mundo {
         relacionesOutliner.forEach(relacion => relacion.flecha.remove());
 
         this._relaciones = this._relaciones.filter(relacion => !relacionesOutliner.includes(relacion));
-        
+
         this._outliners.delete(outliner.objeto());
         outliner.elementoDom().remove();
     }
@@ -240,11 +241,11 @@ class Mundo {
 
 class Colaboracion {
     constructor(receptor, selector, ...nombresColaboradores) {
-        Reflect.defineProperty(this, '_receptor', { enumerable: false, value: receptor, writable: true });
-        Reflect.defineProperty(this, '_selector', { enumerable: false, value: selector, writable: true });
-        
+        Reflect.defineProperty(this, '_receptor', {enumerable: false, value: receptor, writable: true});
+        Reflect.defineProperty(this, '_selector', {enumerable: false, value: selector, writable: true});
+
         for (const nombreColaborador of nombresColaboradores) {
-            this[nombreColaborador] = undefined;   
+            this[nombreColaborador] = undefined;
         }
     }
 
@@ -282,7 +283,7 @@ class Point {
 
 function createPromise() {
     let executor;
-    const promise = new Promise((resolve, reject) => executor = { resolve, reject });
+    const promise = new Promise((resolve, reject) => executor = {resolve, reject});
     executor["promise"] = promise;
     return executor;
 }
@@ -294,7 +295,7 @@ export default function loop() {
             evento.preventDefault();
         }
     });
-    
+
     mundo.mostarOutlinerDe(new Point(1, 2));
     mundo.mostarOutlinerDe(Colaboracion);
     mundo.mostarOutlinerDe(createPromise);

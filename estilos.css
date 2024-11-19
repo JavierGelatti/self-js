@@ -1,148 +1,64 @@
 body {
     background: whitesmoke;
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    margin: 0;
-    max-width: 100vw;
-    max-height: 100vh;
     font-family: sans-serif;
 }
 
-button {
-    cursor: pointer;
-}
-
-.cursor-virtual {
-  background: red;
-  width: 0;
-  height: 0;
-  position: absolute;
-  pointer-events: none;
-  z-index: 999;
-}
-
-.object {
-    background: white;
-    border: 1px solid black;
-    padding: 1em;
-    position: absolute;
-    border-radius: 4px;
-    overflow: hidden;
-    transition-property: transform, box-shadow;
-    transition-duration: .15s;
-    max-width: 800px;
-}
-
-.object.arrastrando {
-    /* transform: scale(1.1); */
-    box-shadow: 2px 2px 15px #00000080;
-}
-
-.object .barra-superior {
-    min-height: 1em;
-    padding: .5em;
-    margin: -1em -1em 0 -1em;
+.draggable {
     cursor: grab;
-    color: white;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    touch-action: none;
 }
 
-.object .barra-superior.error {
-    background: red;
-}
-
-.object .barra-superior.funcion {
-    background: blue;
-}
-
-.object .barra-superior.valor-primitivo {
-    background: #009688;
-}
-
-.object .barra-superior.objeto-comun {
-    background: grey;
-}
-
-.object .barra-superior button {
-  border: 0;
-  border-radius: 2px;
-  opacity: 0.5;
-  transition-property: opacity;
-  transition-duration: .1s;
-}
-
-.object .barra-superior button:hover {
-  opacity: 1;
-}
-
-
-.object.arrastrando .barra-superior {
+.draggable.dragging {
     cursor: grabbing;
 }
 
-.object table {
-    border-collapse: collapse;
-    font-family: monospace;
-    margin: 0.5em auto;
-    width: 100%;
+.outliner {
+    background: white;
+    border: 1px solid black;
+    display: inline-block;
+    border-radius: 4px;
+    /*overflow: hidden;*/
+    /*transition-property: transform, box-shadow;*/
+    /*transition-duration: .15s;*/
+    /*max-width: 800px;*/
+
+    & > [role="heading"] {
+        min-height: 1em;
+        padding: .5em;
+        font-weight: bold;
+        background: red;
+    }
+
+    table {
+        border-collapse: collapse;
+        font-family: monospace;
+        margin: 0.5em auto;
+        width: 100%;
+
+        tr:not(:first-child) {
+            border-top: 1px solid lightgray;
+        }
+
+        td {
+            padding: .3em .5em;
+
+            &:first-child {
+                border-right: 1px dashed darkgray;
+                text-align: right;
+            }
+
+            &:nth-child(2) {
+                max-width: 15em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            &:only-child {
+                text-align: right;
+                border-right: none;
+            }
+        }
+    }
 }
 
-.object td:first-child {
-    border-right: 1px dashed darkgray;
-    text-align: right;
-}
 
-.object td {
-    padding: .3em .5em;
-}
-
-.object td:nth-child(2) {
-    max-width: 15em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.object tr:not(:first-child) {
-    border-top: 1px solid lightgray;
-}
-
-.object td:only-child {
-    text-align: right;
-    border-right: none;
-}
-
-.object input {
-    display: block;
-    width: -webkit-fill-available;
-    margin-top: .5em;
-}
-
-.object input[type="text"] {
-    font-family: monospace;
-}
-
-.object .estereotipo {
-    text-align: center;
-    font-style: italic;
-    margin-top: .5em;
-    color: #2d2d2d;
-}
-
-.temblando {
-    transform-origin: center;
-    animation-composition: accumulate;
-    animation: shake 0.2s;
-    animation-iteration-count: 2;
-}
-
-@keyframes shake {
-  0% { transform: rotate(0deg); box-shadow: 0 0 5px #ff980070; }
-  25% { transform: rotate(-1deg); box-shadow: 0 0 15px #ff980070; }
-  50% { transform: rotate(1deg); box-shadow: 0 0 15px #ff980070; }
-  75% { transform: rotate(0deg); box-shadow: 0 0 5px #ff980070; }
-  100% { transform: rotate(1deg); }
-}
