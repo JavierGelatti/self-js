@@ -1,7 +1,6 @@
-import {deltaBetween, Position, sumOf} from "./position.ts";
-import {clientPositionOf, createElement} from "./dom.ts";
-
-type Selector = string | symbol;
+import {Position, sumOf} from "./position.ts";
+import {createElement, makeDraggable} from "./dom.ts";
+import {Property, Selector} from "./property.ts";
 
 export class Outliner {
     private _inspectedObject: Record<string, unknown>;
@@ -101,77 +100,3 @@ export class Outliner {
     }
 }
 
-function makeDraggable(
-    draggableElement: HTMLElement,
-    { onDragStart, onDrag, onDragEnd }: {
-        onDragStart?: () => void,
-        onDrag?: (cursorPosition: Position, delta: Position) => void,
-        onDragEnd?: () => void,
-    }
-) {
-    draggableElement.classList.add("draggable");
-    draggableElement.addEventListener("pointerdown", (event: PointerEvent) => {
-        onDragStart?.();
-        event.preventDefault();
-        draggableElement.setPointerCapture(event.pointerId);
-        draggableElement.classList.add("dragging");
-
-        const dragEnd = new AbortController();
-
-        let lastPosition: Position = clientPositionOf(event);
-
-        draggableElement.addEventListener("pointermove", (event: PointerEvent) => {
-            const newPosition = clientPositionOf(event);
-            const delta = deltaBetween(lastPosition, newPosition);
-
-            onDrag?.(newPosition, delta);
-
-            lastPosition = newPosition;
-        }, {signal: dragEnd.signal});
-
-        const endDrag = () => {
-            onDragEnd?.();
-            draggableElement.classList.remove("dragging");
-            dragEnd.abort();
-        };
-
-        draggableElement.addEventListener("pointerup", endDrag, {signal: dragEnd.signal});
-        draggableElement.addEventListener("pointercancel", endDrag, {signal: dragEnd.signal});
-    });
-}
-
-class Property {
-    private _key: Selector;
-    private _owner: Record<string, unknown>;
-    private _domElement: HTMLElement;
-    private _propertyValueCell!: HTMLTableCellElement;
-
-    constructor(key: Selector, owner: Record<string, unknown>) {
-        this._key = key;
-        this._owner = owner;
-        this._domElement = this._createDomElement();
-    }
-
-    private _createDomElement() {
-        return createElement("tr", {className: "property"}, [
-            createElement("td", {textContent: String(this._key)}),
-            this._propertyValueCell = createElement("td", {textContent: this._currentValueAsString()}),
-        ]);
-    }
-
-    domElement(): HTMLElement {
-        return this._domElement;
-    }
-
-    update() {
-        if (Reflect.has(this._owner, this._key)) {
-            this._propertyValueCell.textContent = this._currentValueAsString();
-        } else {
-            this._domElement.remove();
-        }
-    }
-
-    private _currentValueAsString = () => {
-        return String(Reflect.get(this._owner, this._key));
-    };
-}
