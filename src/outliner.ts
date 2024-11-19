@@ -15,8 +15,13 @@ export class Outliner {
         this._domElement = this.createDomElement();
         this._moveTo(this._position);
 
-        makeDraggable(this._header, (cursorPosition: Position, delta: Position) => {
-            this._move(delta);
+        makeDraggable(this._header, {
+            onDragStart: () => {
+                this._domElement.classList.add("moving");
+                this._domElement.parentElement?.append(this._domElement);
+            },
+            onDrag: (_, delta) => this._move(delta),
+            onDragEnd: () => this._domElement.classList.remove("moving"),
         });
     }
 
@@ -78,12 +83,21 @@ export class Outliner {
     }
 }
 
-function makeDraggable(draggableElement: HTMLElement, onDrag: (cursorPosition: Position, delta: Position) => void) {
+function makeDraggable(
+    draggableElement: HTMLElement,
+    { onDragStart, onDrag, onDragEnd }: {
+        onDragStart?: () => void,
+        onDrag?: (cursorPosition: Position, delta: Position) => void,
+        onDragEnd?: () => void,
+    }
+) {
     draggableElement.classList.add("draggable");
     draggableElement.addEventListener("pointerdown", (event: PointerEvent) => {
+        onDragStart?.();
         event.preventDefault();
         draggableElement.setPointerCapture(event.pointerId);
         draggableElement.classList.add("dragging");
+
         const dragEnd = new AbortController();
 
         let lastPosition: Position = clientPositionOf(event);
@@ -92,14 +106,18 @@ function makeDraggable(draggableElement: HTMLElement, onDrag: (cursorPosition: P
             const newPosition = clientPositionOf(event);
             const delta = deltaBetween(lastPosition, newPosition);
 
-            onDrag(newPosition, delta);
+            onDrag?.(newPosition, delta);
 
             lastPosition = newPosition;
         }, {signal: dragEnd.signal});
 
-        draggableElement.addEventListener("pointerup", () => {
+        const endDrag = () => {
+            onDragEnd?.();
             draggableElement.classList.remove("dragging");
             dragEnd.abort();
-        }, {signal: dragEnd.signal});
+        };
+
+        draggableElement.addEventListener("pointerup", endDrag, {signal: dragEnd.signal});
+        draggableElement.addEventListener("pointercancel", endDrag, {signal: dragEnd.signal});
     });
 }

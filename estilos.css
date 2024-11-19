@@ -15,12 +15,17 @@ body {
 .outliner {
     background: white;
     border: 1px solid black;
-    display: inline-block;
+    position: absolute;
     border-radius: 4px;
-    /*overflow: hidden;*/
-    /*transition-property: transform, box-shadow;*/
-    /*transition-duration: .15s;*/
-    /*max-width: 800px;*/
+    overflow: hidden;
+    transition-property: transform, box-shadow;
+    transition-duration: .15s;
+    max-width: 800px;
+
+    &.moving {
+        box-shadow: 2px 2px 15px #00000080;
+        z-index: 999;
+    }
 
     & > [role="heading"] {
         min-height: 1em;

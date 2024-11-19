@@ -144,6 +144,18 @@ describe("The world", () => {
             expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 10, y: 20 });
         });
 
+        test("the position of the outliner stops changing if the pointer interaction is cancelled", () => {
+            world.openOutliner({}, point(10, 20));
+
+            const [outlinerDomElement] = outliners();
+
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown",   { x: 5, y: 3 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerCancel", { x: 5, y: 3 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove",   { x: 5 + 4, y: 3 + 2 });
+
+            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 10, y: 20 });
+        });
+
         test("if the dragging doesn't stop, the position of the outliner continues to change even if the pointer moves outside of it", () => {
             world.openOutliner({}, point(10, 20));
 
@@ -182,6 +194,7 @@ describe("The world", () => {
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
 
             expect(headerOf(outlinerDomElement)).toHaveClass("dragging");
+            expect(outlinerDomElement).toHaveClass("moving");
         });
 
         test("the header stops signalling the user when it ended being dragged", () => {
@@ -192,6 +205,17 @@ describe("The world", () => {
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp", { x: 5, y: 3 });
 
             expect(headerOf(outlinerDomElement)).not.toHaveClass("dragging");
+            expect(outlinerDomElement).not.toHaveClass("moving");
+        });
+
+        test("the last picked-up outliner ends up being at the top of the rest", () => {
+            world.openOutliner({}, point(0, 0));
+            world.openOutliner({}, point(20, 20));
+
+            const [firstOutliner, secondOutliner] = outliners();
+            fireMousePointerEventOver(headerOf(firstOutliner), "pointerDown", { x: 5, y: 5 });
+
+            expect(outliners()).toEqual([secondOutliner, firstOutliner]);
         });
     });
 
