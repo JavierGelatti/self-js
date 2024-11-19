@@ -17,4 +17,8 @@ export class World {
         this._domElement.appendChild(outliner.domElement());
         this._outliners.set(anObject, outliner);
     }
+
+    updateOutliners() {
+        this._outliners.forEach(outliner => outliner.update());
+    }
 }

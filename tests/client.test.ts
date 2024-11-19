@@ -86,6 +86,52 @@ describe("The world", () => {
         expect(propertiesOn(outlinerDomElement).length).toEqual(0);
     });
 
+    describe("updates", () => {
+        test("when a property is added to the object", () => {
+            const anObject: Record<string, unknown> = {
+                oldProperty: 0
+            };
+            world.openOutliner(anObject);
+
+            anObject["newProperty"] = 1;
+            world.updateOutliners();
+
+            const [outlinerDomElement] = outliners();
+
+            expect(propertyNamesOn(outlinerDomElement)).toEqual(["oldProperty", "newProperty"]);
+            expect(propertyValueOn("newProperty", outlinerDomElement)).toEqual("1");
+        });
+
+        test("when a property is removed from the object", () => {
+            const anObject: Record<string, unknown> = {
+                oldProperty: 0
+            };
+            world.openOutliner(anObject);
+
+            delete anObject.oldProperty;
+            world.updateOutliners();
+
+            const [outlinerDomElement] = outliners();
+
+            expect(propertiesOn(outlinerDomElement).length).toEqual(0);
+        });
+
+        test("when an existing property is updated", () => {
+            const anObject: Record<string, unknown> = {
+                existingProperty: 0
+            };
+            world.openOutliner(anObject);
+
+            anObject.existingProperty = 1;
+            world.updateOutliners();
+
+            const [outlinerDomElement] = outliners();
+
+            expect(propertiesOn(outlinerDomElement).length).toEqual(1);
+            expect(propertyValueOn("existingProperty", outlinerDomElement)).toEqual("1");
+        });
+    });
+
     describe("movements", () => {
         beforeEach(() => {
             document.body.append(worldDomElement);

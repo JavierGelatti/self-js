@@ -7,6 +7,7 @@ export class Outliner {
     private _domElement: HTMLElement;
     private _internalSlotsSeparator!: HTMLTableRowElement;
     private _header!: HTMLElement;
+    private _properties: Map<string | symbol, HTMLElement> = new Map();
 
     constructor(inspectedObject: Record<string, unknown>, position: Position) {
         this._inspectedObject = inspectedObject;
@@ -38,12 +39,16 @@ export class Outliner {
     }
 
     createDomElement() {
-        const propertyNames = Object.getOwnPropertyNames(this._inspectedObject);
+        const propertyNames = Reflect.ownKeys(this._inspectedObject);
 
         return createElement("div", {className: "outliner"}, [
             this._header = createElement("div", {role: "heading", textContent: "un Object"}),
             createElement("table", {title: "Slots"}, [
-                ...propertyNames.map((propertyName) => this._propertyRow(propertyName, this._inspectedObject)),
+                ...propertyNames.map((propertyName) => {
+                    const propertyRow = this._propertyRow(propertyName, this._inspectedObject);
+                    this._properties.set(propertyName, propertyRow);
+                    return propertyRow;
+                }),
                 this._internalSlotsSeparator = createElement("tr", {}, [
                     createElement("td", {colSpan: 2}, [
                         createElement("button", {
@@ -72,13 +77,34 @@ export class Outliner {
         )
     }
 
-    private _propertyRow(propertyName: string, anObject: Record<string, unknown>) {
+    private _propertyRow(propertyName: string | symbol, anObject: Record<string, unknown>) {
         const propertyValue = String(Reflect.get(anObject, propertyName));
 
         return createElement("tr", {className: "property"}, [
-            createElement("td", {textContent: propertyName}),
+            createElement("td", {textContent: String(propertyName)}),
             createElement("td", {textContent: propertyValue}),
         ]);
+    }
+
+    update() {
+        const currentKeys = Reflect.ownKeys(this._inspectedObject);
+        const newKeys = currentKeys.filter(key => !this._properties.has(key));
+
+        for (const [key, propertyRow] of this._properties.entries()) {
+            if (currentKeys.includes(key)) {
+                propertyRow.querySelectorAll("td")[1].textContent = String(Reflect.get(this._inspectedObject, key));
+            } else {
+                propertyRow.remove();
+                this._properties.delete(key);
+            }
+        }
+
+        newKeys.forEach((newPropertyName) => {
+            this._internalSlotsSeparator.insertAdjacentElement(
+                "beforebegin",
+                this._propertyRow(newPropertyName, this._inspectedObject),
+            )
+        });
     }
 }
 
