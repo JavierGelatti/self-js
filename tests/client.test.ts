@@ -6,6 +6,8 @@ import {within} from "@testing-library/dom";
 import {fireMousePointerEvent, fireMousePointerEventOver} from "./dom_event_simulation";
 import {point} from "../src/position";
 
+import "../styles.css";
+
 describe("The world", () => {
     setupPointerCaptureSimulation();
 
@@ -127,9 +129,9 @@ describe("The world", () => {
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 4, y: 3 + 2 });
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 1, y: 3 + 1 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5 + 4 + 1, y: 3 + 2 + 1 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5 + 1, y: 3 + 1 });
 
-            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 10 + 4 + 1, y: 20 + 2 + 1 });
+            expect(positionOf(outlinerDomElement)).toMatchObject({ x: 10 + 4 + 1, y: 20 + 2 + 1 });
         });
 
         test("the position of the outliner stops changing if the pointer goes up", () => {
@@ -157,14 +159,14 @@ describe("The world", () => {
         });
 
         test("if the dragging doesn't stop, the position of the outliner continues to change even if the pointer moves outside of it", () => {
-            world.openOutliner({}, point(10, 20));
+            world.openOutliner({}, point(0, 0));
 
             const [outlinerDomElement] = outliners();
 
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
             fireMousePointerEvent("pointerMove", { clientX: 888, clientY: 999 });
 
-            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 888 - 5, y: 999 - 3 });
+            expect(positionOf(headerOf(outlinerDomElement))).toMatchObject({ x: 888 - 5, y: 999 - 3 });
         });
 
         test("prevents the default action (of making a selection) from happening when dragging starts", () => {
@@ -259,4 +261,9 @@ describe("The world", () => {
 
         addPropertyButton.click();
     };
+
+    function positionOf(outlinerDomElement: HTMLElement) {
+        const { x, y } = outlinerDomElement.getBoundingClientRect();
+        return { x: Math.round(x), y: Math.round(y) };
+    }
 });

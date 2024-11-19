@@ -24,7 +24,6 @@ body {
 
     &.moving {
         box-shadow: 2px 2px 15px #00000080;
-        z-index: 999;
     }
 
     & > [role="heading"] {
