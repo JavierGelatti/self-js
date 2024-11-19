@@ -58,6 +58,18 @@ button {
         }
     }
 
+    &[data-type="object"] > [role="heading"] {
+        background: grey;
+    }
+
+    &[data-type="error"] > [role="heading"] {
+        background: red;
+    }
+
+    &[data-type="function"] > [role="heading"] {
+        background: blue;
+    }
+
     table {
         border-collapse: collapse;
         font-family: monospace;

@@ -24,6 +24,7 @@ export class Outliner {
         this._inspectedObject = inspectedObject;
         this._position = position;
         this._domElement = this._createDomElement();
+        this._domElement.dataset.type = this.type();
         this._moveTo(this._position);
 
         this._grab = makeDraggable(this._header, {
@@ -34,6 +35,13 @@ export class Outliner {
             onDrag: (_, delta) => this._move(delta),
             onDragEnd: () => this._domElement.classList.remove("moving"),
         });
+    }
+
+    private type() {
+        if (typeof this._inspectedObject === "function") return "function";
+        if (this._inspectedObject instanceof Error) return "error";
+
+        return "object";
     }
 
     inspectedObject() {

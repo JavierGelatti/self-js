@@ -48,6 +48,18 @@ describe("The world", () => {
         expect(outliners()).toEqual([]);
     });
 
+    describe("types of outliners", () => {
+        test("the outliners have different types", () => {
+            expect(typeOfOutlinerOf({})).toEqual("object");
+            expect(typeOfOutlinerOf(function f() {})).toEqual("function");
+            expect(typeOfOutlinerOf(new Error())).toEqual("error");
+        });
+
+        function typeOfOutlinerOf(anObject: {}) {
+            return world.openOutliner(anObject).domElement().dataset.type;
+        }
+    });
+
     describe("title", () => {
         test("the outliner shows the name of the object's prototype", () => {
             class Texto {}
