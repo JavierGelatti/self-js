@@ -34,14 +34,16 @@ export function fireMousePointerEventOver(
 ) {
     const clientLocation = offsetToClientLocation(offsetLocation, target);
 
-    fireMousePointerEvent(eventType, clientLocation);
+    fireMousePointerEvent(eventType, clientLocation, target);
 }
 
 export function fireMousePointerEvent(
     eventType: TestingLibraryPointerEventName,
     clientLocation: { clientX: number, clientY: number },
+    defaultTarget: Element = document.body
 ) {
-    const target = document.elementFromPoint(clientLocation.clientX, clientLocation.clientY) ?? document.body;
+    const elementAtPosition = document.elementFromPoint(clientLocation.clientX, clientLocation.clientY);
+    const target = elementAtPosition === null || elementAtPosition === document.body ? defaultTarget : elementAtPosition;
 
     firePointerEvent(target, eventType, {
         ...clientLocation,

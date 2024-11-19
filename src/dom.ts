@@ -19,7 +19,7 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
     return newElement;
 }
 
-export function clientPositionOf(event: PointerEvent): Position {
+export function clientPositionOf(event: MouseEvent): Position {
     return point(event.clientX, event.clientY);
 }
 
@@ -32,17 +32,15 @@ export function makeDraggable(
     },
 ) {
     draggableElement.classList.add("draggable");
-    draggableElement.addEventListener("pointerdown", (event: PointerEvent) => {
-        if (event.target !== draggableElement) return;
 
+    function grab(pointerId: number, grabPosition: Position) {
         onDragStart?.();
-        event.preventDefault();
-        draggableElement.setPointerCapture(event.pointerId);
+        draggableElement.setPointerCapture(pointerId);
         draggableElement.classList.add("dragging");
 
         const dragEnd = new AbortController();
 
-        let lastPosition: Position = clientPositionOf(event);
+        let lastPosition: Position = grabPosition;
 
         draggableElement.addEventListener("pointermove", (event: PointerEvent) => {
             const newPosition = clientPositionOf(event);
@@ -61,5 +59,14 @@ export function makeDraggable(
 
         draggableElement.addEventListener("pointerup", endDrag, {signal: dragEnd.signal});
         draggableElement.addEventListener("pointercancel", endDrag, {signal: dragEnd.signal});
+    }
+
+    draggableElement.addEventListener("pointerdown", (event: PointerEvent) => {
+        if (event.target !== draggableElement) return;
+
+        event.preventDefault();
+        grab(event.pointerId, clientPositionOf(event));
     });
+
+    return grab;
 }

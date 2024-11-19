@@ -1,5 +1,5 @@
-import {point, Position, sumOf} from "./position.ts";
-import {createElement, makeDraggable} from "./dom.ts";
+import {deltaBetween, point, Position, sumOf} from "./position.ts";
+import {clientPositionOf, createElement, makeDraggable} from "./dom.ts";
 import {Property, Selector} from "./property.ts";
 import {World} from "./world.ts";
 import hljs from "highlight.js/lib/core";
@@ -17,6 +17,7 @@ export class Outliner {
     private _properties: Map<Selector, Property> = new Map();
     private _code!: HTMLElement;
     private _world: World;
+    private _grab: (pointerId: number, grabPosition: Position) => void;
 
     constructor(inspectedObject: Record<string, unknown>, position: Position, world: World) {
         this._world = world;
@@ -25,7 +26,7 @@ export class Outliner {
         this._domElement = this._createDomElement();
         this._moveTo(this._position);
 
-        makeDraggable(this._header, {
+        this._grab = makeDraggable(this._header, {
             onDragStart: () => {
                 this._domElement.classList.add("moving");
                 this._domElement.parentElement?.append(this._domElement);
@@ -37,6 +38,10 @@ export class Outliner {
 
     inspectedObject() {
         return this._inspectedObject;
+    }
+
+    grab(pointerId: number, grabPosition: Position) {
+        this._grab(pointerId, grabPosition);
     }
 
     private _move(delta: Position) {
@@ -100,10 +105,12 @@ export class Outliner {
             createElement("button", {
                 title: "Inspect it",
                 textContent: "Obtener 🫴",
-                onclick: () => {
+                onpointerdown: event => {
                     const inputCode = this._code.textContent;
                     const result = this._evaluate(inputCode);
-                    this._world.openOutliner(result, point(0, 0));
+                    const clickPosition = clientPositionOf(event);
+                    const outliner = this._world.openOutliner(result, sumOf(clickPosition, point(-20, -20)));
+                    outliner.grab(event.pointerId, clickPosition);
                 }
             })
         ]);

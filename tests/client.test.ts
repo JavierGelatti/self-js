@@ -302,6 +302,18 @@ describe("The world", () => {
 
             expect(outlinerDomElement).not.toHaveClass("moving");
         });
+
+        test("when an object is inspected, it's grabbed", () => {
+            const anObject = {};
+            world.openOutliner(anObject);
+            const [outlinerDomElement] = outliners();
+
+            inspectIt(outlinerDomElement, "{ y: 5 }");
+            const [, newOutliner] = outliners();
+            fireMousePointerEventOver(headerOf(newOutliner), "pointerMove", { x: 100, y: 70 });
+
+            expect(positionOf(newOutliner)).toEqual({ x: 151, y: 134 });
+        });
     });
 
     describe("code evaluation", () => {
@@ -311,11 +323,7 @@ describe("The world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            const evaluator = within(outlinerDomElement).getByRole("textbox");
-            fireEvent.input(evaluator, { target: { textContent: "this.x = 2" }});
-
-            const doItButton = within(outlinerDomElement).getByRole("button", { description: "Do it" });
-            doItButton.click();
+            doIt(outlinerDomElement, "this.x = 2");
 
             expect(propertyValueOn("x", outlinerDomElement)).toEqual("2");
         });
@@ -326,11 +334,7 @@ describe("The world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            const evaluator = within(outlinerDomElement).getByRole("textbox");
-            fireEvent.input(evaluator, { target: { textContent: "{ y: 5 }" }});
-
-            const inspectItButton = within(outlinerDomElement).getByRole("button", { description: "Inspect it" });
-            inspectItButton.click();
+            inspectIt(outlinerDomElement, "{ y: 5 }");
 
             const [, newOutliner] = outliners();
             expect(propertyValueOn("y", newOutliner)).toEqual("5");
@@ -394,5 +398,24 @@ describe("The world", () => {
 
     function titleOf(outlinerDomElement: HTMLElement) {
         return headerOf(outlinerDomElement).firstChild?.textContent;
+    }
+
+    function doIt(outlinerDomElement: HTMLElement, code: string) {
+        inputCode(outlinerDomElement, code);
+
+        const doItButton = within(outlinerDomElement).getByRole("button", {description: "Do it"});
+        doItButton.click();
+    }
+
+    function inspectIt(outlinerDomElement: HTMLElement, code: string) {
+        inputCode(outlinerDomElement, code);
+
+        const inspectItButton = within(outlinerDomElement).getByRole("button", {description: "Inspect it"});
+        fireMousePointerEventOver(inspectItButton, "pointerDown", { x: 1, y: 1 });
+    }
+
+    function inputCode(outlinerDomElement: HTMLElement, code: string) {
+        const evaluator = within(outlinerDomElement).getByRole("textbox");
+        fireEvent.input(evaluator, {target: {textContent: code}});
     }
 });
