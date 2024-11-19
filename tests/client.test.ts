@@ -56,7 +56,7 @@ describe("The world", () => {
         });
 
         function typeOfOutlinerOf(anObject: {}) {
-            return world.openOutliner(anObject).domElement().dataset.type;
+            return inspectorType(world.openOutliner(anObject).domElement());
         }
     });
 
@@ -204,6 +204,30 @@ describe("The world", () => {
             world.updateOutliners();
 
             expect(propertyNamesOn(outlinerDomElement)).toEqual(["existingProperty", "newProperty", "yetAnotherNewProperty"]);
+        });
+
+        test("updates the title when it changes", () => {
+            const anObject = {};
+            world.openOutliner(anObject);
+
+            anObject.toString = () => "titulo nuevo";
+            world.updateOutliners();
+
+            const [outlinerDomElement] = outliners();
+
+            expect(titleOf(outlinerDomElement)).toEqual("titulo nuevo");
+        });
+
+        test("updates the type when it changes", () => {
+            const anObject = {};
+            world.openOutliner(anObject);
+
+            Object.setPrototypeOf(anObject, Error.prototype);
+            world.updateOutliners();
+
+            const [outlinerDomElement] = outliners();
+
+            expect(inspectorType(outlinerDomElement)).toEqual("error");
         });
     });
 
@@ -466,5 +490,9 @@ describe("The world", () => {
     function inputCode(outlinerDomElement: HTMLElement, code: string) {
         const evaluator = within(outlinerDomElement).getByRole("textbox");
         fireEvent.input(evaluator, {target: {textContent: code}});
+    }
+
+    function inspectorType(outlinerDomElement: HTMLElement) {
+        return outlinerDomElement.dataset.type;
     }
 });

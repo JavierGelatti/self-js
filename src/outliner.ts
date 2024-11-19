@@ -232,6 +232,17 @@ export class Outliner {
     };
 
     update() {
+        this._refreshTitle();
+        this._refreshType();
+        this._refreshProperties();
+    }
+
+    private _refreshTitle() {
+        const titleNode = this._header.firstChild as Text;
+        titleNode.textContent = this.title();
+    }
+
+    private _refreshProperties() {
         const currentKeys = Reflect.ownKeys(this._inspectedObject);
         const newKeys = currentKeys.filter(key => !this._properties.has(key));
 
@@ -244,6 +255,10 @@ export class Outliner {
         newKeys.forEach((newPropertyName) => {
             this._addProperty(newPropertyName);
         });
+    }
+
+    private _refreshType() {
+        this._domElement.dataset.type = this.type();
     }
 }
 
