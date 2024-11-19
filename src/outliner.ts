@@ -106,7 +106,7 @@ export class Outliner {
                 title: "Do it",
                 textContent: "Hacer 👉",
                 onclick: () => {
-                    const inputCode = this._code.textContent;
+                    const inputCode = this._code.textContent ?? '';
                     this._evaluate(inputCode);
                 }
             }),
@@ -114,7 +114,7 @@ export class Outliner {
                 title: "Inspect it",
                 textContent: "Obtener 🫴",
                 onpointerdown: event => {
-                    const inputCode = this._code.textContent;
+                    const inputCode = this._code.textContent ?? '';
                     const result = this._evaluate(inputCode);
                     const clickPosition = clientPositionOf(event);
                     const outliner = this._world.openOutliner(result, sumOf(clickPosition, point(-20, -20)));
@@ -149,11 +149,13 @@ export class Outliner {
         }
     }
 
-    private _evaluate(codigoIngresado: string | null) {
+    private _evaluate(codigoIngresado: string) {
         try {
             return (function () {
                 return eval(`(${codigoIngresado})`);
             }).bind(this._inspectedObject)();
+        } catch (error) {
+            return error;
         } finally {
             this._world.updateOutliners();
         }

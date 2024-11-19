@@ -413,6 +413,15 @@ describe("The world", () => {
             expect(propertyValueOn("y", newOutliner)).toEqual("5");
             expect(positionOf(newOutliner)).toEqual({ x: 0, y: 0 });
         });
+
+        test("if the inspection of a computation results in an exception, inspect it", () => {
+            const outlinerDomElement = world.openOutliner({}).domElement();
+
+            inspectIt(outlinerDomElement, "this.lala()");
+
+            const [, newOutliner] = outliners();
+            expect(titleOf(newOutliner)).toContain("TypeError");
+        });
     });
 
     function propertyValueOn(propertyName: string, outlinerDomElement: HTMLElement) {
