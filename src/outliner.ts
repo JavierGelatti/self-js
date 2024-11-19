@@ -5,7 +5,6 @@ export class Outliner {
     private _inspectedObject: Record<string, unknown>;
     private _position: Position;
     private _domElement: HTMLElement;
-    private _propertiesTable!: HTMLTableElement;
     private _internalSlotsSeparator!: HTMLTableRowElement;
     private _header!: HTMLElement;
 
@@ -43,7 +42,7 @@ export class Outliner {
 
         return createElement("div", {className: "outliner"}, [
             this._header = createElement("div", {role: "heading", textContent: "un Object"}),
-            this._propertiesTable = createElement("table", {title: "Slots"}, [
+            createElement("table", {title: "Slots"}, [
                 ...propertyNames.map((propertyName) => this._propertyRow(propertyName, this._inspectedObject)),
                 this._internalSlotsSeparator = createElement("tr", {}, [
                     createElement("td", {colSpan: 2}, [
@@ -67,10 +66,10 @@ export class Outliner {
 
         this._inspectedObject[newPropertyName] = undefined;
 
-        this._propertiesTable.insertBefore(
+        this._internalSlotsSeparator.insertAdjacentElement(
+            "beforebegin",
             this._propertyRow(newPropertyName, this._inspectedObject),
-            this._internalSlotsSeparator,
-        );
+        )
     }
 
     private _propertyRow(propertyName: string, anObject: Record<string, unknown>) {
