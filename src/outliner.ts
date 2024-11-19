@@ -61,7 +61,7 @@ export class Outliner {
                     createElement("td", {colSpan: 2}, [
                         createElement("button", {
                             title: "Add property",
-                            textContent: "+ Agregar propiedad",
+                            textContent: "➕ Nueva propiedad",
                             onclick: event => {
                                 const newPropertyName = prompt("Nombre de la propiedad nueva")!;
                                 if (newPropertyName === null) return;
@@ -79,7 +79,7 @@ export class Outliner {
             }),
             createElement("button", {
                 title: "Do it",
-                textContent: "Hacer!",
+                textContent: "Hacer 👉",
                 onclick: () => {
                     const codigoIngresado = this._code.textContent;
 

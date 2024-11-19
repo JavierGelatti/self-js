@@ -3,6 +3,10 @@ body {
     font-family: sans-serif;
 }
 
+button {
+    cursor: pointer;
+}
+
 .draggable {
     cursor: grab;
     touch-action: none;
@@ -21,6 +25,11 @@ body {
     transition-property: transform, box-shadow;
     transition-duration: .15s;
     max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 1em;
 
     &.moving {
         box-shadow: 2px 2px 15px #00000080;
@@ -28,6 +37,7 @@ body {
 
     & > [role="heading"] {
         min-height: 1em;
+        margin: -1em -1em 0;
         padding: .5em;
         font-weight: bold;
         background: red;
@@ -62,6 +72,17 @@ body {
                 border-right: none;
             }
         }
+    }
+
+    pre[role="textbox"] {
+        margin: .5em 1em;
+        border: 1px none gray;
+        border-bottom-style: dashed;
+        border-radius: .5em;
+        padding-left: .5em;
+        padding-right: .5em;
+        font-family: monospace;
+        outline: none;
     }
 }
 
