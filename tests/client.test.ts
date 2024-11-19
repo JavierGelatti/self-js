@@ -290,7 +290,7 @@ describe("The world", () => {
             const [outlinerDomElement] = outliners();
 
             const evaluator = within(outlinerDomElement).getByRole("textbox");
-            fireEvent.change(evaluator, { target: { value: "this.x = 2" }});
+            fireEvent.input(evaluator, { target: { textContent: "this.x = 2" }});
 
             const doItButton = within(outlinerDomElement).getByRole("button", { description: "Do it" });
             doItButton.click();
