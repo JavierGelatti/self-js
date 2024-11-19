@@ -1,4 +1,4 @@
-import {Position, sumOf} from "./position.ts";
+import {point, Position, sumOf} from "./position.ts";
 import {createElement, makeDraggable} from "./dom.ts";
 import {Property, Selector} from "./property.ts";
 import {World} from "./world.ts";
@@ -82,17 +82,29 @@ export class Outliner {
                 textContent: "Hacer 👉",
                 onclick: () => {
                     const codigoIngresado = this._code.textContent;
-
-                    try {
-                        return (function () {
-                            return eval(`(${codigoIngresado})`);
-                        }).bind(this._inspectedObject)();
-                    } finally {
-                        this._world.updateOutliners();
-                    }
+                    this._evaluar(codigoIngresado);
+                }
+            }),
+            createElement("button", {
+                title: "Inspect it",
+                textContent: "Obtener 🫴",
+                onclick: () => {
+                    const codigoIngresado = this._code.textContent;
+                    const resultado = this._evaluar(codigoIngresado);
+                    this._world.openOutliner(resultado, point(0, 0));
                 }
             })
         ]);
+    }
+
+    private _evaluar(codigoIngresado: string | null) {
+        try {
+            return (function () {
+                return eval(`(${codigoIngresado})`);
+            }).bind(this._inspectedObject)();
+        } finally {
+            this._world.updateOutliners();
+        }
     }
 
     private _highlightCode() {

@@ -297,6 +297,23 @@ describe("The world", () => {
 
             expect(propertyValueOn("x", outlinerDomElement)).toEqual("2");
         });
+
+        test("can inspect the result of a computation", () => {
+            const anObject = { x: 1 };
+            world.openOutliner(anObject);
+
+            const [outlinerDomElement] = outliners();
+
+            const evaluator = within(outlinerDomElement).getByRole("textbox");
+            fireEvent.input(evaluator, { target: { textContent: "{ y: 5 }" }});
+
+            const inspectItButton = within(outlinerDomElement).getByRole("button", { description: "Inspect it" });
+            inspectItButton.click();
+
+            const [, newOutliner] = outliners();
+            expect(propertyValueOn("y", newOutliner)).toEqual("5");
+            expect(positionOf(newOutliner)).toEqual({ x: 0, y: 0 });
+        });
     });
 
     function propertyValueOn(propertyName: string, outlinerDomElement: HTMLElement) {
