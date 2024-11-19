@@ -50,13 +50,10 @@ describe("The world", () => {
     test("it's possible to add new properties to objects", () => {
         const anObject = {};
         world.openOutliner(anObject);
-        vi.spyOn(window, 'prompt').mockImplementationOnce(() => "newProperty");
 
         const [outlinerDomElement] = outliners();
 
-        const addPropertyButton = within(outlinerDomElement)
-            .getByRole("button", { name: "Add property" });
-        addPropertyButton.click();
+        addPropertyOn("newProperty", outlinerDomElement);
 
         expect(Reflect.has(anObject, "newProperty")).toBe(true);
         expect(propertyValueOn("newProperty", outlinerDomElement)).toEqual("undefined");
@@ -65,13 +62,10 @@ describe("The world", () => {
     test("does nothing if the newly added property already existed", () => {
         const anObject = { existingProperty: "previousValue" };
         world.openOutliner(anObject);
-        vi.spyOn(window, 'prompt').mockImplementationOnce(() => "existingProperty");
 
         const [outlinerDomElement] = outliners();
 
-        const addPropertyButton = within(outlinerDomElement)
-            .getByRole("button", { name: "Add property" });
-        addPropertyButton.click();
+        addPropertyOn("existingProperty", outlinerDomElement);
 
         expect(anObject.existingProperty).toEqual("previousValue");
         expect(propertyValueOn("existingProperty", outlinerDomElement)).toEqual("previousValue");
@@ -81,13 +75,10 @@ describe("The world", () => {
     test("does nothing if the user cancels the prompt", () => {
         const anObject = {};
         world.openOutliner(anObject);
-        vi.spyOn(window, 'prompt').mockImplementationOnce(() => null);
 
         const [outlinerDomElement] = outliners();
 
-        const addPropertyButton = within(outlinerDomElement)
-            .getByRole("button", { name: "Add property" });
-        addPropertyButton.click();
+        addPropertyOn(null, outlinerDomElement);
 
         expect(Object.keys(anObject)).toEqual([]);
         expect(propertiesOn(outlinerDomElement).length).toEqual(0);
@@ -235,4 +226,13 @@ describe("The world", () => {
     function outliners(): HTMLElement[] {
         return Array.from(worldDomElement.querySelectorAll(".outliner"));
     }
+
+    const addPropertyOn = (newPropertyName: string | null, outlinerDomElement: HTMLElement) => {
+        vi.spyOn(window, "prompt").mockImplementationOnce(() => newPropertyName);
+
+        const addPropertyButton = within(outlinerDomElement)
+            .getByRole("button", {description: "Add property"});
+
+        addPropertyButton.click();
+    };
 });
