@@ -1,6 +1,7 @@
 import {Position, sumOf} from "./position.ts";
 import {createElement, makeDraggable} from "./dom.ts";
 import {Property, Selector} from "./property.ts";
+import {World} from "./world.ts";
 
 export class Outliner {
     private _inspectedObject: Record<string, unknown>;
@@ -9,8 +10,11 @@ export class Outliner {
     private _internalSlotsSeparator!: HTMLTableRowElement;
     private _header!: HTMLElement;
     private _properties: Map<Selector, Property> = new Map();
+    private _code!: HTMLInputElement;
+    private _world: World;
 
-    constructor(inspectedObject: Record<string, unknown>, position: Position) {
+    constructor(inspectedObject: Record<string, unknown>, position: Position, world: World) {
+        this._world = world;
         this._inspectedObject = inspectedObject;
         this._position = position;
         this._domElement = this._createDomElement();
@@ -61,6 +65,22 @@ export class Outliner {
                         }),
                     ]),
                 ]),
+                this._code = createElement("input", { type: "text" }),
+                createElement("button", {
+                    title: "Do it",
+                    textContent: "Hacer!",
+                    onclick: () => {
+                        const codigoIngresado = this._code.value;
+
+                        try {
+                            return (function () {
+                                return eval(`(${codigoIngresado})`);
+                            }).bind(this._inspectedObject)();
+                        } finally {
+                            this._world.updateOutliners();
+                        }
+                    }
+                })
             ]),
         ]);
     }

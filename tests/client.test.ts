@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, test, vi} from "vitest";
 import {setupPointerCaptureSimulation} from "./pointer_capture_simulation";
 import {World} from "../src/world";
 
-import {within} from "@testing-library/dom";
+import {within, fireEvent} from "@testing-library/dom";
 import {fireMousePointerEvent, fireMousePointerEventOver} from "./dom_event_simulation";
 import {point} from "../src/position";
 
@@ -279,6 +279,23 @@ describe("The world", () => {
             fireMousePointerEventOver(headerOf(firstOutliner), "pointerDown", { x: 5, y: 5 });
 
             expect(outliners()).toEqual([secondOutliner, firstOutliner]);
+        });
+    });
+
+    describe("code evaluation", () => {
+        test("the outliners are updated when code is evaluated; this is bound to the inspected object", () => {
+            const anObject = { x: 1 };
+            world.openOutliner(anObject);
+
+            const [outlinerDomElement] = outliners();
+
+            const evaluator = within(outlinerDomElement).getByRole("textbox");
+            fireEvent.change(evaluator, { target: { value: "this.x = 2" }});
+
+            const doItButton = within(outlinerDomElement).getByRole("button", { description: "Do it" });
+            doItButton.click();
+
+            expect(propertyValueOn("x", outlinerDomElement)).toEqual("2");
         });
     });
 
