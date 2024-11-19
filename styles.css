@@ -6,6 +6,8 @@ body {
 button {
     cursor: pointer;
     touch-action: none;
+    padding: 1px 6px;
+    text-align: center;
 }
 
 .draggable {

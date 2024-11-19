@@ -9,10 +9,10 @@ export class World {
         return this._domElement;
     }
 
-    openOutliner(anObject: Record<string, unknown>, position: Position = point(0, 0)) {
+    openOutliner(anObject: unknown, position: Position = point(0, 0)) {
         if (this._outliners.has(anObject)) return this._outliners.get(anObject)!;
 
-        const outliner = new Outliner(anObject, position, this);
+        const outliner = new Outliner(anObject as Record<string, unknown>, position, this);
 
         this._domElement.appendChild(outliner.domElement());
         this._outliners.set(anObject, outliner);

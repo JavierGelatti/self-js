@@ -61,7 +61,7 @@ export class Outliner {
         const propertyNames = Reflect.ownKeys(this._inspectedObject);
 
         return createElement("div", {className: "outliner"}, [
-            this._header = createElement("div", {role: "heading", textContent: "un Object"}, [
+            this._header = createElement("div", {role: "heading", textContent: this.title()}, [
                 createElement("button", {
                     title: "Close",
                     textContent: "X",
@@ -114,6 +114,31 @@ export class Outliner {
                 }
             })
         ]);
+    }
+
+    title() {
+        const defaultString = this._asString(this._inspectedObject);
+
+        if (defaultString !== "[object Object]") return defaultString;
+
+        const inspectedObjectPrototype = Reflect.getPrototypeOf(this._inspectedObject);
+        if (inspectedObjectPrototype === null) return "un objeto";
+
+        return `un ${inspectedObjectPrototype.constructor.name}`;
+    }
+
+    private _asString(value: unknown) {
+        if (typeof value === "function") return `función ${value.name}`;
+        if (value instanceof Array) return `un Array`;
+
+        try {
+            return String(value);
+        } catch (e) {
+            if (e instanceof TypeError) {
+                return Object.prototype.toString.bind(value)();
+            }
+            throw e;
+        }
     }
 
     private _evaluate(codigoIngresado: string | null) {
