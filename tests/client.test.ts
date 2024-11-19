@@ -1,9 +1,10 @@
 import {beforeEach, describe, expect, test, vi} from "vitest";
 import {setupPointerCaptureSimulation} from "./pointer_capture_simulation";
-import {point, World} from "../src/world";
+import {World} from "../src/world";
 
 import {within} from "@testing-library/dom";
 import {fireMousePointerEvent, fireMousePointerEventOver} from "./dom_event_simulation";
+import {point} from "../src/position";
 
 describe("The world", () => {
     setupPointerCaptureSimulation();
