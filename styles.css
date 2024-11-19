@@ -75,14 +75,19 @@ button {
     }
 
     pre[role="textbox"] {
-        margin: .5em 1em;
+        margin: .5em 0;
         border: 1px none gray;
         border-bottom-style: dashed;
-        border-radius: .5em;
-        padding-left: .5em;
         padding-right: .5em;
         font-family: monospace;
         outline: none;
+
+        &::before {
+            content: '>';
+            padding-right: .3em;
+            color: gray;
+            font-weight: bold;
+        }
     }
 }
 
