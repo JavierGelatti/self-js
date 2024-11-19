@@ -35,6 +35,10 @@ export class Outliner {
         });
     }
 
+    inspectedObject() {
+        return this._inspectedObject;
+    }
+
     private _move(delta: Position) {
         this._moveTo(sumOf(this._position, delta));
     }
@@ -52,7 +56,15 @@ export class Outliner {
         const propertyNames = Reflect.ownKeys(this._inspectedObject);
 
         return createElement("div", {className: "outliner"}, [
-            this._header = createElement("div", {role: "heading", textContent: "un Object"}),
+            this._header = createElement("div", {role: "heading", textContent: "un Object"}, [
+                createElement("button", {
+                    title: "Close",
+                    textContent: "X",
+                    onclick: event => {
+                        this._world.closeOutliner(this);
+                    }
+                })
+            ]),
             createElement("table", {title: "Slots"}, [
                 ...propertyNames.map((propertyName) => {
                     return this._newProperty(propertyName).domElement()
@@ -81,23 +93,23 @@ export class Outliner {
                 title: "Do it",
                 textContent: "Hacer 👉",
                 onclick: () => {
-                    const codigoIngresado = this._code.textContent;
-                    this._evaluar(codigoIngresado);
+                    const inputCode = this._code.textContent;
+                    this._evaluate(inputCode);
                 }
             }),
             createElement("button", {
                 title: "Inspect it",
                 textContent: "Obtener 🫴",
                 onclick: () => {
-                    const codigoIngresado = this._code.textContent;
-                    const resultado = this._evaluar(codigoIngresado);
-                    this._world.openOutliner(resultado, point(0, 0));
+                    const inputCode = this._code.textContent;
+                    const result = this._evaluate(inputCode);
+                    this._world.openOutliner(result, point(0, 0));
                 }
             })
         ]);
     }
 
-    private _evaluar(codigoIngresado: string | null) {
+    private _evaluate(codigoIngresado: string | null) {
         try {
             return (function () {
                 return eval(`(${codigoIngresado})`);

@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, test, vi} from "vitest";
 import {setupPointerCaptureSimulation} from "./pointer_capture_simulation";
 import {World} from "../src/world";
 
-import {within, fireEvent} from "@testing-library/dom";
+import {fireEvent, within} from "@testing-library/dom";
 import {fireMousePointerEvent, fireMousePointerEventOver} from "./dom_event_simulation";
 import {point} from "../src/position";
 
@@ -36,54 +36,65 @@ describe("The world", () => {
 
         const [outlinerDomElement] = outliners();
 
-        expect(headerOf(outlinerDomElement).textContent).toEqual("un Object");
+        expect(titleOf(outlinerDomElement)).toEqual("un Object");
     });
 
-    test("the outliner shows the properties of the object", () => {
-        world.openOutliner({ x: 1, y: 2 });
+    test("the outliner can be closed", () => {
+        world.openOutliner({});
 
         const [outlinerDomElement] = outliners();
+        close(outlinerDomElement);
 
-        expect(propertyNamesOn(outlinerDomElement)).toEqual(["x", "y"]);
-        expect(propertyValueOn("x", outlinerDomElement)).toEqual("1");
-        expect(propertyValueOn("y", outlinerDomElement)).toEqual("2");
+        expect(outliners()).toEqual([]);
     });
 
-    test("it's possible to add new properties to objects", () => {
-        const anObject = {};
-        world.openOutliner(anObject);
+    describe("the outliner with respect to the properties", () => {
+        test("shows the properties of the object", () => {
+            world.openOutliner({ x: 1, y: 2 });
 
-        const [outlinerDomElement] = outliners();
+            const [outlinerDomElement] = outliners();
 
-        addPropertyOn("newProperty", outlinerDomElement);
+            expect(propertyNamesOn(outlinerDomElement)).toEqual(["x", "y"]);
+            expect(propertyValueOn("x", outlinerDomElement)).toEqual("1");
+            expect(propertyValueOn("y", outlinerDomElement)).toEqual("2");
+        });
 
-        expect(Reflect.has(anObject, "newProperty")).toBe(true);
-        expect(propertyValueOn("newProperty", outlinerDomElement)).toEqual("undefined");
-    });
+        test("it's possible to add new properties to objects", () => {
+            const anObject = {};
+            world.openOutliner(anObject);
 
-    test("does nothing if the newly added property already existed", () => {
-        const anObject = { existingProperty: "previousValue" };
-        world.openOutliner(anObject);
+            const [outlinerDomElement] = outliners();
 
-        const [outlinerDomElement] = outliners();
+            addPropertyOn("newProperty", outlinerDomElement);
 
-        addPropertyOn("existingProperty", outlinerDomElement);
+            expect(Reflect.has(anObject, "newProperty")).toBe(true);
+            expect(propertyValueOn("newProperty", outlinerDomElement)).toEqual("undefined");
+        });
 
-        expect(anObject.existingProperty).toEqual("previousValue");
-        expect(propertyValueOn("existingProperty", outlinerDomElement)).toEqual("previousValue");
-        expect(propertiesOn(outlinerDomElement).length).toEqual(1);
-    });
+        test("does nothing if the newly added property already existed", () => {
+            const anObject = { existingProperty: "previousValue" };
+            world.openOutliner(anObject);
 
-    test("does nothing if the user cancels the prompt", () => {
-        const anObject = {};
-        world.openOutliner(anObject);
+            const [outlinerDomElement] = outliners();
 
-        const [outlinerDomElement] = outliners();
+            addPropertyOn("existingProperty", outlinerDomElement);
 
-        addPropertyOn(null, outlinerDomElement);
+            expect(anObject.existingProperty).toEqual("previousValue");
+            expect(propertyValueOn("existingProperty", outlinerDomElement)).toEqual("previousValue");
+            expect(propertiesOn(outlinerDomElement).length).toEqual(1);
+        });
 
-        expect(Object.keys(anObject)).toEqual([]);
-        expect(propertiesOn(outlinerDomElement).length).toEqual(0);
+        test("does nothing if the user cancels the prompt", () => {
+            const anObject = {};
+            world.openOutliner(anObject);
+
+            const [outlinerDomElement] = outliners();
+
+            addPropertyOn(null, outlinerDomElement);
+
+            expect(Object.keys(anObject)).toEqual([]);
+            expect(propertiesOn(outlinerDomElement).length).toEqual(0);
+        });
     });
 
     describe("updates", () => {
@@ -280,6 +291,17 @@ describe("The world", () => {
 
             expect(outliners()).toEqual([secondOutliner, firstOutliner]);
         });
+
+        test("does not start dragging if starting from the close button", () => {
+            world.openOutliner({}, point(10, 20));
+
+            const [outlinerDomElement] = outliners();
+
+            fireMousePointerEventOver(closeButtonOf(outlinerDomElement), "pointerDown",   { x: 5, y: 3 });
+            fireMousePointerEventOver(closeButtonOf(outlinerDomElement), "pointerMove", { x: 5, y: 3 });
+
+            expect(outlinerDomElement).not.toHaveClass("moving");
+        });
     });
 
     describe("code evaluation", () => {
@@ -360,5 +382,17 @@ describe("The world", () => {
     function positionOf(outlinerDomElement: HTMLElement) {
         const { x, y } = outlinerDomElement.getBoundingClientRect();
         return { x: Math.round(x), y: Math.round(y) };
+    }
+
+    function closeButtonOf(outlinerDomElement: HTMLElement) {
+        return within(headerOf(outlinerDomElement)).getByRole("button", {description: "Close"});
+    }
+
+    function close(outlinerDomElement: HTMLElement) {
+        closeButtonOf(outlinerDomElement).click();
+    }
+
+    function titleOf(outlinerDomElement: HTMLElement) {
+        return headerOf(outlinerDomElement).firstChild?.textContent;
     }
 });

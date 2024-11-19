@@ -33,6 +33,8 @@ export function makeDraggable(
 ) {
     draggableElement.classList.add("draggable");
     draggableElement.addEventListener("pointerdown", (event: PointerEvent) => {
+        if (event.target !== draggableElement) return;
+
         onDragStart?.();
         event.preventDefault();
         draggableElement.setPointerCapture(event.pointerId);

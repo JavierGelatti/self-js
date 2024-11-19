@@ -25,10 +25,6 @@ button {
     transition-property: transform, box-shadow;
     transition-duration: .15s;
     max-width: 800px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
     padding: 1em;
 
     &.moving {
@@ -41,6 +37,22 @@ button {
         padding: .5em;
         font-weight: bold;
         background: red;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        button {
+            border: 0;
+            border-radius: 2px;
+            opacity: .5;
+            transition-property: opacity;
+            transition-duration: .1s;
+        }
+
+        button:hover {
+            opacity: .8;
+        }
     }
 
     table {

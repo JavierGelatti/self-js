@@ -21,4 +21,9 @@ export class World {
     updateOutliners() {
         this._outliners.forEach(outliner => outliner.update());
     }
+
+    closeOutliner(anOutliner: Outliner) {
+        this._domElement.removeChild(anOutliner.domElement());
+        this._outliners.delete(anOutliner.inspectedObject());
+    }
 }
