@@ -1,18 +1,20 @@
 import {deltaBetween, Position, sumOf} from "./position.ts";
 import {clientPositionOf, createElement} from "./dom.ts";
 
+type Selector = string | symbol;
+
 export class Outliner {
     private _inspectedObject: Record<string, unknown>;
     private _position: Position;
     private _domElement: HTMLElement;
     private _internalSlotsSeparator!: HTMLTableRowElement;
     private _header!: HTMLElement;
-    private _properties: Map<string | symbol, HTMLElement> = new Map();
+    private _properties: Map<Selector, Property> = new Map();
 
     constructor(inspectedObject: Record<string, unknown>, position: Position) {
         this._inspectedObject = inspectedObject;
         this._position = position;
-        this._domElement = this.createDomElement();
+        this._domElement = this._createDomElement();
         this._moveTo(this._position);
 
         makeDraggable(this._header, {
@@ -38,16 +40,14 @@ export class Outliner {
         return this._domElement;
     }
 
-    createDomElement() {
+    private _createDomElement() {
         const propertyNames = Reflect.ownKeys(this._inspectedObject);
 
         return createElement("div", {className: "outliner"}, [
             this._header = createElement("div", {role: "heading", textContent: "un Object"}),
             createElement("table", {title: "Slots"}, [
                 ...propertyNames.map((propertyName) => {
-                    const propertyRow = this._propertyRow(propertyName, this._inspectedObject);
-                    this._properties.set(propertyName, propertyRow);
-                    return propertyRow;
+                    return this._newProperty(propertyName).domElement()
                 }),
                 this._internalSlotsSeparator = createElement("tr", {}, [
                     createElement("td", {colSpan: 2}, [
@@ -57,7 +57,7 @@ export class Outliner {
                             onclick: event => {
                                 const newPropertyName = prompt("Nombre de la propiedad nueva")!;
                                 if (newPropertyName === null) return;
-                                this.addProperty(newPropertyName);
+                                this.createNewProperty(newPropertyName);
                             },
                         }),
                     ]),
@@ -66,44 +66,37 @@ export class Outliner {
         ]);
     }
 
-    private addProperty(newPropertyName: string) {
+    createNewProperty(newPropertyName: string) {
         if (Reflect.has(this._inspectedObject, newPropertyName)) return;
 
         this._inspectedObject[newPropertyName] = undefined;
 
-        this._internalSlotsSeparator.insertAdjacentElement(
-            "beforebegin",
-            this._propertyRow(newPropertyName, this._inspectedObject),
-        )
+        this._addProperty(newPropertyName);
     }
 
-    private _propertyRow(propertyName: string | symbol, anObject: Record<string, unknown>) {
-        const propertyValue = String(Reflect.get(anObject, propertyName));
-
-        return createElement("tr", {className: "property"}, [
-            createElement("td", {textContent: String(propertyName)}),
-            createElement("td", {textContent: propertyValue}),
-        ]);
+    private _addProperty(key: Selector) {
+        const property = this._newProperty(key);
+        this._internalSlotsSeparator.insertAdjacentElement("beforebegin", property.domElement());
     }
+
+    private _newProperty = (key: string | symbol) => {
+        const property = new Property(key, this._inspectedObject);
+        this._properties.set(key, property);
+        return property;
+    };
 
     update() {
         const currentKeys = Reflect.ownKeys(this._inspectedObject);
         const newKeys = currentKeys.filter(key => !this._properties.has(key));
 
-        for (const [key, propertyRow] of this._properties.entries()) {
-            if (currentKeys.includes(key)) {
-                propertyRow.querySelectorAll("td")[1].textContent = String(Reflect.get(this._inspectedObject, key));
-            } else {
-                propertyRow.remove();
-                this._properties.delete(key);
-            }
+        for (const [key, property] of this._properties.entries()) {
+            property.update();
+
+            if (!currentKeys.includes(key)) this._properties.delete(key);
         }
 
         newKeys.forEach((newPropertyName) => {
-            this._internalSlotsSeparator.insertAdjacentElement(
-                "beforebegin",
-                this._propertyRow(newPropertyName, this._inspectedObject),
-            )
+            this._addProperty(newPropertyName);
         });
     }
 }
@@ -145,4 +138,40 @@ function makeDraggable(
         draggableElement.addEventListener("pointerup", endDrag, {signal: dragEnd.signal});
         draggableElement.addEventListener("pointercancel", endDrag, {signal: dragEnd.signal});
     });
+}
+
+class Property {
+    private _key: Selector;
+    private _owner: Record<string, unknown>;
+    private _domElement: HTMLElement;
+    private _propertyValueCell!: HTMLTableCellElement;
+
+    constructor(key: Selector, owner: Record<string, unknown>) {
+        this._key = key;
+        this._owner = owner;
+        this._domElement = this._createDomElement();
+    }
+
+    private _createDomElement() {
+        return createElement("tr", {className: "property"}, [
+            createElement("td", {textContent: String(this._key)}),
+            this._propertyValueCell = createElement("td", {textContent: this._currentValueAsString()}),
+        ]);
+    }
+
+    domElement(): HTMLElement {
+        return this._domElement;
+    }
+
+    update() {
+        if (Reflect.has(this._owner, this._key)) {
+            this._propertyValueCell.textContent = this._currentValueAsString();
+        } else {
+            this._domElement.remove();
+        }
+    }
+
+    private _currentValueAsString = () => {
+        return String(Reflect.get(this._owner, this._key));
+    };
 }

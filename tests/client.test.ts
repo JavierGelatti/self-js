@@ -130,6 +130,21 @@ describe("The world", () => {
             expect(propertiesOn(outlinerDomElement).length).toEqual(1);
             expect(propertyValueOn("existingProperty", outlinerDomElement)).toEqual("1");
         });
+
+        test("repeated updates", () => {
+            const anObject: Record<string, unknown> = {
+                existingProperty: 0
+            };
+            world.openOutliner(anObject);
+            const [outlinerDomElement] = outliners();
+
+            anObject.newProperty = 1;
+            world.updateOutliners();
+            addPropertyOn("yetAnotherNewProperty", outlinerDomElement);
+            world.updateOutliners();
+
+            expect(propertyNamesOn(outlinerDomElement)).toEqual(["existingProperty", "newProperty", "yetAnotherNewProperty"]);
+        });
     });
 
     describe("movements", () => {
