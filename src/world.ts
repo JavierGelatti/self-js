@@ -1,9 +1,10 @@
 import {point, Position} from "./position.ts";
+import {ObjectOutliner} from "./objectOutliner.ts";
 import {Outliner} from "./outliner.ts";
 
 export class World {
     private _domElement: HTMLDivElement = document.createElement('div');
-    private _outliners: Map<unknown, Outliner> = new Map();
+    private _outliners: Map<unknown, Outliner<unknown>> = new Map();
 
     domElement() {
         return this._domElement;
@@ -12,7 +13,7 @@ export class World {
     openOutliner(anObject: unknown, position: Position = point(0, 0)) {
         if (this._outliners.has(anObject)) return this._outliners.get(anObject)!;
 
-        const outliner = new Outliner(anObject as Record<string, unknown>, position, this);
+        const outliner = this._createOutlinerFor(anObject, position);
 
         this._domElement.appendChild(outliner.domElement());
         this._outliners.set(anObject, outliner);
@@ -20,11 +21,19 @@ export class World {
         return outliner;
     }
 
+    private _createOutlinerFor(anObject: unknown, position: Position) {
+        if ((typeof anObject === "object" && anObject !== null) || typeof anObject === "function") {
+            return new ObjectOutliner(anObject as Record<string, unknown>, position, this);
+        } else {
+            throw new Error();
+        }
+    }
+
     updateOutliners() {
         this._outliners.forEach(outliner => outliner.update());
     }
 
-    closeOutliner(anOutliner: Outliner) {
+    closeOutliner(anOutliner: Outliner<unknown>) {
         this._domElement.removeChild(anOutliner.domElement());
         this._outliners.delete(anOutliner.inspectedObject());
     }
