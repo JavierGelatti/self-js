@@ -8,7 +8,7 @@ import "highlight.js/styles/github.css";
 hljs.registerLanguage('javascript', javascript);
 
 export abstract class Outliner<V> {
-    protected _inspectedObject: V;
+    protected _inspectedValue: V;
     protected _position: Position;
     protected _domElement: HTMLElement;
     protected _header!: HTMLElement;
@@ -18,7 +18,7 @@ export abstract class Outliner<V> {
     protected _grab: (pointerId: number, grabPosition: Position) => void;
 
     protected constructor(inspectedObject: V, position: Position, world: World) {
-        this._inspectedObject = inspectedObject;
+        this._inspectedValue = inspectedObject;
         this._world = world;
         this._position = position;
 
@@ -38,7 +38,9 @@ export abstract class Outliner<V> {
 
     abstract type(): string;
 
-    abstract inspectedObject(): Record<string, any>;
+    inspectedValue() {
+        return this._inspectedValue;
+    }
 
     grab(pointerId: number, grabPosition: Position) {
         this._grab(pointerId, grabPosition);
@@ -97,36 +99,13 @@ export abstract class Outliner<V> {
 
     protected abstract _createDomElementContent(): HTMLElement;
 
-    title() {
-        const defaultString = this._asString(this.inspectedObject());
-
-        if (defaultString !== "[object Object]") return defaultString;
-
-        const inspectedObjectPrototype = Reflect.getPrototypeOf(this.inspectedObject());
-        if (inspectedObjectPrototype === null) return "un objeto";
-
-        return `un ${inspectedObjectPrototype.constructor.name}`;
-    }
-
-    private _asString(value: unknown) {
-        if (typeof value === "function") return `función ${value.name}`;
-        if (value instanceof Array) return `un Array`;
-
-        try {
-            return String(value);
-        } catch (e) {
-            if (e instanceof TypeError) {
-                return Object.prototype.toString.bind(value)();
-            }
-            throw e;
-        }
-    }
+    abstract title(): string;
 
     protected _evaluate(codigoIngresado: string) {
         try {
             return (function () {
                 return eval(`(${codigoIngresado})`);
-            }).bind(this.inspectedObject())();
+            }).bind(this._inspectedValue)();
         } catch (error) {
             return error;
         } finally {

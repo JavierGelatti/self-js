@@ -4,24 +4,47 @@ import {World} from "./world.ts";
 import {createElement} from "./dom.ts";
 import {Outliner} from "./outliner.ts";
 
-export class ObjectOutliner extends Outliner<Record<string, unknown>> {
+export type InspectableObject = Record<string | symbol, unknown>;
+
+export class ObjectOutliner extends Outliner<InspectableObject> {
     private _internalSlotsSeparator: Element = this._content.lastElementChild!;
     private _properties: Map<Selector, Property> = new Map();
 
-    constructor(inspectedObject: Record<string, unknown>, position: Position, world: World) {
+    constructor(inspectedObject: InspectableObject, position: Position, world: World) {
         super(inspectedObject, position, world);
 
         this._refreshProperties();
     }
 
     type() {
-        if (typeof this._inspectedObject === "function") return "function";
-        if (this._inspectedObject instanceof Error) return "error";
+        if (typeof this._inspectedValue === "function") return "function";
+        if (this._inspectedValue instanceof Error) return "error";
         return "object";
     }
 
-    inspectedObject() {
-        return this._inspectedObject;
+    override title() {
+        const defaultString = this._asString(this._inspectedValue);
+
+        if (defaultString !== "[object Object]") return defaultString;
+
+        const inspectedObjectPrototype = Reflect.getPrototypeOf(this._inspectedValue);
+        if (inspectedObjectPrototype === null) return "un objeto";
+
+        return `un ${inspectedObjectPrototype.constructor.name}`;
+    }
+
+    private _asString(value: unknown) {
+        if (typeof value === "function") return `función ${value.name}`;
+        if (value instanceof Array) return `un Array`;
+
+        try {
+            return String(value);
+        } catch (e) {
+            if (e instanceof TypeError) {
+                return Object.prototype.toString.bind(value)();
+            }
+            throw e;
+        }
     }
 
     protected override _createDomElementContent() {
@@ -43,9 +66,9 @@ export class ObjectOutliner extends Outliner<Record<string, unknown>> {
     }
 
     createNewProperty(newPropertyName: string) {
-        if (Reflect.has(this._inspectedObject, newPropertyName)) return;
+        if (Reflect.has(this._inspectedValue, newPropertyName)) return;
 
-        this._inspectedObject[newPropertyName] = undefined;
+        this._inspectedValue[newPropertyName] = undefined;
 
         this._addProperty(newPropertyName);
     }
@@ -56,7 +79,7 @@ export class ObjectOutliner extends Outliner<Record<string, unknown>> {
     }
 
     private _newProperty(key: string | symbol) {
-        const property = new Property(key, this._inspectedObject);
+        const property = new Property(key, this._inspectedValue);
         this._properties.set(key, property);
         return property;
     };
@@ -73,7 +96,7 @@ export class ObjectOutliner extends Outliner<Record<string, unknown>> {
     }
 
     private _refreshProperties() {
-        const currentKeys = Reflect.ownKeys(this._inspectedObject);
+        const currentKeys = Reflect.ownKeys(this._inspectedValue);
         const newKeys = currentKeys.filter(key => !this._properties.has(key));
 
         for (const [key, property] of this._properties.entries()) {

@@ -70,6 +70,10 @@ button {
         background: blue;
     }
 
+    &[data-type="primitive"] > [role="heading"] {
+        background: #009688;
+    }
+
     table {
         border-collapse: collapse;
         font-family: monospace;

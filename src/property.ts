@@ -1,14 +1,15 @@
 import {createElement} from "./dom.ts";
+import {InspectableObject} from "./objectOutliner.ts";
 
 export type Selector = string | symbol;
 
 export class Property {
     private _key: Selector;
-    private _owner: Record<string, unknown>;
+    private _owner: InspectableObject;
     private _domElement: HTMLElement;
     private _propertyValueCell!: HTMLTableCellElement;
 
-    constructor(key: Selector, owner: Record<string, unknown>) {
+    constructor(key: Selector, owner: InspectableObject) {
         this._key = key;
         this._owner = owner;
         this._domElement = this._createDomElement();

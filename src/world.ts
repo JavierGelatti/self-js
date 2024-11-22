@@ -1,6 +1,7 @@
 import {point, Position} from "./position.ts";
-import {ObjectOutliner} from "./objectOutliner.ts";
+import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
 import {Outliner} from "./outliner.ts";
+import {Primitive, PrimitiveOutliner} from "./primitiveOutliner.ts";
 
 export class World {
     private _domElement: HTMLDivElement = document.createElement('div');
@@ -23,9 +24,9 @@ export class World {
 
     private _createOutlinerFor(anObject: unknown, position: Position) {
         if ((typeof anObject === "object" && anObject !== null) || typeof anObject === "function") {
-            return new ObjectOutliner(anObject as Record<string, unknown>, position, this);
+            return new ObjectOutliner(anObject as InspectableObject, position, this);
         } else {
-            throw new Error();
+            return new PrimitiveOutliner(anObject as Primitive, position, this);
         }
     }
 
@@ -35,6 +36,6 @@ export class World {
 
     closeOutliner(anOutliner: Outliner<unknown>) {
         this._domElement.removeChild(anOutliner.domElement());
-        this._outliners.delete(anOutliner.inspectedObject());
+        this._outliners.delete(anOutliner.inspectedValue());
     }
 }

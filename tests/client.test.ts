@@ -7,6 +7,7 @@ import {fireMousePointerEvent, fireMousePointerEventOver} from "./dom_event_simu
 import {point} from "../src/position";
 
 import "../styles.css";
+import {InspectableObject} from "../src/objectOutliner";
 
 describe("The world", () => {
     setupPointerCaptureSimulation();
@@ -46,6 +47,16 @@ describe("The world", () => {
         close(outlinerDomElement);
 
         expect(outliners()).toEqual([]);
+    });
+
+    test("can inspect primitive objects", () => {
+        const outliner = world.openOutliner(1);
+
+        expect(outliner.title()).toEqual("1");
+        expect(outliner.type()).toEqual("primitive");
+        expect(propertiesOn(outliner.domElement())).toEqual([]);
+        expect(descriptionOf(outliner.domElement())).toEqual("«primitivo : number»");
+        expect(() => outliner.update()).not.toThrowError();
     });
 
     describe("types of outliners", () => {
@@ -148,7 +159,7 @@ describe("The world", () => {
 
     describe("updates", () => {
         test("when a property is added to the object", () => {
-            const anObject: Record<string, unknown> = {
+            const anObject: InspectableObject = {
                 oldProperty: 0
             };
             world.openOutliner(anObject);
@@ -163,7 +174,7 @@ describe("The world", () => {
         });
 
         test("when a property is removed from the object", () => {
-            const anObject: Record<string, unknown> = {
+            const anObject: InspectableObject = {
                 oldProperty: 0
             };
             world.openOutliner(anObject);
@@ -177,7 +188,7 @@ describe("The world", () => {
         });
 
         test("when an existing property is updated", () => {
-            const anObject: Record<string, unknown> = {
+            const anObject: InspectableObject = {
                 existingProperty: 0
             };
             world.openOutliner(anObject);
@@ -192,7 +203,7 @@ describe("The world", () => {
         });
 
         test("repeated updates", () => {
-            const anObject: Record<string, unknown> = {
+            const anObject: InspectableObject = {
                 existingProperty: 0
             };
             world.openOutliner(anObject);
@@ -440,7 +451,7 @@ describe("The world", () => {
 
     function propertiesOn(outlinerDomElement: HTMLElement) {
         return within(outlinerDomElement)
-            .getAllByRole("row")
+            .queryAllByRole("row", {  })
             .filter(row => row.classList.contains("property"));
     }
 
@@ -503,5 +514,9 @@ describe("The world", () => {
 
     function inspectorType(outlinerDomElement: HTMLElement) {
         return outlinerDomElement.dataset.type;
+    }
+
+    function descriptionOf(outlinerDomElement: HTMLElement) {
+        return within(outlinerDomElement).getByRole("paragraph").textContent;
     }
 });
