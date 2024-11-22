@@ -10,6 +10,10 @@ button {
     text-align: center;
 }
 
+button[disabled] {
+    cursor: default;
+}
+
 .draggable {
     cursor: grab;
     touch-action: none;
@@ -40,7 +44,6 @@ button {
         margin: -1em -1em 0;
         padding: .5em;
         font-weight: bold;
-        background: red;
         color: white;
         display: flex;
         justify-content: space-between;
@@ -118,12 +121,14 @@ button {
         border: 1px none gray;
         border-bottom-style: dashed;
         padding-right: .5em;
+        padding-left: 1em;
         font-family: monospace;
         outline: none;
 
         &::before {
             content: '>';
             padding-right: .3em;
+            margin-left: -1em;
             color: gray;
             font-weight: bold;
         }
