@@ -85,6 +85,8 @@ export abstract class Outliner<V> {
                 textContent: "Obtener 🫴",
                 disabled: true,
                 onpointerdown: event => {
+                    if (this._inspectItButton.disabled) return;
+
                     this._evaluateCodeAndDo(clientPositionOf(event), result => {
                         const clickPosition = clientPositionOf(event);
                         const outliner = this._world.openOutliner(result);
@@ -100,8 +102,6 @@ export abstract class Outliner<V> {
     }
 
     private _evaluateCodeAndDo(currentPosition: Position, action: (result: unknown) => void) {
-        if (this._codeIsBlank()) return;
-
         try {
             action(this._evalExpression(this._currentCode()));
         } catch (error) {
