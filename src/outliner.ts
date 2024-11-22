@@ -46,7 +46,7 @@ export abstract class Outliner<V> {
         this._moveTo(sumOf(this._position, delta));
     }
 
-    protected _moveTo(position: Position) {
+    private _moveTo(position: Position) {
         this._domElement.style.translate = `${position[0]}px ${position[1]}px`;
         this._position = position;
     }
@@ -55,7 +55,7 @@ export abstract class Outliner<V> {
         return this._domElement;
     }
 
-    protected _createDomElement() {
+    private _createDomElement() {
         return createElement("div", {className: "outliner"}, [
             this._header = createElement("div", {role: "heading", textContent: this.title()}, [
                 createElement("button", {
@@ -69,38 +69,44 @@ export abstract class Outliner<V> {
             createElement("button", {
                 title: "Do it",
                 textContent: "Hacer 👉",
-                onclick: () => {
-                    this._evaluate(codeOn(this._codeEditor));
-                }
+                onclick: event => this._evaluateCodeAndDo(clientPositionOf(event), () => { /* nothing */})
             }),
             createElement("button", {
                 title: "Inspect it",
                 textContent: "Obtener 🫴",
                 onpointerdown: event => {
-                    const result = this._evaluate(codeOn(this._codeEditor));
-                    const clickPosition = clientPositionOf(event);
-                    const outliner = this._world.openOutliner(result, sumOf(clickPosition, point(-20, -20)));
-                    outliner.grab(event.pointerId, clickPosition);
+                    this._evaluateCodeAndDo(clientPositionOf(event), result => {
+                        const clickPosition = clientPositionOf(event);
+                        const outliner = this._world.openOutliner(result, sumOf(clickPosition, point(-20, -20)));
+                        outliner.grab(event.pointerId, clickPosition);
+                    });
                 }
             })
         ]);
     }
 
-    protected abstract _createDomElementContent(): HTMLElement;
+    private _evaluateCodeAndDo(currentPosition: Position, action: (result: unknown) => void) {
+        const inputCode = codeOn(this._codeEditor);
+        if (inputCode.trim().length === 0) return;
 
-    abstract title(): string;
-
-    protected _evaluate(codigoIngresado: string) {
         try {
-            return (function () {
-                return eval(`(${codigoIngresado})`);
-            }).bind(this._inspectedValue)();
+            action(this._evalExpression(inputCode));
         } catch (error) {
-            return error;
+            this._world.openOutliner(error, sumOf(currentPosition, point(20, 20)));
         } finally {
             this._world.updateOutliners();
         }
     }
+
+    private _evalExpression(inputCode: string) {
+        return (function () {
+            return eval(`(${inputCode})`);
+        }).bind(this._inspectedValue)();
+    }
+
+    protected abstract _createDomElementContent(): HTMLElement;
+
+    abstract title(): string;
 
     abstract update(): void;
 }

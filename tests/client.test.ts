@@ -478,6 +478,33 @@ describe("The world", () => {
             const [, newOutliner] = outliners();
             expect(titleOf(newOutliner)).toContain("TypeError");
         });
+
+        test("if the input is blank, inspecting does nothing", () => {
+            world.openOutliner({});
+            const [outlinerDomElement] = outliners();
+
+            inspectIt(outlinerDomElement, "   ");
+
+            expect(outliners().length).toEqual(1);
+        });
+
+        test("if evaluating something throws an exception, inspect it", () => {
+            const outlinerDomElement = world.openOutliner({}).domElement();
+
+            doIt(outlinerDomElement, "this.lala()");
+
+            const [, newOutliner] = outliners();
+            expect(titleOf(newOutliner)).toContain("TypeError");
+        });
+
+        test("if the input is blank, evaluating does nothing", () => {
+            world.openOutliner({});
+            const [outlinerDomElement] = outliners();
+
+            doIt(outlinerDomElement, "   ");
+
+            expect(outliners().length).toEqual(1);
+        });
     });
 
     function propertyValueOn(propertyName: string, outlinerDomElement: HTMLElement) {
