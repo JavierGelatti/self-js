@@ -464,6 +464,14 @@ describe("The world", () => {
     });
 
     describe("code evaluation", () => {
+        test("the evaluation buttons are initially disabled", () => {
+            world.openOutliner({});
+            const [outlinerDomElement] = outliners();
+
+            expect(doItButton(outlinerDomElement)).toBeDisabled();
+            expect(inspectItButton(outlinerDomElement)).toBeDisabled();
+        });
+
         test("the outliners are updated when code is evaluated; this is bound to the inspected object", () => {
             const anObject = { x: 1 };
             world.openOutliner(anObject);
@@ -473,6 +481,7 @@ describe("The world", () => {
             doIt(outlinerDomElement, "this.x = 2");
 
             expect(propertyValueOn("x", outlinerDomElement)).toEqual("2");
+            expect(doItButton(outlinerDomElement)).toBeEnabled();
         });
 
         test("can inspect the result of a computation", () => {
@@ -486,6 +495,7 @@ describe("The world", () => {
             const [, newOutliner] = outliners();
             expect(propertyValueOn("y", newOutliner)).toEqual("5");
             expect(positionOf(newOutliner)).toEqual(point(0, 0));
+            expect(inspectItButton(outlinerDomElement)).toBeEnabled();
         });
 
         test("if the inspection of a computation results in an exception, inspect it", () => {
@@ -504,6 +514,7 @@ describe("The world", () => {
             inspectIt(outlinerDomElement, "   ");
 
             expect(outliners().length).toEqual(1);
+            expect(inspectItButton(outlinerDomElement)).toBeDisabled();
         });
 
         test("if evaluating something throws an exception, inspect it", () => {
@@ -522,6 +533,7 @@ describe("The world", () => {
             doIt(outlinerDomElement, "   ");
 
             expect(outliners().length).toEqual(1);
+            expect(doItButton(outlinerDomElement)).toBeDisabled();
         });
     });
 
@@ -583,11 +595,14 @@ describe("The world", () => {
         return headerOf(outlinerDomElement).firstChild?.textContent;
     }
 
+    function doItButton(outlinerDomElement: HTMLElement) {
+        return within(outlinerDomElement).getByRole("button", {description: "Do it"});
+    }
+
     function doIt(outlinerDomElement: HTMLElement, code: string) {
         inputCode(outlinerDomElement, code);
 
-        const doItButton = within(outlinerDomElement).getByRole("button", {description: "Do it"});
-        doItButton.click();
+        doItButton(outlinerDomElement).click();
     }
 
     function inspectItButton(outlinerDomElement: HTMLElement) {

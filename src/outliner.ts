@@ -10,6 +10,8 @@ export abstract class Outliner<V> {
     protected _header!: HTMLElement;
     protected _content!: HTMLElement;
     protected _codeEditor!: CodeEditorElement;
+    private _doItButton!: HTMLButtonElement;
+    private _inspectItButton!: HTMLButtonElement;
     protected _world: World;
     protected _grab: (pointerId: number, grabPosition: Position) => void;
 
@@ -66,16 +68,22 @@ export abstract class Outliner<V> {
                 })
             ]),
             this._content = this._createDomElementContent(),
-            this._codeEditor = createCodeEditorElement(),
-            createElement("button", {
+            this._codeEditor = createCodeEditorElement({
+                onChange: () => {
+                    this._doItButton.disabled = this._inspectItButton.disabled = this._codeIsBlank();
+                }
+            }),
+            this._doItButton = createElement("button", {
                 title: "Do it",
                 textContent: "Hacer 👉",
+                disabled: true,
                 onclick: event => this._evaluateCodeAndDo(clientPositionOf(event), () => { /* nothing */})
             }),
-            createElement("button", {
+            this._inspectItButton = createElement("button", {
                 title: "Inspect it",
                 className: "draggable",
                 textContent: "Obtener 🫴",
+                disabled: true,
                 onpointerdown: event => {
                     this._evaluateCodeAndDo(clientPositionOf(event), result => {
                         const clickPosition = clientPositionOf(event);
@@ -87,17 +95,24 @@ export abstract class Outliner<V> {
         ]);
     }
 
+    private _codeIsBlank() {
+        return this._currentCode().trim().length === 0;
+    }
+
     private _evaluateCodeAndDo(currentPosition: Position, action: (result: unknown) => void) {
-        const inputCode = codeOn(this._codeEditor);
-        if (inputCode.trim().length === 0) return;
+        if (this._codeIsBlank()) return;
 
         try {
-            action(this._evalExpression(inputCode));
+            action(this._evalExpression(this._currentCode()));
         } catch (error) {
             this._world.openOutliner(error, sumOf(currentPosition, point(20, 20)));
         } finally {
             this._world.updateOutliners();
         }
+    }
+
+    private _currentCode() {
+        return codeOn(this._codeEditor);
     }
 
     private _evalExpression(inputCode: string) {

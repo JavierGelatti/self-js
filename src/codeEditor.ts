@@ -7,12 +7,15 @@ hljs.registerLanguage('javascript', javascript);
 
 export type CodeEditorElement = HTMLElement & { __codeElementBrand__: any };
 
-export function createCodeEditorElement() {
+export function createCodeEditorElement(options: { onChange?: () => void } = {}) {
     const codeElement: HTMLElement = createElement("pre", {
         role: "textbox",
         contentEditable: "true",
         className: "javascript",
-        oninput: () => highlightCode(codeElement as CodeEditorElement),
+        oninput: () => {
+            highlightCode(codeElement as CodeEditorElement);
+            options.onChange?.();
+        },
     });
 
     return codeElement as CodeEditorElement;
