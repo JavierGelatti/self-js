@@ -60,7 +60,7 @@ describe("The world", () => {
         expect(outliner.title()).toEqual("1");
         expect(outliner.type()).toEqual("primitive");
         expect(propertiesOn(outliner.domElement())).toEqual([]);
-        expect(descriptionOf(outliner.domElement())).toEqual("«primitivo : number»");
+        expect(stereotypeOf(outliner.domElement())).toEqual("«primitivo : number»");
         expect(() => outliner.update()).not.toThrowError();
     });
 
@@ -561,7 +561,7 @@ describe("The world", () => {
         return outlinerDomElement.dataset.type;
     }
 
-    function descriptionOf(outlinerDomElement: HTMLElement) {
-        return within(outlinerDomElement).getByRole("paragraph").textContent;
+    function stereotypeOf(outlinerDomElement: HTMLElement) {
+        return outlinerDomElement.querySelector(".stereotype")!.textContent;
     }
 });

@@ -11,7 +11,7 @@ export class PrimitiveOutliner extends Outliner<Primitive> {
     }
 
     protected _createDomElementContent(): HTMLElement {
-        return createElement("p", { textContent: `«primitivo : ${typeof this._inspectedValue}»` });
+        return createElement("p", { className: 'stereotype', textContent: `«primitivo : ${typeof this._inspectedValue}»` });
     }
 
     type(): string {

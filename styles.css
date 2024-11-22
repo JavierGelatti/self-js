@@ -75,6 +75,13 @@ button {
         background: #009688;
     }
 
+    &[data-type="primitive"] .stereotype {
+        text-align: center;
+        font-style: italic;
+        margin-top: .5em;
+        color: #2d2d2d;
+    }
+
     table {
         border-collapse: collapse;
         font-family: monospace;
