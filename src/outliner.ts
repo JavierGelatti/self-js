@@ -1,11 +1,7 @@
 import {point, Position, sumOf} from "./position.ts";
 import {clientPositionOf, createElement, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
-import hljs from "highlight.js/lib/core";
-import javascript from "highlight.js/lib/languages/javascript";
-import "highlight.js/styles/github.css";
-
-hljs.registerLanguage('javascript', javascript);
+import {CodeEditorElement, codeOn, createCodeEditorElement} from "./codeEditor.ts";
 
 export abstract class Outliner<V> {
     protected _inspectedValue: V;
@@ -13,7 +9,7 @@ export abstract class Outliner<V> {
     protected _domElement: HTMLElement;
     protected _header!: HTMLElement;
     protected _content!: HTMLElement;
-    protected _code!: HTMLElement;
+    protected _codeEditor!: CodeEditorElement;
     protected _world: World;
     protected _grab: (pointerId: number, grabPosition: Position) => void;
 
@@ -69,26 +65,19 @@ export abstract class Outliner<V> {
                 })
             ]),
             this._content = this._createDomElementContent(),
-            this._code = createElement("pre", {
-                role: "textbox",
-                contentEditable: "true",
-                className: "javascript",
-                oninput: () => this._highlightCode()
-            }),
+            this._codeEditor = createCodeEditorElement(),
             createElement("button", {
                 title: "Do it",
                 textContent: "Hacer 👉",
                 onclick: () => {
-                    const inputCode = this._code.textContent ?? '';
-                    this._evaluate(inputCode);
+                    this._evaluate(codeOn(this._codeEditor));
                 }
             }),
             createElement("button", {
                 title: "Inspect it",
                 textContent: "Obtener 🫴",
                 onpointerdown: event => {
-                    const inputCode = this._code.textContent ?? '';
-                    const result = this._evaluate(inputCode);
+                    const result = this._evaluate(codeOn(this._codeEditor));
                     const clickPosition = clientPositionOf(event);
                     const outliner = this._world.openOutliner(result, sumOf(clickPosition, point(-20, -20)));
                     outliner.grab(event.pointerId, clickPosition);
@@ -111,59 +100,6 @@ export abstract class Outliner<V> {
         } finally {
             this._world.updateOutliners();
         }
-    }
-
-    protected _highlightCode() {
-        const charactersBeforeAnchor = this._getSelectionOffset();
-
-        delete this._code.dataset.highlighted;
-        this._code.textContent = String(this._code.textContent);
-        hljs.highlightElement(this._code);
-
-        this._restoreSelectionFromOffset(charactersBeforeAnchor);
-    }
-
-    private _getSelectionOffset(): number | undefined {
-        const selection = window.getSelection();
-        const anchorNode = selection?.anchorNode;
-        const anchorOffset = selection?.anchorOffset;
-        if (!anchorNode || !anchorOffset) return undefined;
-
-        let charactersBeforeAnchor = anchorOffset;
-        let currentNode = anchorNode.parentElement === this._code ?
-            anchorNode.previousSibling :
-            anchorNode.parentElement!.previousSibling;
-
-        while (currentNode) {
-            charactersBeforeAnchor += currentNode.textContent?.length || 0;
-            currentNode = currentNode.previousSibling;
-        }
-
-        return charactersBeforeAnchor;
-    }
-
-    private _restoreSelectionFromOffset(charactersBeforeAnchor: number | undefined) {
-        if (charactersBeforeAnchor === undefined) return;
-
-        let leftToConsume = charactersBeforeAnchor;
-        let currentNode = this._code.firstChild;
-        while (currentNode) {
-            const nodeTextLength = currentNode.textContent?.length || 0;
-            if (leftToConsume <= nodeTextLength) break;
-            leftToConsume -= nodeTextLength;
-            currentNode = currentNode.nextSibling;
-        }
-
-        if (!(currentNode instanceof Text)) {
-            currentNode = currentNode?.firstChild ?? null;
-        }
-
-        if (currentNode === null) {
-            // Shouldn't happen...
-            return;
-        }
-
-        window.getSelection()?.setBaseAndExtent(currentNode, leftToConsume, currentNode, leftToConsume);
     }
 
     abstract update(): void;
