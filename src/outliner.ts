@@ -74,6 +74,7 @@ export abstract class Outliner<V> {
             }),
             createElement("button", {
                 title: "Inspect it",
+                className: "draggable",
                 textContent: "Obtener 🫴",
                 onpointerdown: event => {
                     this._evaluateCodeAndDo(clientPositionOf(event), result => {
