@@ -39,6 +39,7 @@ export abstract class Outliner<V> {
     }
 
     grab(pointerId: number, grabPosition: Position) {
+        this._moveTo(sumOf(grabPosition, point(-50, -10)));
         this._grab(pointerId, grabPosition);
     }
 
@@ -77,7 +78,7 @@ export abstract class Outliner<V> {
                 onpointerdown: event => {
                     this._evaluateCodeAndDo(clientPositionOf(event), result => {
                         const clickPosition = clientPositionOf(event);
-                        const outliner = this._world.openOutliner(result, sumOf(clickPosition, point(-20, -20)));
+                        const outliner = this._world.openOutliner(result);
                         outliner.grab(event.pointerId, clickPosition);
                     });
                 }

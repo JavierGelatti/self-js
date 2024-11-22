@@ -11,9 +11,12 @@ export function deltaBetween(startPosition: Position, endPosition: Position): Po
     );
 }
 
-export function sumOf(position1: Position, position2: Position): Position {
-    return point(
-        position2[0] + position1[0],
-        position2[1] + position1[1],
-    );
+export function sumOf(...positions: Position[]): Position {
+    let sum = point(0, 0);
+
+    for (const position of positions) {
+        sum = point(sum[0] + position[0], sum[1] + position[1]);
+    }
+
+    return sum;
 }

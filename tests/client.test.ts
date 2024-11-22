@@ -7,9 +7,10 @@ import {
     fireMousePointerEvent,
     fireMousePointerEventOver,
     fireTouchPointerEventOver,
-    firstFinger, secondFinger,
+    firstFinger,
+    secondFinger,
 } from "./dom_event_simulation";
-import {point} from "../src/position";
+import {point, sumOf} from "../src/position";
 
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
@@ -292,7 +293,7 @@ describe("The world", () => {
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 1, y: 3 + 1 });
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5 + 1, y: 3 + 1 });
 
-            expect(positionOf(outlinerDomElement)).toMatchObject({ x: 10 + 4 + 1, y: 20 + 2 + 1 });
+            expect(positionOf(outlinerDomElement)).toEqual(point(10 + 4 + 1, 20 + 2 + 1));
         });
 
         test("the position of the outliner stops changing if the pointer goes up", () => {
@@ -327,7 +328,7 @@ describe("The world", () => {
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
             fireMousePointerEvent("pointerMove", { clientX: 888, clientY: 999 });
 
-            expect(positionOf(headerOf(outlinerDomElement))).toMatchObject({ x: 888 - 5, y: 999 - 3 });
+            expect(positionOf(headerOf(outlinerDomElement))).toEqual(point(888 - 5, 999 - 3));
         });
 
         test("prevents the default action (of making a selection) from happening when dragging starts", () => {
@@ -396,12 +397,29 @@ describe("The world", () => {
             const anObject = {};
             world.openOutliner(anObject);
             const [outlinerDomElement] = outliners();
+            inputCode(outlinerDomElement, "{ y: 5 }");
 
-            inspectIt(outlinerDomElement, "{ y: 5 }");
+            const button = inspectItButton(outlinerDomElement);
+            const buttonPosition = positionOf(button);
+            fireMousePointerEventOver(button, "pointerDown", {x: 1, y: 2});
             const [, newOutliner] = outliners();
-            fireMousePointerEventOver(headerOf(newOutliner), "pointerMove", { x: 100, y: 70 });
+            fireMousePointerEvent("pointerMove", { clientX: buttonPosition[0] + 1 + 3, clientY: buttonPosition[1] + 2 + 4 });
 
-            expect(positionOf(newOutliner)).toEqual({ x: 151, y: 134 });
+            const offset = point(-50, -10);
+            expect(positionOf(newOutliner)).toEqual(sumOf(buttonPosition, offset, point(1, 2), point(3, 4)));
+        });
+
+        test("when an already visible object is inspected, it's grabbed from its header", () => {
+            world.openOutliner(5);
+            const [outlinerDomElement] = outliners();
+            inputCode(outlinerDomElement, "5");
+
+            const button = inspectItButton(outlinerDomElement);
+            const buttonPosition = positionOf(button);
+            fireMousePointerEventOver(button, "pointerDown", {x: 10, y: 12});
+
+            const offset = point(-50, -10);
+            expect(positionOf(outlinerDomElement)).toEqual(sumOf(buttonPosition, point(10, 12), offset));
         });
 
         test("when an outliner is grabbed, it ignores the movements of other pointers", () => {
@@ -414,7 +432,7 @@ describe("The world", () => {
             fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, { x: 5 + 4, y: 3 + 2 });
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 1, y: 1 });
 
-            expect(positionOf(outlinerDomElement)).toMatchObject({ x: 10 + 4, y: 20 + 2 });
+            expect(positionOf(outlinerDomElement)).toEqual(point(10 + 4, 20 + 2));
         });
 
         test("when an outliner is grabbed, it isn't dropped if other pointers are up or cancel the interaction", () => {
@@ -427,7 +445,7 @@ describe("The world", () => {
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerCancel", { x: 5, y: 3 });
             fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, { x: 5 + 4, y: 3 + 2 });
 
-            expect(positionOf(outlinerDomElement)).toMatchObject({ x: 10 + 4, y: 20 + 2 });
+            expect(positionOf(outlinerDomElement)).toEqual(point(10 + 4, 20 + 2));
         });
 
         test("the pointer grabbing the outliner is the last one that starts dragging", () => {
@@ -441,7 +459,7 @@ describe("The world", () => {
             fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, { x: 5 + 4, y: 3 + 2 });
 
             expect(outlinerDomElement).toHaveClass("moving");
-            expect(positionOf(outlinerDomElement)).toMatchObject({ x: 10 + 1, y: 20 + 5 });
+            expect(positionOf(outlinerDomElement)).toEqual(point(10 + 1, 20 + 5));
         });
     });
 
@@ -467,7 +485,7 @@ describe("The world", () => {
 
             const [, newOutliner] = outliners();
             expect(propertyValueOn("y", newOutliner)).toEqual("5");
-            expect(positionOf(newOutliner)).toEqual({ x: 0, y: 0 });
+            expect(positionOf(newOutliner)).toEqual(point(0, 0));
         });
 
         test("if the inspection of a computation results in an exception, inspect it", () => {
@@ -550,7 +568,7 @@ describe("The world", () => {
 
     function positionOf(outlinerDomElement: HTMLElement) {
         const { x, y } = outlinerDomElement.getBoundingClientRect();
-        return { x: Math.round(x), y: Math.round(y) };
+        return point(Math.round(x), Math.round(y));
     }
 
     function closeButtonOf(outlinerDomElement: HTMLElement) {
@@ -572,11 +590,14 @@ describe("The world", () => {
         doItButton.click();
     }
 
+    function inspectItButton(outlinerDomElement: HTMLElement) {
+        return within(outlinerDomElement).getByRole("button", {description: "Inspect it"});
+    }
+
     function inspectIt(outlinerDomElement: HTMLElement, code: string) {
         inputCode(outlinerDomElement, code);
 
-        const inspectItButton = within(outlinerDomElement).getByRole("button", {description: "Inspect it"});
-        fireMousePointerEventOver(inspectItButton, "pointerDown", { x: 1, y: 1 });
+        fireMousePointerEventOver(inspectItButton(outlinerDomElement), "pointerDown", { x: 1, y: 1 });
     }
 
     function inputCode(outlinerDomElement: HTMLElement, code: string) {
