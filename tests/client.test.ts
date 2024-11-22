@@ -268,7 +268,7 @@ describe("The world", () => {
 
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 4, y: 3 + 2 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5 + 4, y: 3 + 2 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5, y: 3 });
 
             expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 10 + 4, y: 20 + 2 });
         });
@@ -291,7 +291,7 @@ describe("The world", () => {
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 4, y: 3 + 2 });
             fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 1, y: 3 + 1 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5 + 1, y: 3 + 1 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5, y: 3 });
 
             expect(positionOf(outlinerDomElement)).toEqual(point(10 + 4 + 1, 20 + 2 + 1));
         });
