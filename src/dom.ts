@@ -43,6 +43,8 @@ export function makeDraggable(
         let lastPosition: Position = grabPosition;
 
         draggableElement.addEventListener("pointermove", (event: PointerEvent) => {
+            if (event.pointerId !== pointerId) return;
+
             const newPosition = clientPositionOf(event);
             const delta = deltaBetween(lastPosition, newPosition);
 
@@ -51,7 +53,9 @@ export function makeDraggable(
             lastPosition = newPosition;
         }, {signal: dragEnd.signal});
 
-        const endDrag = () => {
+        const endDrag = (event: PointerEvent) => {
+            if (event.pointerId !== pointerId) return;
+
             onDragEnd?.();
             draggableElement.classList.remove("dragging");
             dragEnd.abort();
@@ -59,6 +63,7 @@ export function makeDraggable(
 
         draggableElement.addEventListener("pointerup", endDrag, {signal: dragEnd.signal});
         draggableElement.addEventListener("pointercancel", endDrag, {signal: dragEnd.signal});
+        draggableElement.addEventListener("pointerdown", () => { dragEnd.abort() }, {signal: dragEnd.signal});
     }
 
     draggableElement.addEventListener("pointerdown", (event: PointerEvent) => {

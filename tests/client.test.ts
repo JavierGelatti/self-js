@@ -3,7 +3,12 @@ import {setupPointerCaptureSimulation} from "./pointer_capture_simulation";
 import {World} from "../src/world";
 
 import {fireEvent, within} from "@testing-library/dom";
-import {fireMousePointerEvent, fireMousePointerEventOver} from "./dom_event_simulation";
+import {
+    fireMousePointerEvent,
+    fireMousePointerEventOver,
+    fireTouchPointerEventOver,
+    firstFinger, secondFinger,
+} from "./dom_event_simulation";
 import {point} from "../src/position";
 
 import "../styles.css";
@@ -397,6 +402,46 @@ describe("The world", () => {
             fireMousePointerEventOver(headerOf(newOutliner), "pointerMove", { x: 100, y: 70 });
 
             expect(positionOf(newOutliner)).toEqual({ x: 151, y: 134 });
+        });
+
+        test("when an outliner is grabbed, it ignores the movements of other pointers", () => {
+            world.openOutliner({}, point(10, 20));
+
+            const [outlinerDomElement] = outliners();
+
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", firstFinger, { x: 5, y: 3 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", secondFinger, { x: 5, y: 6 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, { x: 5 + 4, y: 3 + 2 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 1, y: 1 });
+
+            expect(positionOf(outlinerDomElement)).toMatchObject({ x: 10 + 4, y: 20 + 2 });
+        });
+
+        test("when an outliner is grabbed, it isn't dropped if other pointers are up or cancel the interaction", () => {
+            world.openOutliner({}, point(10, 20));
+
+            const [outlinerDomElement] = outliners();
+
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", firstFinger, { x: 5, y: 3 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerUp", secondFinger, { x: 5, y: 3 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerCancel", { x: 5, y: 3 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, { x: 5 + 4, y: 3 + 2 });
+
+            expect(positionOf(outlinerDomElement)).toMatchObject({ x: 10 + 4, y: 20 + 2 });
+        });
+
+        test("the pointer grabbing the outliner is the last one that starts dragging", () => {
+            world.openOutliner({}, point(10, 20));
+
+            const [outlinerDomElement] = outliners();
+
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", firstFinger, { x: 5, y: 3 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", secondFinger, { x: 1, y: 2 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", secondFinger, { x: 1 + 1, y: 2 + 5 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, { x: 5 + 4, y: 3 + 2 });
+
+            expect(outlinerDomElement).toHaveClass("moving");
+            expect(positionOf(outlinerDomElement)).toMatchObject({ x: 10 + 1, y: 20 + 5 });
         });
     });
 

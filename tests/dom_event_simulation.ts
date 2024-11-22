@@ -14,16 +14,31 @@ export type TouchPointerId = 3 | 4;
 export const firstFinger: TouchPointerId = 3;
 export const secondFinger: TouchPointerId = 4;
 
-export function fireTouchPointerEvent(
+export function fireTouchPointerEventOver(
     target: Element,
     eventType: TestingLibraryPointerEventName,
-    offsetLocation: Position,
     pointerId: TouchPointerId,
+    offsetLocation: Position,
 ) {
-    firePointerEventWithOffset(target, eventType, offsetLocation, {
+    const clientLocation = offsetToClientLocation(offsetLocation, target);
+
+    fireTouchPointerEvent(eventType, clientLocation, pointerId, target);
+}
+
+export function fireTouchPointerEvent(
+    eventType: TestingLibraryPointerEventName,
+    clientLocation: { clientX: number, clientY: number },
+    pointerId: TouchPointerId,
+    defaultTarget: Element,
+) {
+    const elementAtPosition = document.elementFromPoint(clientLocation.clientX, clientLocation.clientY);
+    const target = elementAtPosition === null || elementAtPosition === document.body ? defaultTarget : elementAtPosition;
+
+    firePointerEvent(target, eventType, {
+        ...clientLocation,
         pointerType: "touch",
         pointerId,
-        primary: pointerId === 3,
+        primary: pointerId === firstFinger,
     });
 }
 
@@ -51,16 +66,6 @@ export function fireMousePointerEvent(
         pointerId: 1,
         primary: true,
     });
-}
-
-function firePointerEventWithOffset(
-    target: Element,
-    eventType: TestingLibraryPointerEventName,
-    offsetLocation: Position,
-    options: { pointerType: "mouse" | "touch", pointerId: number, primary?: boolean },
-) {
-    const clientLocation = offsetToClientLocation(offsetLocation, target);
-    firePointerEvent(target, eventType, {...clientLocation, ...options});
 }
 
 export function firePointerEvent(
