@@ -12,7 +12,11 @@ export class World {
     }
 
     openOutliner(anObject: unknown, position: Position = point(0, 0)) {
-        if (this._outliners.has(anObject)) return this._outliners.get(anObject)!;
+        if (this._outliners.has(anObject)) {
+            const existingOutliner = this._outliners.get(anObject)!;
+            existingOutliner.shake();
+            return existingOutliner;
+        }
 
         const outliner = this._createOutlinerFor(anObject, position);
 

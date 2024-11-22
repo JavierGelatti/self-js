@@ -110,5 +110,12 @@ export abstract class Outliner<V> {
     abstract title(): string;
 
     abstract update(): void;
+
+    shake() {
+        this._domElement.classList.add("shaking");
+        this._domElement.addEventListener("animationend", () => {
+            this._domElement.classList.remove("shaking");
+        }, { once: true });
+    }
 }
 

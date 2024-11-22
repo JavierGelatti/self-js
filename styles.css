@@ -130,4 +130,17 @@ button {
     }
 }
 
+.shaking {
+    transform-origin: center;
+    animation-composition: accumulate;
+    animation: shake 0.2s;
+    animation-iteration-count: 2;
+}
 
+@keyframes shake {
+    0% { transform: rotate(0deg); box-shadow: 0 0 5px #ff980070; }
+    25% { transform: rotate(-1deg); box-shadow: 0 0 15px #ff980070; }
+    50% { transform: rotate(1deg); box-shadow: 0 0 15px #ff980070; }
+    75% { transform: rotate(0deg); box-shadow: 0 0 5px #ff980070; }
+    100% { transform: rotate(1deg); }
+}
