@@ -50,7 +50,7 @@ export abstract class Outliner<V> {
     }
 
     private _moveTo(position: Position) {
-        this._domElement.style.translate = `${position[0]}px ${position[1]}px`;
+        this._domElement.style.translate = `${(position.x)}px ${(position.y)}px`;
         this._position = position;
     }
 

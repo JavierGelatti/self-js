@@ -1,4 +1,4 @@
-import {deltaBetween, point, Position} from "./position.ts";
+import {point, Position} from "./position.ts";
 
 export type PointerEventType
     = 'pointerover'
@@ -46,7 +46,7 @@ export function makeDraggable(
             if (event.pointerId !== pointerId) return;
 
             const newPosition = clientPositionOf(event);
-            const delta = deltaBetween(lastPosition, newPosition);
+            const delta = lastPosition.deltaToReach(newPosition);
 
             onDrag?.(newPosition, delta);
 

@@ -403,7 +403,7 @@ describe("The world", () => {
             const buttonPosition = positionOf(button);
             fireMousePointerEventOver(button, "pointerDown", {x: 1, y: 2});
             const [, newOutliner] = outliners();
-            fireMousePointerEvent("pointerMove", { clientX: buttonPosition[0] + 1 + 3, clientY: buttonPosition[1] + 2 + 4 });
+            fireMousePointerEvent("pointerMove", { clientX: buttonPosition.x + 1 + 3, clientY: buttonPosition.y + 2 + 4 });
 
             const offset = point(-50, -10);
             expect(positionOf(newOutliner)).toEqual(sumOf(buttonPosition, offset, point(1, 2), point(3, 4)));
