@@ -1,7 +1,7 @@
-export type Position = [number, number] & { __positionBrand__: any };
+export type Position = readonly [number, number] & { __positionBrand__: any };
 
 export function point(x: number, y: number) {
-    return [x, y] as Position;
+    return [x, y] as const as Position;
 }
 
 export function deltaBetween(startPosition: Position, endPosition: Position): Position {
