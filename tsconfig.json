@@ -20,5 +20,5 @@
 
     "types": ["@vitest/browser/providers/webdriverio"]
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }
