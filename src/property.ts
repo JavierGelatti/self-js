@@ -4,9 +4,9 @@ import {InspectableObject} from "./objectOutliner.ts";
 export type Selector = string | symbol;
 
 export class Property {
-    private _key: Selector;
-    private _owner: InspectableObject;
-    private _domElement: HTMLElement;
+    private readonly _key: Selector;
+    private readonly _owner: InspectableObject;
+    private readonly _domElement: HTMLElement;
     private _propertyValueCell!: HTMLTableCellElement;
 
     constructor(key: Selector, owner: InspectableObject) {

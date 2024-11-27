@@ -54,7 +54,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
                     createElement("button", {
                         title: "Add property",
                         textContent: "➕ Nueva propiedad",
-                        onclick: event => {
+                        onclick: () => {
                             const newPropertyName = prompt("Nombre de la propiedad nueva")!;
                             if (newPropertyName === null) return;
                             this.createNewProperty(newPropertyName);

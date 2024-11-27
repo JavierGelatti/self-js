@@ -17,7 +17,6 @@
     /* Linting */
     "strict": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
 
     "types": ["@vitest/browser/providers/webdriverio"]
   },
