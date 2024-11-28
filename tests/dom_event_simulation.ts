@@ -1,6 +1,6 @@
 import {createEvent} from "@testing-library/dom";
+import {Position} from "../src/position.ts";
 
-export type Position = { x: number; y: number };
 export type TestingLibraryPointerEventName
     = "pointerOver"
     | "pointerEnter"

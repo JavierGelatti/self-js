@@ -110,7 +110,7 @@ describe("The outliners in the world", () => {
 
     describe("object outliners", () => {
         test("show the properties of the inspected object", () => {
-            world.openOutliner({ x: 1, y: 2 });
+            world.openOutliner(point(1, 2));
 
             const [outlinerDomElement] = outliners();
 
@@ -252,7 +252,7 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 10, y: 20 });
+            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject(point(10, 20));
         });
 
         test("the position of the outliner changes when dragging its header", () => {
@@ -260,11 +260,11 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 4, y: 3 + 2 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5, y: 3 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", point(5, 3));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", point(5 + 4, 3 + 2));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   point(5, 3));
 
-            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 10 + 4, y: 20 + 2 });
+            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject(point(10 + 4, 20 + 2));
         });
 
         test("the position of the outliner does not change if the pointer was never down", () => {
@@ -272,9 +272,9 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 9, y: 5});
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", point(9, 5));
 
-            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 10, y: 20 });
+            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject(point(10, 20));
         });
 
         test("the position of the outliner keeps changing if the pointer keeps moving", () => {
@@ -282,10 +282,10 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 4, y: 3 + 2 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 1, y: 3 + 1 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5, y: 3 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", point(5, 3));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", point(5 + 4, 3 + 2));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", point(5 + 1, 3 + 1));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   point(5, 3));
 
             expect(positionOf(outlinerDomElement)).toEqual(point(10 + 4 + 1, 20 + 2 + 1));
         });
@@ -295,11 +295,11 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   { x: 5, y: 3 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 5 + 4, y: 3 + 2 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", point(5, 3));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp",   point(5, 3));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", point(5 + 4, 3 + 2));
 
-            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 10, y: 20 });
+            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject(point(10, 20));
         });
 
         test("the position of the outliner stops changing if the pointer interaction is cancelled", () => {
@@ -307,11 +307,11 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown",   { x: 5, y: 3 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerCancel", { x: 5, y: 3 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove",   { x: 5 + 4, y: 3 + 2 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown",   point(5, 3));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerCancel", point(5, 3));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove",   point(5 + 4, 3 + 2));
 
-            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject({ x: 10, y: 20 });
+            expect(outlinerDomElement.getBoundingClientRect()).toMatchObject(point(10, 20));
         });
 
         test("if the dragging doesn't stop, the position of the outliner continues to change even if the pointer moves outside of it", () => {
@@ -319,7 +319,7 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", point(5, 3));
             fireMousePointerEvent("pointerMove", { clientX: 888, clientY: 999 });
 
             expect(positionOf(headerOf(outlinerDomElement))).toEqual(point(888 - 5, 999 - 3));
@@ -331,7 +331,7 @@ describe("The outliners in the world", () => {
             worldDomElement.addEventListener("pointerdown", e => event = e)
 
             const [outlinerDomElement] = outliners();
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", point(5, 3));
 
             expect(event!.defaultPrevented).toBe(true);
         });
@@ -349,7 +349,7 @@ describe("The outliners in the world", () => {
             world.openOutliner({}, point(10, 20));
 
             const [outlinerDomElement] = outliners();
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", point(5, 3));
 
             expect(headerOf(outlinerDomElement)).toHaveClass("dragging");
             expect(outlinerDomElement).toHaveClass("moving");
@@ -359,8 +359,8 @@ describe("The outliners in the world", () => {
             world.openOutliner({}, point(10, 20));
 
             const [outlinerDomElement] = outliners();
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", { x: 5, y: 3 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp", { x: 5, y: 3 });
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerDown", point(5, 3));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerUp", point(5, 3));
 
             expect(headerOf(outlinerDomElement)).not.toHaveClass("dragging");
             expect(outlinerDomElement).not.toHaveClass("moving");
@@ -371,7 +371,7 @@ describe("The outliners in the world", () => {
             world.openOutliner({}, point(20, 20));
 
             const [firstOutliner, secondOutliner] = outliners();
-            fireMousePointerEventOver(headerOf(firstOutliner), "pointerDown", { x: 5, y: 5 });
+            fireMousePointerEventOver(headerOf(firstOutliner), "pointerDown", point(5, 5));
 
             expect(outliners()).toEqual([secondOutliner, firstOutliner]);
         });
@@ -381,8 +381,8 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireMousePointerEventOver(closeButtonOf(outlinerDomElement), "pointerDown",   { x: 5, y: 3 });
-            fireMousePointerEventOver(closeButtonOf(outlinerDomElement), "pointerMove", { x: 5, y: 3 });
+            fireMousePointerEventOver(closeButtonOf(outlinerDomElement), "pointerDown",   point(5, 3));
+            fireMousePointerEventOver(closeButtonOf(outlinerDomElement), "pointerMove", point(5, 3));
 
             expect(outlinerDomElement).not.toHaveClass("moving");
         });
@@ -395,7 +395,7 @@ describe("The outliners in the world", () => {
 
             const button = inspectItButton(outlinerDomElement);
             const buttonPosition = positionOf(button);
-            fireMousePointerEventOver(button, "pointerDown", {x: 1, y: 2});
+            fireMousePointerEventOver(button, "pointerDown", point(1, 2));
             const [, newOutliner] = outliners();
             fireMousePointerEvent("pointerMove", { clientX: buttonPosition.x + 1 + 3, clientY: buttonPosition.y + 2 + 4 });
 
@@ -410,7 +410,7 @@ describe("The outliners in the world", () => {
 
             const button = inspectItButton(outlinerDomElement);
             const buttonPosition = positionOf(button);
-            fireMousePointerEventOver(button, "pointerDown", {x: 10, y: 12});
+            fireMousePointerEventOver(button, "pointerDown", point(10, 12));
 
             const offset = point(-50, -10);
             expect(positionOf(outlinerDomElement)).toEqual(sumOf(buttonPosition, point(10, 12), offset));
@@ -421,10 +421,10 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", firstFinger, { x: 5, y: 3 });
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", secondFinger, { x: 5, y: 6 });
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, { x: 5 + 4, y: 3 + 2 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", { x: 1, y: 1 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", firstFinger, point(5, 3));
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", secondFinger, point(5, 6));
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, point(5 + 4, 3 + 2));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerMove", point(1, 1));
 
             expect(positionOf(outlinerDomElement)).toEqual(point(10 + 4, 20 + 2));
         });
@@ -434,10 +434,10 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", firstFinger, { x: 5, y: 3 });
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerUp", secondFinger, { x: 5, y: 3 });
-            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerCancel", { x: 5, y: 3 });
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, { x: 5 + 4, y: 3 + 2 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", firstFinger, point(5, 3));
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerUp", secondFinger, point(5, 3));
+            fireMousePointerEventOver(headerOf(outlinerDomElement), "pointerCancel", point(5, 3));
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, point(5 + 4, 3 + 2));
 
             expect(positionOf(outlinerDomElement)).toEqual(point(10 + 4, 20 + 2));
         });
@@ -447,10 +447,10 @@ describe("The outliners in the world", () => {
 
             const [outlinerDomElement] = outliners();
 
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", firstFinger, { x: 5, y: 3 });
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", secondFinger, { x: 1, y: 2 });
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", secondFinger, { x: 1 + 1, y: 2 + 5 });
-            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, { x: 5 + 4, y: 3 + 2 });
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", firstFinger, point(5, 3));
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerDown", secondFinger, point(1, 2));
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", secondFinger, point(1 + 1, 2 + 5));
+            fireTouchPointerEventOver(headerOf(outlinerDomElement), "pointerMove", firstFinger, point(5 + 4, 3 + 2));
 
             expect(outlinerDomElement).toHaveClass("moving");
             expect(positionOf(outlinerDomElement)).toEqual(point(10 + 1, 20 + 5));
@@ -606,7 +606,7 @@ describe("The outliners in the world", () => {
     function inspectIt(outlinerDomElement: HTMLElement, code: string) {
         inputCode(outlinerDomElement, code);
 
-        fireMousePointerEventOver(inspectItButton(outlinerDomElement), "pointerDown", { x: 1, y: 1 });
+        fireMousePointerEventOver(inspectItButton(outlinerDomElement), "pointerDown", point(1, 1));
     }
 
     function inputCode(outlinerDomElement: HTMLElement, code: string) {
