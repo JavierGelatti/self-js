@@ -73,28 +73,28 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor({ x: 1, y: 2 });
 
             expect(outlinerElement.propertyNames()).toEqual(["x", "y"]);
-            expect(outlinerElement.propertyValueOn("x")).toEqual("1");
-            expect(outlinerElement.propertyValueOn("y")).toEqual("2");
+            expect(outlinerElement.valueOfProperty("x")).toEqual("1");
+            expect(outlinerElement.valueOfProperty("y")).toEqual("2");
         });
 
         test("can add new properties to the inspected object", () => {
             const anObject = {};
             const outlinerElement = openOutlinerFor(anObject);
 
-            outlinerElement.addPropertyOn("newProperty");
+            outlinerElement.createNewProperty("newProperty");
 
             expect(Reflect.has(anObject, "newProperty")).toBe(true);
-            expect(outlinerElement.propertyValueOn("newProperty")).toEqual("undefined");
+            expect(outlinerElement.valueOfProperty("newProperty")).toEqual("undefined");
         });
 
         test("if the newly added property already existed, nothing is changed", () => {
             const anObject = { existingProperty: "previousValue" };
             const outlinerElement = openOutlinerFor(anObject);
 
-            outlinerElement.addPropertyOn("existingProperty");
+            outlinerElement.createNewProperty("existingProperty");
 
             expect(anObject.existingProperty).toEqual("previousValue");
-            expect(outlinerElement.propertyValueOn("existingProperty")).toEqual("previousValue");
+            expect(outlinerElement.valueOfProperty("existingProperty")).toEqual("previousValue");
             expect(outlinerElement.numberOfProperties()).toEqual(1);
         });
 
@@ -102,7 +102,7 @@ describe("The outliners in the world", () => {
             const anObject = {};
             const outlinerElement = openOutlinerFor(anObject);
 
-            outlinerElement.addPropertyOn(null);
+            outlinerElement.createNewProperty(null);
 
             expect(Object.keys(anObject)).toEqual([]);
             expect(outlinerElement.numberOfProperties()).toEqual(0);
@@ -120,7 +120,7 @@ describe("The outliners in the world", () => {
             updateOutliners();
 
             expect(outlinerElement.propertyNames()).toEqual(["oldProperty", "newProperty"]);
-            expect(outlinerElement.propertyValueOn("newProperty")).toEqual("1");
+            expect(outlinerElement.valueOfProperty("newProperty")).toEqual("1");
         });
 
         test("when a property is removed from the object", () => {
@@ -145,7 +145,7 @@ describe("The outliners in the world", () => {
             updateOutliners();
 
             expect(outlinerElement.numberOfProperties()).toEqual(1);
-            expect(outlinerElement.propertyValueOn("existingProperty")).toEqual("1");
+            expect(outlinerElement.valueOfProperty("existingProperty")).toEqual("1");
         });
 
         test("repeated updates", () => {
@@ -156,7 +156,7 @@ describe("The outliners in the world", () => {
 
             anObject.newProperty = 1;
             updateOutliners();
-            outlinerElement.addPropertyOn("yetAnotherNewProperty");
+            outlinerElement.createNewProperty("yetAnotherNewProperty");
             updateOutliners();
 
             expect(outlinerElement.propertyNames()).toEqual(["existingProperty", "newProperty", "yetAnotherNewProperty"]);
@@ -400,7 +400,7 @@ describe("The outliners in the world", () => {
 
             outlinerElement.doIt("this.x = 2");
 
-            expect(outlinerElement.propertyValueOn("x")).toEqual("2");
+            expect(outlinerElement.valueOfProperty("x")).toEqual("2");
         });
 
         test("can inspect the result of a computation", () => {
@@ -410,7 +410,7 @@ describe("The outliners in the world", () => {
             outlinerElement.inspectIt("{ y: 5 }");
 
             const newOutliner = lastOutliner();
-            expect(newOutliner.propertyValueOn("y")).toEqual("5");
+            expect(newOutliner.valueOfProperty("y")).toEqual("5");
             expect(newOutliner.position()).toEqual(point(0, 0));
         });
 

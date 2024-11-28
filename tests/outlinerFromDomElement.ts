@@ -11,7 +11,37 @@ export class OutlinerFromDomElement {
         this._domElement = domElement;
     }
 
-    propertyValueOn(propertyName: string) {
+    type() {
+        return this._domElement.dataset.type;
+    }
+
+    title() {
+        return this.header().firstChild?.textContent;
+    }
+
+    stereotype() {
+        return this._domElement.querySelector(".stereotype")!.textContent;
+    }
+
+    header() {
+        return within(this._domElement).getByRole("heading");
+    }
+
+    createNewProperty(newPropertyName: string | null) {
+        vi.spyOn(window, "prompt").mockImplementationOnce(() => newPropertyName);
+
+        const addPropertyButton = within(this._domElement)
+            .getByRole("button", {description: "Add property"});
+
+        addPropertyButton.click();
+    };
+
+    propertyNames() {
+        return this._propertyRows()
+            .map(row => this._propertyNameOn(row));
+    }
+
+    valueOfProperty(propertyName: string) {
         const propertyRow = this._propertyRows()
             .find(row => this._propertyNameOn(row) === propertyName);
 
@@ -20,9 +50,12 @@ export class OutlinerFromDomElement {
         return within(propertyRow).getAllByRole("cell")[1].textContent;
     }
 
-    propertyNames() {
-        return this._propertyRows()
-            .map(row => this._propertyNameOn(row));
+    private _propertyNameOn(row: HTMLElement) {
+        return within(row).getAllByRole("cell")[0].textContent ?? "";
+    }
+
+    numberOfProperties() {
+        return this._propertyRows().length;
     }
 
     private _propertyRows() {
@@ -30,27 +63,6 @@ export class OutlinerFromDomElement {
             .queryAllByRole("row", {})
             .filter(row => row.classList.contains("property"));
     }
-
-    numberOfProperties() {
-        return this._propertyRows().length;
-    }
-
-    private _propertyNameOn(row: HTMLElement) {
-        return within(row).getAllByRole("cell")[0].textContent ?? "";
-    }
-
-    header() {
-        return within(this._domElement).getByRole("heading");
-    }
-
-    addPropertyOn(newPropertyName: string | null) {
-        vi.spyOn(window, "prompt").mockImplementationOnce(() => newPropertyName);
-
-        const addPropertyButton = within(this._domElement)
-            .getByRole("button", {description: "Add property"});
-
-        addPropertyButton.click();
-    };
 
     position() {
         return positionOfDomElement(this._domElement).map(Math.round);
@@ -62,10 +74,6 @@ export class OutlinerFromDomElement {
 
     close() {
         this.closeButton().click();
-    }
-
-    title() {
-        return this.header().firstChild?.textContent;
     }
 
     private _doItButton(): HTMLButtonElement {
@@ -99,14 +107,6 @@ export class OutlinerFromDomElement {
     inputCode(code: string) {
         const evaluator = within(this._domElement).getByRole("textbox");
         fireEvent.input(evaluator, {target: {textContent: code}});
-    }
-
-    type() {
-        return this._domElement.dataset.type;
-    }
-
-    stereotype() {
-        return this._domElement.querySelector(".stereotype")!.textContent;
     }
 
     isMoving() {
