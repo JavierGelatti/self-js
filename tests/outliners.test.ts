@@ -15,7 +15,7 @@ import {point, sumOf} from "../src/position";
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
 
-describe("The world", () => {
+describe("The outliners in the world", () => {
     setupPointerCaptureSimulation();
 
     let world: World;
@@ -28,7 +28,7 @@ describe("The world", () => {
         worldDomElement = world.domElement();
     });
 
-    test("opens one outliner per object", () => {
+    test("are opened once per object", () => {
         const anObject = {};
         const anotherObject = {};
         world.openOutliner(anObject);
@@ -38,7 +38,7 @@ describe("The world", () => {
         expect(outliners().length).toEqual(2);
     });
 
-    test("the outliner shows a title for the object", () => {
+    test("show a title for the object", () => {
         world.openOutliner({});
 
         const [outlinerDomElement] = outliners();
@@ -46,7 +46,7 @@ describe("The world", () => {
         expect(titleOf(outlinerDomElement)).toEqual("un Object");
     });
 
-    test("the outliner can be closed", () => {
+    test("can be closed", () => {
         world.openOutliner({});
 
         const [outlinerDomElement] = outliners();
@@ -65,33 +65,27 @@ describe("The world", () => {
         expect(() => outliner.update()).not.toThrowError();
     });
 
-    describe("types of outliners", () => {
-        test("the outliners have different types", () => {
-            expect(typeOfOutlinerOf({})).toEqual("object");
-            expect(typeOfOutlinerOf(function f() {})).toEqual("function");
-            expect(typeOfOutlinerOf(new Error())).toEqual("error");
-        });
-
-        function typeOfOutlinerOf(anObject: {}) {
-            return inspectorType(world.openOutliner(anObject).domElement());
-        }
+    test("have different types", () => {
+        expect(typeOfOutlinerOf({})).toEqual("object");
+        expect(typeOfOutlinerOf(function f() {})).toEqual("function");
+        expect(typeOfOutlinerOf(new Error())).toEqual("error");
     });
 
-    describe("title", () => {
-        test("the outliner shows the name of the object's prototype", () => {
+    describe("titles", () => {
+        test("show the name of the object's prototype", () => {
             class Texto {}
 
             expect(world.openOutliner({}).title()).toEqual("un Object");
             expect(world.openOutliner(new Texto()).title()).toEqual("un Texto");
         });
 
-        test("the outliner shows a default text if the object's prototype is null", () => {
+        test("show a default text if the object's prototype is null", () => {
             const anObject = { __proto__: null };
 
             expect(world.openOutliner(anObject).title()).toEqual("un objeto");
         });
 
-        test("the outliner shows custom string representations as title", () => {
+        test("show custom string representations as title", () => {
             const aNamedObject = { toString() { return "soy especial"; }};
             const aDate = new Date(2024, 0, 31, 0, 0, 0, 0);
 
@@ -99,23 +93,23 @@ describe("The world", () => {
             expect(world.openOutliner(aDate).title()).toContain("Wed Jan 31 2024 00:00:00");
         });
 
-        test("the outliner shows the default representation when it fails to obtain a custom one", () => {
+        test("show the default representation when it fails to obtain a custom one", () => {
             expect(world.openOutliner(Date.prototype).title()).toEqual("un Object");
         });
 
-        test("the outliner shows a special title for functions", () => {
+        test("show a special title for functions", () => {
             function f() {}
 
             expect(world.openOutliner(f).title()).toEqual("función f");
         });
 
-        test("the outliner shows a special title for arrays", () => {
+        test("show a special title for arrays", () => {
             expect(world.openOutliner([1, 2, 3]).title()).toEqual("un Array");
         });
     });
 
-    describe("the outliner with respect to the properties", () => {
-        test("shows the properties of the object", () => {
+    describe("object outliners", () => {
+        test("show the properties of the inspected object", () => {
             world.openOutliner({ x: 1, y: 2 });
 
             const [outlinerDomElement] = outliners();
@@ -125,7 +119,7 @@ describe("The world", () => {
             expect(propertyValueOn("y", outlinerDomElement)).toEqual("2");
         });
 
-        test("it's possible to add new properties to objects", () => {
+        test("can add new properties to the inspected object", () => {
             const anObject = {};
             world.openOutliner(anObject);
 
@@ -137,7 +131,7 @@ describe("The world", () => {
             expect(propertyValueOn("newProperty", outlinerDomElement)).toEqual("undefined");
         });
 
-        test("does nothing if the newly added property already existed", () => {
+        test("if the newly added property already existed, nothing is changed", () => {
             const anObject = { existingProperty: "previousValue" };
             world.openOutliner(anObject);
 
@@ -150,7 +144,7 @@ describe("The world", () => {
             expect(propertiesOn(outlinerDomElement).length).toEqual(1);
         });
 
-        test("does nothing if the user cancels the prompt", () => {
+        test("if the user cancels the prompt, nothing is changed", () => {
             const anObject = {};
             world.openOutliner(anObject);
 
@@ -626,5 +620,9 @@ describe("The world", () => {
 
     function stereotypeOf(outlinerDomElement: HTMLElement) {
         return outlinerDomElement.querySelector(".stereotype")!.textContent;
+    }
+
+    function typeOfOutlinerOf(anObject: unknown) {
+        return inspectorType(world.openOutliner(anObject).domElement());
     }
 });
