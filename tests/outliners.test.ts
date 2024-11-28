@@ -61,7 +61,7 @@ describe("The outliners in the world", () => {
 
         expect(outliner.title()).toEqual("1");
         expect(outliner.type()).toEqual("primitive");
-        expect(outlinerElement.properties()).toEqual([]);
+        expect(outlinerElement.numberOfProperties()).toEqual(0);
         expect(outlinerElement.stereotype()).toEqual("«primitivo : number»");
         expect(() => outliner.update()).not.toThrowError();
     });
@@ -142,7 +142,7 @@ describe("The outliners in the world", () => {
 
             expect(anObject.existingProperty).toEqual("previousValue");
             expect(outlinerElement.propertyValueOn("existingProperty")).toEqual("previousValue");
-            expect(outlinerElement.properties().length).toEqual(1);
+            expect(outlinerElement.numberOfProperties()).toEqual(1);
         });
 
         test("if the user cancels the prompt, nothing is changed", () => {
@@ -154,7 +154,7 @@ describe("The outliners in the world", () => {
             outlinerElement.addPropertyOn(null);
 
             expect(Object.keys(anObject)).toEqual([]);
-            expect(outlinerElement.properties().length).toEqual(0);
+            expect(outlinerElement.numberOfProperties()).toEqual(0);
         });
     });
 
@@ -185,7 +185,7 @@ describe("The outliners in the world", () => {
 
             const [outlinerElement] = outliners();
 
-            expect(outlinerElement.properties().length).toEqual(0);
+            expect(outlinerElement.numberOfProperties()).toEqual(0);
         });
 
         test("when an existing property is updated", () => {
@@ -199,7 +199,7 @@ describe("The outliners in the world", () => {
 
             const [outlinerElement] = outliners();
 
-            expect(outlinerElement.properties().length).toEqual(1);
+            expect(outlinerElement.numberOfProperties()).toEqual(1);
             expect(outlinerElement.propertyValueOn("existingProperty")).toEqual("1");
         });
 

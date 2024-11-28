@@ -12,7 +12,7 @@ export class OutlinerElement {
     }
 
     propertyValueOn(propertyName: string) {
-        const propertyRow = this.properties()
+        const propertyRow = this._propertyRows()
             .find(row => this._propertyNameOn(row) === propertyName);
 
         if (propertyRow === undefined) throw new Error(`Cannot find property '${propertyName}' on outliner`);
@@ -21,14 +21,18 @@ export class OutlinerElement {
     }
 
     propertyNames() {
-        return this.properties()
+        return this._propertyRows()
             .map(row => this._propertyNameOn(row));
     }
 
-    properties() {
+    private _propertyRows() {
         return within(this._domElement)
             .queryAllByRole("row", {})
             .filter(row => row.classList.contains("property"));
+    }
+
+    numberOfProperties() {
+        return this._propertyRows().length;
     }
 
     private _propertyNameOn(row: HTMLElement) {
