@@ -35,7 +35,7 @@ describe("The outliners in the world", () => {
         openOutlinerFor(anotherObject);
         openOutlinerFor(anObject);
 
-        expect(openOutliners().length).toEqual(2);
+        expect(numberOfOpenOutliners()).toEqual(2);
     });
 
     test("show a title for the object", () => {
@@ -49,7 +49,7 @@ describe("The outliners in the world", () => {
 
         outlinerElement.close();
 
-        expect(openOutliners()).toEqual([]);
+        expect(numberOfOpenOutliners()).toEqual(0);
     });
 
     test("can inspect primitive objects", () => {
@@ -314,7 +314,7 @@ describe("The outliners in the world", () => {
             const button = outlinerElement.inspectItButton();
             const buttonPosition = positionOf(button);
             fireMousePointerEventOver(button, "pointerDown", point(1, 2));
-            const [, newOutliner] = openOutliners();
+            const newOutliner = lastOutliner();
             fireMousePointerEvent("pointerMove", asClientLocation(buttonPosition.plus(point(1, 2)).plus(point(3, 4))));
 
             const offset = point(-50, -10);
@@ -409,7 +409,7 @@ describe("The outliners in the world", () => {
 
             outlinerElement.inspectIt("{ y: 5 }");
 
-            const [, newOutliner] = openOutliners();
+            const newOutliner = lastOutliner();
             expect(newOutliner.propertyValueOn("y")).toEqual("5");
             expect(newOutliner.position()).toEqual(point(0, 0));
         });
@@ -419,7 +419,7 @@ describe("The outliners in the world", () => {
 
             outlinerElement.inspectIt("this.lala()");
 
-            const [, newOutliner] = openOutliners();
+            const newOutliner = lastOutliner();
             expect(newOutliner.title()).toContain("TypeError");
         });
 
@@ -428,7 +428,7 @@ describe("The outliners in the world", () => {
 
             outlinerElement.inspectIt("   ");
 
-            expect(openOutliners().length).toEqual(1);
+            expect(numberOfOpenOutliners()).toEqual(1);
         });
 
         test("if evaluating something throws an exception, inspect it", () => {
@@ -436,7 +436,7 @@ describe("The outliners in the world", () => {
 
             outlinerElement.doIt("this.lala()");
 
-            const [, newOutliner] = openOutliners();
+            const newOutliner = lastOutliner();
             expect(newOutliner.title()).toContain("TypeError");
         });
 
@@ -445,11 +445,11 @@ describe("The outliners in the world", () => {
 
             outlinerElement.doIt("   ");
 
-            expect(openOutliners().length).toEqual(1);
+            expect(numberOfOpenOutliners()).toEqual(1);
         });
     });
 
-    function openOutliners(): OutlinerElement[] {
+    function openOutliners() {
         return Array.from(worldDomElement.querySelectorAll<HTMLElement>(".outliner"))
             .map(domElement => new OutlinerElement(domElement));
     }
@@ -460,10 +460,18 @@ describe("The outliners in the world", () => {
 
     function openOutlinerFor(anObject: unknown, position?: Position) {
         world.openOutliner(anObject, position);
-        return openOutliners().pop()!;
+        return lastOutliner();
     }
 
     function updateOutliners() {
         world.updateOutliners();
+    }
+
+    function lastOutliner() {
+        return openOutliners().pop()!;
+    }
+
+    function numberOfOpenOutliners() {
+        return openOutliners().length;
     }
 });
