@@ -13,7 +13,7 @@ import {point, Position, sumOf} from "../src/position";
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
 import {asClientLocation, positionOfDomElement} from "../src/dom.ts";
-import {OutlinerElement} from "./outlinerElement.ts";
+import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
 
 describe("The outliners in the world", () => {
     setupPointerCaptureSimulation();
@@ -451,7 +451,7 @@ describe("The outliners in the world", () => {
 
     function openOutliners() {
         return Array.from(worldDomElement.querySelectorAll<HTMLElement>(".outliner"))
-            .map(domElement => new OutlinerElement(domElement));
+            .map(domElement => new OutlinerFromDomElement(domElement));
     }
 
     function positionOf(domElement: HTMLElement) {

@@ -4,7 +4,7 @@ import {positionOfDomElement} from "../src/dom.ts";
 import {fireMousePointerEventOver} from "./dom_event_simulation.ts";
 import {point} from "../src/position.ts";
 
-export class OutlinerElement {
+export class OutlinerFromDomElement {
     private _domElement: HTMLElement;
 
     constructor(domElement: HTMLElement) {
