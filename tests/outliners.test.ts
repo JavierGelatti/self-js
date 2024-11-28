@@ -8,7 +8,7 @@ import {
     firstFinger,
     secondFinger,
 } from "./dom_event_simulation";
-import {point, sumOf} from "../src/position";
+import {point, Position, sumOf} from "../src/position";
 
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
@@ -39,17 +39,14 @@ describe("The outliners in the world", () => {
     });
 
     test("show a title for the object", () => {
-        world.openOutliner({});
-
-        const [outlinerElement] = openOutliners();
+        const outlinerElement = openOutlinerFor({});
 
         expect(outlinerElement.title()).toEqual("un Object");
     });
 
     test("can be closed", () => {
-        world.openOutliner({});
+        const outlinerElement = openOutlinerFor({});
 
-        const [outlinerElement] = openOutliners();
         outlinerElement.close();
 
         expect(openOutliners()).toEqual([]);
@@ -59,17 +56,17 @@ describe("The outliners in the world", () => {
         const outliner = world.openOutliner(1);
         const [outlinerElement] = openOutliners();
 
-        expect(outliner.title()).toEqual("1");
-        expect(outliner.type()).toEqual("primitive");
+        expect(outlinerElement.title()).toEqual("1");
+        expect(outlinerElement.type()).toEqual("primitive");
         expect(outlinerElement.numberOfProperties()).toEqual(0);
         expect(outlinerElement.stereotype()).toEqual("«primitivo : number»");
         expect(() => outliner.update()).not.toThrowError();
     });
 
     test("have different types", () => {
-        expect(outlinerElementInspecting({}).type()).toEqual("object");
-        expect(outlinerElementInspecting(function f() {}).type()).toEqual("function");
-        expect(outlinerElementInspecting(new Error()).type()).toEqual("error");
+        expect(openOutlinerFor({}).type()).toEqual("object");
+        expect(openOutlinerFor(function f() {}).type()).toEqual("function");
+        expect(openOutlinerFor(new Error()).type()).toEqual("error");
     });
 
     describe("titles", () => {
@@ -111,9 +108,7 @@ describe("The outliners in the world", () => {
 
     describe("object outliners", () => {
         test("show the properties of the inspected object", () => {
-            world.openOutliner(point(1, 2));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({ x: 1, y: 2 });
 
             expect(outlinerElement.propertyNames()).toEqual(["x", "y"]);
             expect(outlinerElement.propertyValueOn("x")).toEqual("1");
@@ -122,9 +117,7 @@ describe("The outliners in the world", () => {
 
         test("can add new properties to the inspected object", () => {
             const anObject = {};
-            world.openOutliner(anObject);
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor(anObject);
 
             outlinerElement.addPropertyOn("newProperty");
 
@@ -134,9 +127,7 @@ describe("The outliners in the world", () => {
 
         test("if the newly added property already existed, nothing is changed", () => {
             const anObject = { existingProperty: "previousValue" };
-            world.openOutliner(anObject);
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor(anObject);
 
             outlinerElement.addPropertyOn("existingProperty");
 
@@ -147,9 +138,7 @@ describe("The outliners in the world", () => {
 
         test("if the user cancels the prompt, nothing is changed", () => {
             const anObject = {};
-            world.openOutliner(anObject);
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor(anObject);
 
             outlinerElement.addPropertyOn(null);
 
@@ -163,12 +152,10 @@ describe("The outliners in the world", () => {
             const anObject: InspectableObject = {
                 oldProperty: 0
             };
-            world.openOutliner(anObject);
+            const outlinerElement = openOutlinerFor(anObject);
 
             anObject["newProperty"] = 1;
             world.updateOutliners();
-
-            const [outlinerElement] = openOutliners();
 
             expect(outlinerElement.propertyNames()).toEqual(["oldProperty", "newProperty"]);
             expect(outlinerElement.propertyValueOn("newProperty")).toEqual("1");
@@ -178,12 +165,10 @@ describe("The outliners in the world", () => {
             const anObject: InspectableObject = {
                 oldProperty: 0
             };
-            world.openOutliner(anObject);
+            const outlinerElement = openOutlinerFor(anObject);
 
             delete anObject.oldProperty;
             world.updateOutliners();
-
-            const [outlinerElement] = openOutliners();
 
             expect(outlinerElement.numberOfProperties()).toEqual(0);
         });
@@ -192,12 +177,10 @@ describe("The outliners in the world", () => {
             const anObject: InspectableObject = {
                 existingProperty: 0
             };
-            world.openOutliner(anObject);
+            const outlinerElement = openOutlinerFor(anObject);
 
             anObject.existingProperty = 1;
             world.updateOutliners();
-
-            const [outlinerElement] = openOutliners();
 
             expect(outlinerElement.numberOfProperties()).toEqual(1);
             expect(outlinerElement.propertyValueOn("existingProperty")).toEqual("1");
@@ -207,8 +190,7 @@ describe("The outliners in the world", () => {
             const anObject: InspectableObject = {
                 existingProperty: 0
             };
-            world.openOutliner(anObject);
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor(anObject);
 
             anObject.newProperty = 1;
             world.updateOutliners();
@@ -220,24 +202,20 @@ describe("The outliners in the world", () => {
 
         test("updates the title when it changes", () => {
             const anObject = {};
-            world.openOutliner(anObject);
+            const outlinerElement = openOutlinerFor(anObject);
 
             anObject.toString = () => "titulo nuevo";
             world.updateOutliners();
-
-            const [outlinerElement] = openOutliners();
 
             expect(outlinerElement.title()).toEqual("titulo nuevo");
         });
 
         test("updates the type when it changes", () => {
             const anObject = {};
-            world.openOutliner(anObject);
+            const outlinerElement = openOutlinerFor(anObject);
 
             Object.setPrototypeOf(anObject, Error.prototype);
             world.updateOutliners();
-
-            const [outlinerElement] = openOutliners();
 
             expect(outlinerElement.type()).toEqual("error");
         });
@@ -249,17 +227,13 @@ describe("The outliners in the world", () => {
         });
 
         test("the starting position of the outliner can be specified", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             expect(outlinerElement.position()).toEqual(point(10, 20));
         });
 
         test("the position of the outliner changes when dragging its header", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown", point(5, 3));
             fireMousePointerEventOver(outlinerElement.header(), "pointerMove", point(5, 3).plus(point(4, 2)));
@@ -269,9 +243,7 @@ describe("The outliners in the world", () => {
         });
 
         test("the position of the outliner does not change if the pointer was never down", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             fireMousePointerEventOver(outlinerElement.header(), "pointerMove", point(9, 5));
 
@@ -279,9 +251,7 @@ describe("The outliners in the world", () => {
         });
 
         test("the position of the outliner keeps changing if the pointer keeps moving", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown", point(5, 3));
             fireMousePointerEventOver(outlinerElement.header(), "pointerMove", point(5, 3).plus(point(4, 2)));
@@ -292,9 +262,7 @@ describe("The outliners in the world", () => {
         });
 
         test("the position of the outliner stops changing if the pointer goes up", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown", point(5, 3));
             fireMousePointerEventOver(outlinerElement.header(), "pointerUp",   point(5, 3));
@@ -304,9 +272,7 @@ describe("The outliners in the world", () => {
         });
 
         test("the position of the outliner stops changing if the pointer interaction is cancelled", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown",   point(5, 3));
             fireMousePointerEventOver(outlinerElement.header(), "pointerCancel", point(5, 3));
@@ -316,9 +282,7 @@ describe("The outliners in the world", () => {
         });
 
         test("if the dragging doesn't stop, the position of the outliner continues to change even if the pointer moves outside of it", () => {
-            world.openOutliner({}, point(0, 0));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(0, 0));
 
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown", point(5, 3));
             fireMousePointerEvent("pointerMove", asClientLocation(point(888, 999)));
@@ -327,29 +291,25 @@ describe("The outliners in the world", () => {
         });
 
         test("prevents the default action (of making a selection) from happening when dragging starts", () => {
-            world.openOutliner({}, point(10, 20));
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
             let event: PointerEvent;
             worldDomElement.addEventListener("pointerdown", e => event = e)
 
-            const [outlinerElement] = openOutliners();
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown", point(5, 3));
 
             expect(event!.defaultPrevented).toBe(true);
         });
 
         test("the header signals to the user that is draggable", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             expect(outlinerElement.header()).toHaveClass("draggable");
             expect(outlinerElement.header()).not.toHaveClass("dragging");
         });
 
         test("the header signals the user when it's being dragged", () => {
-            world.openOutliner({}, point(10, 20));
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
-            const [outlinerElement] = openOutliners();
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown", point(5, 3));
 
             expect(outlinerElement.header()).toHaveClass("dragging");
@@ -357,9 +317,8 @@ describe("The outliners in the world", () => {
         });
 
         test("the header stops signalling the user when it ended being dragged", () => {
-            world.openOutliner({}, point(10, 20));
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
-            const [outlinerElement] = openOutliners();
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown", point(5, 3));
             fireMousePointerEventOver(outlinerElement.header(), "pointerUp", point(5, 3));
 
@@ -368,19 +327,16 @@ describe("The outliners in the world", () => {
         });
 
         test("the last picked-up outliner ends up being at the top of the rest", () => {
-            world.openOutliner({}, point(0, 0));
-            world.openOutliner({}, point(20, 20));
+            const firstOutliner = openOutlinerFor({}, point(0, 0));
+            const secondOutliner = openOutlinerFor({}, point(20, 20));
 
-            const [firstOutliner, secondOutliner] = openOutliners();
             fireMousePointerEventOver(firstOutliner.header(), "pointerDown", point(5, 5));
 
             expect(openOutliners()).toEqual([secondOutliner, firstOutliner]);
         });
 
         test("does not start dragging if starting from the close button", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             fireMousePointerEventOver(outlinerElement.closeButton(), "pointerDown", point(5, 3));
             fireMousePointerEventOver(outlinerElement.closeButton(), "pointerMove", point(5, 3));
@@ -390,8 +346,7 @@ describe("The outliners in the world", () => {
 
         test("when an object is inspected, it's grabbed", () => {
             const anObject = {};
-            world.openOutliner(anObject);
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor(anObject);
             outlinerElement.inputCode("{ y: 5 }");
 
             const button = outlinerElement.inspectItButton();
@@ -405,8 +360,7 @@ describe("The outliners in the world", () => {
         });
 
         test("when an already visible object is inspected, it's grabbed from its header", () => {
-            world.openOutliner(5);
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor(5);
             outlinerElement.inputCode("5");
 
             const button = outlinerElement.inspectItButton();
@@ -418,9 +372,7 @@ describe("The outliners in the world", () => {
         });
 
         test("when an outliner is grabbed, it ignores the movements of other pointers", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             fireTouchPointerEventOver(outlinerElement.header(), "pointerDown", firstFinger, point(5, 3));
             fireTouchPointerEventOver(outlinerElement.header(), "pointerMove", secondFinger, point(5, 6));
@@ -431,9 +383,7 @@ describe("The outliners in the world", () => {
         });
 
         test("when an outliner is grabbed, it isn't dropped if other pointers are up or cancel the interaction", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             fireTouchPointerEventOver(outlinerElement.header(), "pointerDown", firstFinger, point(5, 3));
             fireTouchPointerEventOver(outlinerElement.header(), "pointerUp", secondFinger, point(5, 3));
@@ -444,9 +394,7 @@ describe("The outliners in the world", () => {
         });
 
         test("the pointer grabbing the outliner is the last one that starts dragging", () => {
-            world.openOutliner({}, point(10, 20));
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({}, point(10, 20));
 
             fireTouchPointerEventOver(outlinerElement.header(), "pointerDown", firstFinger, point(5, 3));
             fireTouchPointerEventOver(outlinerElement.header(), "pointerDown", secondFinger, point(1, 2));
@@ -460,16 +408,14 @@ describe("The outliners in the world", () => {
 
     describe("code evaluation", () => {
         test("the evaluation buttons are initially disabled", () => {
-            world.openOutliner({});
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({});
 
             expect(outlinerElement.canDoIt()).toBe(false);
             expect(outlinerElement.canInspectIt()).toBe(false);
         });
 
         test("the evaluation buttons are enabled when the code to evaluate is not blank", () => {
-            world.openOutliner({});
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({});
 
             outlinerElement.inputCode("1 + 1");
 
@@ -478,8 +424,7 @@ describe("The outliners in the world", () => {
         });
 
         test("the evaluation buttons are disabled when the code to evaluate is blank", () => {
-            world.openOutliner({});
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({});
 
             outlinerElement.inputCode("    ");
 
@@ -512,7 +457,7 @@ describe("The outliners in the world", () => {
         });
 
         test("if the inspection of a computation results in an exception, inspect it", () => {
-            const outlinerElement = outlinerElementInspecting({});
+            const outlinerElement = openOutlinerFor({});
 
             outlinerElement.inspectIt("this.lala()");
 
@@ -521,8 +466,7 @@ describe("The outliners in the world", () => {
         });
 
         test("if the input is blank, inspecting does nothing", () => {
-            world.openOutliner({});
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({});
 
             outlinerElement.inspectIt("   ");
 
@@ -530,7 +474,7 @@ describe("The outliners in the world", () => {
         });
 
         test("if evaluating something throws an exception, inspect it", () => {
-            const outlinerElement = outlinerElementInspecting({});
+            const outlinerElement = openOutlinerFor({});
 
             outlinerElement.doIt("this.lala()");
 
@@ -539,8 +483,7 @@ describe("The outliners in the world", () => {
         });
 
         test("if the input is blank, evaluating does nothing", () => {
-            world.openOutliner({});
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor({});
 
             outlinerElement.doIt("   ");
 
@@ -549,15 +492,16 @@ describe("The outliners in the world", () => {
     });
 
     function openOutliners(): OutlinerElement[] {
-        return Array.from(worldDomElement.querySelectorAll<HTMLElement>(".outliner")).map(domElement => new OutlinerElement(domElement));
+        return Array.from(worldDomElement.querySelectorAll<HTMLElement>(".outliner"))
+            .map(domElement => new OutlinerElement(domElement));
     }
 
     function positionOf(domElement: HTMLElement) {
         return positionOfDomElement(domElement).map(Math.round);
     }
 
-    function outlinerElementInspecting(anObject: unknown) {
-        const outliner = world.openOutliner(anObject);
-        return new OutlinerElement(outliner.domElement());
+    function openOutlinerFor(anObject: unknown, position?: Position) {
+        world.openOutliner(anObject, position);
+        return openOutliners().pop()!;
     }
 });
