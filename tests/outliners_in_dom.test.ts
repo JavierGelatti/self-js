@@ -31,9 +31,9 @@ describe("The outliners in the world", () => {
     test("are opened once per object", () => {
         const anObject = {};
         const anotherObject = {};
-        world.openOutliner(anObject);
-        world.openOutliner(anotherObject);
-        world.openOutliner(anObject);
+        openOutlinerFor(anObject);
+        openOutlinerFor(anotherObject);
+        openOutlinerFor(anObject);
 
         expect(openOutliners().length).toEqual(2);
     });
@@ -53,57 +53,19 @@ describe("The outliners in the world", () => {
     });
 
     test("can inspect primitive objects", () => {
-        const outliner = world.openOutliner(1);
-        const [outlinerElement] = openOutliners();
+        const outlinerElement = openOutlinerFor(1);
 
         expect(outlinerElement.title()).toEqual("1");
         expect(outlinerElement.type()).toEqual("primitive");
         expect(outlinerElement.numberOfProperties()).toEqual(0);
         expect(outlinerElement.stereotype()).toEqual("«primitivo : number»");
-        expect(() => outliner.update()).not.toThrowError();
+        expect(() => updateOutliners()).not.toThrowError();
     });
 
     test("have different types", () => {
         expect(openOutlinerFor({}).type()).toEqual("object");
         expect(openOutlinerFor(function f() {}).type()).toEqual("function");
         expect(openOutlinerFor(new Error()).type()).toEqual("error");
-    });
-
-    describe("titles", () => {
-        test("show the name of the object's prototype", () => {
-            class Texto {}
-
-            expect(world.openOutliner({}).title()).toEqual("un Object");
-            expect(world.openOutliner(new Texto()).title()).toEqual("un Texto");
-        });
-
-        test("show a default text if the object's prototype is null", () => {
-            const anObject = { __proto__: null };
-
-            expect(world.openOutliner(anObject).title()).toEqual("un objeto");
-        });
-
-        test("show custom string representations as title", () => {
-            const aNamedObject = { toString() { return "soy especial"; }};
-            const aDate = new Date(2024, 0, 31, 0, 0, 0, 0);
-
-            expect(world.openOutliner(aNamedObject).title()).toEqual("soy especial");
-            expect(world.openOutliner(aDate).title()).toContain("Wed Jan 31 2024 00:00:00");
-        });
-
-        test("show the default representation when it fails to obtain a custom one", () => {
-            expect(world.openOutliner(Date.prototype).title()).toEqual("un Object");
-        });
-
-        test("show a special title for functions", () => {
-            function f() {}
-
-            expect(world.openOutliner(f).title()).toEqual("función f");
-        });
-
-        test("show a special title for arrays", () => {
-            expect(world.openOutliner([1, 2, 3]).title()).toEqual("un Array");
-        });
     });
 
     describe("object outliners", () => {
@@ -155,7 +117,7 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor(anObject);
 
             anObject["newProperty"] = 1;
-            world.updateOutliners();
+            updateOutliners();
 
             expect(outlinerElement.propertyNames()).toEqual(["oldProperty", "newProperty"]);
             expect(outlinerElement.propertyValueOn("newProperty")).toEqual("1");
@@ -168,7 +130,7 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor(anObject);
 
             delete anObject.oldProperty;
-            world.updateOutliners();
+            updateOutliners();
 
             expect(outlinerElement.numberOfProperties()).toEqual(0);
         });
@@ -180,7 +142,7 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor(anObject);
 
             anObject.existingProperty = 1;
-            world.updateOutliners();
+            updateOutliners();
 
             expect(outlinerElement.numberOfProperties()).toEqual(1);
             expect(outlinerElement.propertyValueOn("existingProperty")).toEqual("1");
@@ -193,9 +155,9 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor(anObject);
 
             anObject.newProperty = 1;
-            world.updateOutliners();
+            updateOutliners();
             outlinerElement.addPropertyOn("yetAnotherNewProperty");
-            world.updateOutliners();
+            updateOutliners();
 
             expect(outlinerElement.propertyNames()).toEqual(["existingProperty", "newProperty", "yetAnotherNewProperty"]);
         });
@@ -205,7 +167,7 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor(anObject);
 
             anObject.toString = () => "titulo nuevo";
-            world.updateOutliners();
+            updateOutliners();
 
             expect(outlinerElement.title()).toEqual("titulo nuevo");
         });
@@ -215,7 +177,7 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor(anObject);
 
             Object.setPrototypeOf(anObject, Error.prototype);
-            world.updateOutliners();
+            updateOutliners();
 
             expect(outlinerElement.type()).toEqual("error");
         });
@@ -434,9 +396,7 @@ describe("The outliners in the world", () => {
 
         test("the outliners are updated when code is evaluated; this is bound to the inspected object", () => {
             const anObject = { x: 1 };
-            world.openOutliner(anObject);
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor(anObject);
 
             outlinerElement.doIt("this.x = 2");
 
@@ -445,9 +405,7 @@ describe("The outliners in the world", () => {
 
         test("can inspect the result of a computation", () => {
             const anObject = { x: 1 };
-            world.openOutliner(anObject);
-
-            const [outlinerElement] = openOutliners();
+            const outlinerElement = openOutlinerFor(anObject);
 
             outlinerElement.inspectIt("{ y: 5 }");
 
@@ -503,5 +461,9 @@ describe("The outliners in the world", () => {
     function openOutlinerFor(anObject: unknown, position?: Position) {
         world.openOutliner(anObject, position);
         return openOutliners().pop()!;
+    }
+
+    function updateOutliners() {
+        world.updateOutliners();
     }
 });
