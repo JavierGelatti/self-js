@@ -68,17 +68,21 @@ export class OutlinerElement {
         return this.header().firstChild?.textContent;
     }
 
-    doItButton() {
+    private _doItButton(): HTMLButtonElement {
         return within(this._domElement).getByRole("button", {description: "Do it"});
     }
 
     doIt(code: string) {
         this.inputCode(code);
 
-        this.doItButton().click();
+        this._doItButton().click();
     }
 
-    inspectItButton() {
+    canDoIt() {
+        return !this._doItButton().disabled;
+    }
+
+    inspectItButton(): HTMLButtonElement {
         return within(this._domElement).getByRole("button", {description: "Inspect it"});
     }
 
@@ -86,6 +90,10 @@ export class OutlinerElement {
         this.inputCode(code);
 
         fireMousePointerEventOver(this.inspectItButton(), "pointerDown", point(1, 1));
+    }
+
+    canInspectIt() {
+        return !this.inspectItButton().disabled;
     }
 
     inputCode(code: string) {

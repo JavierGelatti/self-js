@@ -463,8 +463,28 @@ describe("The outliners in the world", () => {
             world.openOutliner({});
             const [outlinerElement] = outliners();
 
-            expect(outlinerElement.doItButton()).toBeDisabled();
-            expect(outlinerElement.inspectItButton()).toBeDisabled();
+            expect(outlinerElement.canDoIt()).toBe(false);
+            expect(outlinerElement.canInspectIt()).toBe(false);
+        });
+
+        test("the evaluation buttons are enabled when the code to evaluate is not blank", () => {
+            world.openOutliner({});
+            const [outlinerElement] = outliners();
+
+            outlinerElement.inputCode("1 + 1");
+
+            expect(outlinerElement.canDoIt()).toBe(true);
+            expect(outlinerElement.canInspectIt()).toBe(true);
+        });
+
+        test("the evaluation buttons are disabled when the code to evaluate is blank", () => {
+            world.openOutliner({});
+            const [outlinerElement] = outliners();
+
+            outlinerElement.inputCode("    ");
+
+            expect(outlinerElement.canDoIt()).toBe(false);
+            expect(outlinerElement.canInspectIt()).toBe(false);
         });
 
         test("the outliners are updated when code is evaluated; this is bound to the inspected object", () => {
@@ -476,7 +496,6 @@ describe("The outliners in the world", () => {
             outlinerElement.doIt("this.x = 2");
 
             expect(outlinerElement.propertyValueOn("x")).toEqual("2");
-            expect(outlinerElement.doItButton()).toBeEnabled();
         });
 
         test("can inspect the result of a computation", () => {
@@ -490,7 +509,6 @@ describe("The outliners in the world", () => {
             const [, newOutliner] = outliners();
             expect(newOutliner.propertyValueOn("y")).toEqual("5");
             expect(newOutliner.position()).toEqual(point(0, 0));
-            expect(outlinerElement.inspectItButton()).toBeEnabled();
         });
 
         test("if the inspection of a computation results in an exception, inspect it", () => {
@@ -509,7 +527,6 @@ describe("The outliners in the world", () => {
             outlinerElement.inspectIt("   ");
 
             expect(outliners().length).toEqual(1);
-            expect(outlinerElement.inspectItButton()).toBeDisabled();
         });
 
         test("if evaluating something throws an exception, inspect it", () => {
@@ -528,7 +545,6 @@ describe("The outliners in the world", () => {
             outlinerElement.doIt("   ");
 
             expect(outliners().length).toEqual(1);
-            expect(outlinerElement.doItButton()).toBeDisabled();
         });
     });
 
