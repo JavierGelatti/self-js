@@ -122,6 +122,7 @@ class PointerCaptureSimulator {
 
 export function setupPointerCaptureSimulation() {
     const pointerCaptureSimulator = new PointerCaptureSimulator();
+
     beforeEach(() => {
         Element.prototype.setPointerCapture = vi.fn(function (this: Element, pointerId: number) {
             pointerCaptureSimulator.capturePointerOn(this, pointerId);

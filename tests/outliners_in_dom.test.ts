@@ -16,17 +16,7 @@ import {asClientLocation, positionOfDomElement} from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
 
 describe("The outliners in the world", () => {
-    setupPointerCaptureSimulation();
-
-    let world: World;
-    let worldDomElement: HTMLElement;
-
-    beforeEach(() => {
-        document.body.innerHTML = "";
-
-        world = new World();
-        worldDomElement = world.domElement();
-    });
+    const { world, worldDomElement } = createWorldInDomBeforeEach();
 
     test("are opened once per object", () => {
         const anObject = {};
@@ -185,7 +175,7 @@ describe("The outliners in the world", () => {
 
     describe("movements", () => {
         beforeEach(() => {
-            document.body.append(worldDomElement);
+            document.body.append(worldDomElement());
         });
 
         test("the starting position of the outliner can be specified", () => {
@@ -255,7 +245,7 @@ describe("The outliners in the world", () => {
         test("prevents the default action (of making a selection) from happening when dragging starts", () => {
             const outlinerElement = openOutlinerFor({}, point(10, 20));
             let event: PointerEvent;
-            worldDomElement.addEventListener("pointerdown", e => event = e)
+            worldDomElement().addEventListener("pointerdown", e => event = e)
 
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown", point(5, 3));
 
@@ -450,7 +440,7 @@ describe("The outliners in the world", () => {
     });
 
     function openOutliners() {
-        return Array.from(worldDomElement.querySelectorAll<HTMLElement>(".outliner"))
+        return Array.from(worldDomElement().querySelectorAll<HTMLElement>(".outliner"))
             .map(domElement => new OutlinerFromDomElement(domElement));
     }
 
@@ -459,12 +449,12 @@ describe("The outliners in the world", () => {
     }
 
     function openOutlinerFor(anObject: unknown, position?: Position) {
-        world.openOutliner(anObject, position);
+        world().openOutliner(anObject, position);
         return lastOutliner();
     }
 
     function updateOutliners() {
-        world.updateOutliners();
+        world().updateOutliners();
     }
 
     function lastOutliner() {
@@ -473,5 +463,24 @@ describe("The outliners in the world", () => {
 
     function numberOfOpenOutliners() {
         return openOutliners().length;
+    }
+
+    function createWorldInDomBeforeEach() {
+        setupPointerCaptureSimulation();
+
+        let currentWorld: World;
+        let currentWorldDomElement: HTMLElement;
+
+        beforeEach(() => {
+            document.body.innerHTML = "";
+
+            currentWorld = new World();
+            currentWorldDomElement = currentWorld.domElement();
+        });
+
+        return {
+            world: () => currentWorld,
+            worldDomElement: () => currentWorldDomElement,
+        };
     }
 });
