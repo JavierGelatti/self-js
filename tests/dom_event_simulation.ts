@@ -1,5 +1,6 @@
 import {createEvent} from "@testing-library/dom";
 import {Position} from "../src/position.ts";
+import {asClientLocation, ClientLocation, positionOfDomElement} from "../src/dom.ts";
 
 export type TestingLibraryPointerEventName
     = "pointerOver"
@@ -10,6 +11,7 @@ export type TestingLibraryPointerEventName
     | "pointerCancel"
     | "pointerOut"
     | "pointerLeave"
+
 export type TouchPointerId = 3 | 4;
 export const firstFinger: TouchPointerId = 3;
 export const secondFinger: TouchPointerId = 4;
@@ -27,7 +29,7 @@ export function fireTouchPointerEventOver(
 
 export function fireTouchPointerEvent(
     eventType: TestingLibraryPointerEventName,
-    clientLocation: { clientX: number, clientY: number },
+    clientLocation: ClientLocation,
     pointerId: TouchPointerId,
     defaultTarget: Element,
 ) {
@@ -54,7 +56,7 @@ export function fireMousePointerEventOver(
 
 export function fireMousePointerEvent(
     eventType: TestingLibraryPointerEventName,
-    clientLocation: { clientX: number, clientY: number },
+    clientLocation: ClientLocation,
     defaultTarget: Element = document.body
 ) {
     const elementAtPosition = document.elementFromPoint(clientLocation.clientX, clientLocation.clientY);
@@ -77,10 +79,6 @@ export function firePointerEvent(
     target.dispatchEvent(event);
 }
 
-function offsetToClientLocation(offsetLocation: Position, element: Element) {
-    const elementClientLocation = element.getBoundingClientRect();
-    return {
-        clientX: offsetLocation.x + elementClientLocation.x,
-        clientY: offsetLocation.y + elementClientLocation.y,
-    };
+export function offsetToClientLocation(offsetLocation: Position, element: Element): ClientLocation {
+    return asClientLocation(positionOfDomElement(element).plus(offsetLocation));
 }

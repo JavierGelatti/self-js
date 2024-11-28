@@ -10,6 +10,8 @@ export type PointerEventType
     | 'pointerout'
     | 'pointerleave'
 
+export type ClientLocation = { clientX: number, clientY: number };
+
 export function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K, properties: Partial<HTMLElementTagNameMap[K]> = {}, children: (Node | string)[] = [],
 ) {
@@ -17,10 +19,6 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
     Object.assign(newElement, properties);
     newElement.append(...children);
     return newElement;
-}
-
-export function clientPositionOf(event: MouseEvent): Position {
-    return point(event.clientX, event.clientY);
 }
 
 export function makeDraggable(
@@ -74,4 +72,17 @@ export function makeDraggable(
     });
 
     return grab;
+}
+
+export function clientPositionOf(event: MouseEvent): Position {
+    return point(event.clientX, event.clientY);
+}
+
+export function asClientLocation(position: Position): ClientLocation {
+    return {clientX: position.x, clientY: position.y};
+}
+
+export function positionOfDomElement(element: Element) {
+    const clientRect = element.getBoundingClientRect();
+    return point(clientRect.x, clientRect.y);
 }

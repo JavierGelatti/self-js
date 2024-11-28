@@ -5,16 +5,27 @@ export class Position {
     ) {}
 
     deltaToReach(anotherPosition: Position) {
-        return point(
-            anotherPosition.x - this.x,
-            anotherPosition.y - this.y,
-        );
+        return anotherPosition.minus(this);
     }
 
     plus(anotherPosition: Position) {
         return point(
             anotherPosition.x + this.x,
             anotherPosition.y + this.y,
+        );
+    }
+
+    minus(anotherPosition: Position) {
+        return point(
+            this.x - anotherPosition.x,
+            this.y - anotherPosition.y,
+        );
+    }
+
+    map(transformation: (coordinate: number) => number) {
+        return point(
+            transformation(this.x),
+            transformation(this.y),
         );
     }
 }
