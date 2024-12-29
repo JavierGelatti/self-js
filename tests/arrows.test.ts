@@ -195,6 +195,21 @@ describe("Arrows", () => {
                 moveTo(point(0, 0)), curveTo(point(45, 0), point(0, 0), point(90, 0))
             ]);
         });
+
+        test("updates arrow start after updating arrow end", () => {
+            const box = createBox(point(150, 100), point(100, 50));
+            const arrow = drawNewArrow(point(0, 0), point(10, 10));
+            document.body.append(arrow.svgElement());
+
+            arrow.attachEndToBox(box.getBoundingClientRect());
+            arrow.updateStart(point(150 - 90, 125));
+
+            expect(positionOfDomElement(arrow.svgElement())).toEqual(point(60, 125));
+            expect(sizeOfDomElement(arrow.svgElement())).toEqual(point(90, 1));
+            expect(drawnPath(arrow)).toEqual([
+                moveTo(point(0, 0)), curveTo(point(45, 0), point(0, 0), point(90, 0))
+            ]);
+        });
     });
 
     function createBox(position: Position, size: Position) {

@@ -94,11 +94,9 @@ export class Arrow {
     }
 
     private _updateBoxEnd(endBox: DOMRect) {
-        // FIXME: This sets the box to undefined...
-        this.updateEndToPoint(
-            this._endPointTargetingBox(endBox),
-            this._endControlPointTargetingBox(endBox)
-        );
+        this._end = this._endPointTargetingBox(endBox);
+        this._endControl = this._endControlPointTargetingBox(endBox);
+        this.updatePath();
     }
 
     private _endControlPointTargetingBox(targetBox: DOMRect) {
