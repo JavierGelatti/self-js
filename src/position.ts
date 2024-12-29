@@ -9,26 +9,26 @@ export class Position {
     }
 
     plus(anotherPosition: Position) {
-        return this.zipWith(anotherPosition, (a, b) => a + b);
+        return this._zipWith(anotherPosition, (a, b) => a + b);
     }
 
     minus(anotherPosition: Position) {
-        return this.zipWith(anotherPosition, (a, b) => a - b);
+        return this._zipWith(anotherPosition, (a, b) => a - b);
     }
 
     max(anotherPosition: Position) {
-        return this.zipWith(anotherPosition, Math.max);
+        return this._zipWith(anotherPosition, Math.max);
     }
 
     min(anotherPosition: Position) {
-        return this.zipWith(anotherPosition, Math.min);
+        return this._zipWith(anotherPosition, Math.min);
     }
 
     dot(anotherPosition: Position) {
-        return this.zipWith(anotherPosition, (a, b) => a * b);
+        return this._zipWith(anotherPosition, (a, b) => a * b);
     }
 
-    private zipWith(anotherPosition: Position, combiner: (leftCoordinate: number, rightCoordinate: number) => number) {
+    private _zipWith(anotherPosition: Position, combiner: (leftCoordinate: number, rightCoordinate: number) => number) {
         return point(
             combiner(this.x, anotherPosition.x),
             combiner(this.y, anotherPosition.y),

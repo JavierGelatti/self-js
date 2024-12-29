@@ -3,7 +3,7 @@ import {firePointerEvent, TestingLibraryPointerEventName} from "./dom_event_simu
 import {PointerEventType} from "../src/dom";
 
 class PointerCaptureSimulator {
-    private readonly eventTypeToTestingLibraryNames = new Map<PointerEventType, TestingLibraryPointerEventName>([
+    private readonly _eventTypeToTestingLibraryNames = new Map<PointerEventType, TestingLibraryPointerEventName>([
         ["pointerover", "pointerOver"],
         ["pointerenter", "pointerEnter"],
         ["pointerdown", "pointerDown"],
@@ -84,7 +84,7 @@ class PointerCaptureSimulator {
     }
 
     private _fireCopyOfEventOn(eventToCopy: PointerEvent, target: Element) {
-        const testingLibraryEventName = this.eventTypeToTestingLibraryNames.get(eventToCopy.type as PointerEventType)!;
+        const testingLibraryEventName = this._eventTypeToTestingLibraryNames.get(eventToCopy.type as PointerEventType)!;
         firePointerEvent(target, testingLibraryEventName, {
             pointerType: eventToCopy.pointerType as any,
             pointerId: eventToCopy.pointerId,

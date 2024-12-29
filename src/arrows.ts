@@ -19,15 +19,15 @@ export class Arrow {
 
         if (to instanceof Position) {
             this._end = to;
-            this._endControl = endControl ?? this.defaultEndControlFor(to);
+            this._endControl = endControl ?? this._defaultEndControlFor(to);
         } else {
             this._endBox = to;
             this._end = this._endPointTargetingBox(this._endBox);
             this._endControl = this._endControlPointTargetingBox(this._endBox);
         }
 
-        this._svgElement = this.createSvgElement();
-        this.updatePath();
+        this._svgElement = this._createSvgElement();
+        this._updatePath();
     }
 
     svgElement() {
@@ -40,10 +40,10 @@ export class Arrow {
             this._updateBoxEnd(this._endBox);
         }
 
-        this.updatePath();
+        this._updatePath();
     }
 
-    private createSvgElement() {
+    private _createSvgElement() {
         const svgElement = createSvgElement("svg");
         svgElement.style.position = "absolute";
         svgElement.style.top = "0";
@@ -60,7 +60,7 @@ export class Arrow {
         return svgElement;
     }
 
-    private updatePath() {
+    private _updatePath() {
         const normalizedEndControl = this._endControl.normalized();
         const boundStart = this._start.min(this._end);
         const boundEnd = this._start.max(this._end);
@@ -80,14 +80,14 @@ export class Arrow {
         this._svgElement.setAttribute("height", String(Math.max(1, boundExtent.y)));
     }
 
-    updateEndToPoint(newEnd: Position, newEndControl: Position = this.defaultEndControlFor(newEnd)) {
+    updateEndToPoint(newEnd: Position, newEndControl: Position = this._defaultEndControlFor(newEnd)) {
         this._end = newEnd;
         this._endControl = newEndControl;
         this._endBox = undefined;
-        this.updatePath();
+        this._updatePath();
     }
 
-    private defaultEndControlFor(endPosition: Position) {
+    private _defaultEndControlFor(endPosition: Position) {
         return endPosition.deltaToReach(this._start);
     }
 
@@ -99,7 +99,7 @@ export class Arrow {
     private _updateBoxEnd(endBox: DOMRect) {
         this._end = this._endPointTargetingBox(endBox);
         this._endControl = this._endControlPointTargetingBox(endBox);
-        this.updatePath();
+        this._updatePath();
     }
 
     private _endControlPointTargetingBox(targetBox: DOMRect) {
