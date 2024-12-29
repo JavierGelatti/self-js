@@ -135,12 +135,30 @@ button[disabled] {
     }
 }
 
-path.arrow {
-    stroke: black;
-    fill: transparent;
-    stroke-linecap: butt;
-    marker-end: url(#arrow-end);
-    stroke-dasharray: 98 2;
+svg {
+    --arrow-color: coral;
+    pointer-events: none;
+
+    .arrow {
+        stroke: var(--arrow-color);
+        fill: transparent;
+        stroke-linecap: butt;
+        stroke-width: 4px;
+        marker-start: url(#arrow-start);
+        marker-end: url(#arrow-end);
+    }
+
+    #arrow-start {
+        fill: var(--arrow-color);
+        stroke: transparent;
+    }
+
+    #arrow-end {
+        stroke: var(--arrow-color);
+        fill: transparent;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
 }
 
 .shaking {

@@ -2,6 +2,9 @@ import {point, Position} from "./position.ts";
 import {createSvgElement} from "./dom.ts";
 
 export class Arrow {
+    // We use this to reduce the end of the arrow so that the linecap can occupy that space
+    public static linecapSize: number = 0;
+
     private _start: Position;
     private _end: Position;
     private _endControl: Position;
@@ -69,7 +72,7 @@ export class Arrow {
         const p1 = relativeFrom;
         const c1 = relativeFrom.plus(point(this._start.x < this._end.x ? Math.max(10, boundExtent.x / 2) : 10, 0));
         const c2 = relativeTo.plus(normalizedEndControl.dot(boundExtent)).map(n => +n.toFixed(2));
-        const p2 = relativeTo;
+        const p2 = relativeTo.plus(normalizedEndControl.map(n => n * Arrow.linecapSize));
 
         this._svgPath.setAttribute("d", `M ${p1.x},${p1.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`);
         this._svgElement.style.translate = `${boundStart.x}px ${boundStart.y}px`;
@@ -178,14 +181,11 @@ export function svgDefinitions() {
     const svgElement = createSvgElement("svg");
     svgElement.innerHTML = `
         <defs>
-            <marker
-                id="arrow-end"
-                refX="10" refY="5"
-                markerUnits="strokeWidth"
-                markerWidth="10"
-                markerHeight="10"
-                orient="auto">
-              <path d="M 0,0 L 10,5 L 0,10 z" fill="#f00"></path>
+            <marker id="arrow-start" refX="1.5" refY="1.5" markerWidth="10" markerHeight="10">
+                <circle cx="1.5" cy="1.5" r="1.5"></circle>
+            </marker>
+            <marker id="arrow-end" refX="3" refY="3" markerWidth="3.5" markerHeight="10" orient="auto">
+                <path d="M 1,1 L 3,3 L 1,5"></path>
             </marker>
         </defs>
     `;
