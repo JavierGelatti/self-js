@@ -9,17 +9,30 @@ export class Position {
     }
 
     plus(anotherPosition: Position) {
-        return point(
-            anotherPosition.x + this.x,
-            anotherPosition.y + this.y,
-        );
+        return this.zipWith(anotherPosition, (a, b) => a + b);
     }
 
     minus(anotherPosition: Position) {
+        return this.zipWith(anotherPosition, (a, b) => a - b);
+    }
+
+    max(anotherPosition: Position) {
+        return this.zipWith(anotherPosition, Math.max);
+    }
+
+    min(anotherPosition: Position) {
+        return this.zipWith(anotherPosition, Math.min);
+    }
+
+    dot(anotherPosition: Position) {
+        return this.zipWith(anotherPosition, (a, b) => a * b);
+    }
+
+    private zipWith(anotherPosition: Position, combiner: (leftCoordinate: number, rightCoordinate: number) => number) {
         return point(
-            this.x - anotherPosition.x,
-            this.y - anotherPosition.y,
-        );
+            combiner(this.x, anotherPosition.x),
+            combiner(this.y, anotherPosition.y),
+        )
     }
 
     map(transformation: (coordinate: number) => number) {
@@ -27,6 +40,15 @@ export class Position {
             transformation(this.x),
             transformation(this.y),
         );
+    }
+
+    normalized() {
+        const magnitude = this.magnitude();
+        return this.map(coordinate => coordinate / magnitude);
+    }
+
+    magnitude() {
+        return Math.sqrt(this.x ** 2 + this.y ** 2);
     }
 }
 

@@ -135,6 +135,14 @@ button[disabled] {
     }
 }
 
+path.arrow {
+    stroke: black;
+    fill: transparent;
+    stroke-linecap: butt;
+    marker-end: url(#arrow-end);
+    stroke-dasharray: 98 2;
+}
+
 .shaking {
     transform-origin: center;
     animation-composition: accumulate;
