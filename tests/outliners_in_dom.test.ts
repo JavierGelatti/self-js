@@ -12,7 +12,7 @@ import {point, Position, sumOf} from "../src/position";
 
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
-import {asClientLocation, getElementAt, positionOfDomElement} from "../src/dom.ts";
+import {asClientLocation, boundingPageBoxOf, getElementAt, PageBox, positionOfDomElement} from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
 import {Selector} from "../src/property.ts";
 
@@ -381,7 +381,7 @@ describe("The outliners in the world", () => {
             expect(getElementAt(associationArrow.start()))
                 .toEqual(outlinerElement.buttonToInspectProperty("x"));
             expect(associationArrow.end())
-                .toEqual(lastOutliner().domElement().getBoundingClientRect());
+                .toEqual(boundingPageBoxOf(lastOutliner().domElement()));
         });
 
         test("when the source outliner is moved, the arrow is updated", () => {
@@ -405,20 +405,8 @@ describe("The outliners in the world", () => {
 
             targetOutliner.move(point(10, 20));
 
-            // TODO: Evitar usar DOMRects (!)
-            expect(
-                [
-                    associationArrow.end().x,
-                    associationArrow.end().y,
-                    (associationArrow.end() as DOMRect).width,
-                    (associationArrow.end() as DOMRect).height,
-                ]
-            ).toEqual([
-                targetOutliner.domElement().getBoundingClientRect().x,
-                targetOutliner.domElement().getBoundingClientRect().y,
-                targetOutliner.domElement().getBoundingClientRect().width,
-                targetOutliner.domElement().getBoundingClientRect().height,
-            ]);
+            expect(associationArrow.end())
+                .toEqual(boundingPageBoxOf(targetOutliner.domElement()));
         });
 
         function arrowForAssociation(inspectedObject: InspectableObject, propertyName: Selector) {

@@ -111,14 +111,49 @@ export function asClientLocation(position: Position): ClientLocation {
     return {clientX: position.x, clientY: position.y};
 }
 
+export class PageBox {
+    constructor(
+        public readonly x: number,
+        public readonly y: number,
+        public readonly width: number,
+        public readonly height: number,
+    ) {}
+
+    get position() {
+        return point(this.x, this.y);
+    }
+
+    get size() {
+        return point(this.width, this.height);
+    }
+
+    get top() {
+        return this.y;
+    }
+
+    get bottom() {
+        return this.y + this.height;
+    }
+
+    get left() {
+        return this.x;
+    }
+
+    get right() {
+        return this.x + this.width;
+    }
+
+    center() {
+        return point(this.x + this.width / 2, this.y + this.height / 2);
+    }
+}
+
 export function positionOfDomElement(element: Element) {
-    const clientRect = element.getBoundingClientRect();
-    return point(clientRect.x, clientRect.y);
+    return boundingPageBoxOf(element).position;
 }
 
 export function sizeOfDomElement(element: Element) {
-    const clientRect = element.getBoundingClientRect();
-    return point(clientRect.width, clientRect.height);
+    return boundingPageBoxOf(element).size;
 }
 
 export function centerOf(domBox: DOMRect) {
@@ -127,4 +162,14 @@ export function centerOf(domBox: DOMRect) {
 
 export function getElementAt(position: Position) {
     return document.elementFromPoint(position.x, position.y);
+}
+
+export function boundingPageBoxOf(controlEnd: Element) {
+    const clientRect = controlEnd.getBoundingClientRect();
+    return new PageBox(
+        clientRect.x + window.scrollX,
+        clientRect.y + window.scrollY,
+        clientRect.width,
+        clientRect.height,
+    );
 }

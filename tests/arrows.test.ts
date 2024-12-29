@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, test} from "vitest";
 import {point, Position} from "../src/position.ts";
-import {createElement, positionOfDomElement, sizeOfDomElement} from "../src/dom.ts";
+import {createElement, boundingPageBoxOf, positionOfDomElement, sizeOfDomElement} from "../src/dom.ts";
 import {curveTo, moveTo, parsePath} from "./svg_path.ts";
 import {Arrow, drawNewArrow, drawNewArrowToBox, svgDefinitions} from "../src/arrows.ts";
 import "../styles.css";
@@ -58,7 +58,7 @@ describe("Arrows", () => {
 
         test("updates arrow from box to point", () => {
             const box = createBox(point(50, 50), point(10, 10));
-            const arrow = drawNewArrowToBox(point(0, 0), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(0, 0), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             arrow.updateEndToPoint(point(100, 100), point(3, -4));
@@ -74,7 +74,7 @@ describe("Arrows", () => {
     describe("to boxes", () => {
         test("draws arrows to top-left corner of boxes", () => {
             const box = createBox(point(150, 100), point(100, 50));
-            const arrow = drawNewArrowToBox(point(30, 40), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(30, 40), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(30, 40));
@@ -86,7 +86,7 @@ describe("Arrows", () => {
 
         test("draws arrows to top-right corner of boxes", () => {
             const box = createBox(point(150, 100), point(100, 50));
-            const arrow = drawNewArrowToBox(point(370, 40), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(370, 40), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(250, 40));
@@ -98,7 +98,7 @@ describe("Arrows", () => {
 
         test("draws arrows to bottom-right corner of boxes", () => {
             const box = createBox(point(150, 100), point(100, 50));
-            const arrow = drawNewArrowToBox(point(370, 210), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(370, 210), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(250, 150));
@@ -110,7 +110,7 @@ describe("Arrows", () => {
 
         test("draws arrows to bottom-left corner of boxes", () => {
             const box = createBox(point(150, 100), point(100, 50));
-            const arrow = drawNewArrowToBox(point(30, 210), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(30, 210), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(30, 150));
@@ -122,7 +122,7 @@ describe("Arrows", () => {
 
         test("draws arrows to top of boxes", () => {
             const box = createBox(point(150, 100), point(100, 50));
-            const arrow = drawNewArrowToBox(point(200, 100 - 90), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(200, 100 - 90), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(200, 10));
@@ -134,7 +134,7 @@ describe("Arrows", () => {
 
         test("draws arrows to right of boxes", () => {
             const box = createBox(point(150, 100), point(100, 50));
-            const arrow = drawNewArrowToBox(point(250 + 90, 125), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(250 + 90, 125), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(250, 125));
@@ -146,7 +146,7 @@ describe("Arrows", () => {
 
         test("draws arrows to bottom of boxes", () => {
             const box = createBox(point(150, 100), point(100, 50));
-            const arrow = drawNewArrowToBox(point(200, 150 + 90), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(200, 150 + 90), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(200, 150));
@@ -158,7 +158,7 @@ describe("Arrows", () => {
 
         test("draws arrows to left of boxes", () => {
             const box = createBox(point(150, 100), point(100, 50));
-            const arrow = drawNewArrowToBox(point(150 - 90, 125), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(150 - 90, 125), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(60, 125));
@@ -170,7 +170,7 @@ describe("Arrows", () => {
 
         test("updates arrow start", () => {
             const box = createBox(point(150, 100), point(100, 50));
-            const arrow = drawNewArrowToBox(point(0, 0), box.getBoundingClientRect());
+            const arrow = drawNewArrowToBox(point(0, 0), boundingPageBoxOf(box));
             document.body.append(arrow.svgElement());
 
             arrow.updateStart(point(150 - 90, 125));
@@ -187,7 +187,7 @@ describe("Arrows", () => {
             const arrow = drawNewArrow(point(150 - 90, 125), point(10, 10));
             document.body.append(arrow.svgElement());
 
-            arrow.attachEndToBox(box.getBoundingClientRect());
+            arrow.attachEndToBox(boundingPageBoxOf(box));
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(60, 125));
             expect(sizeOfDomElement(arrow.svgElement())).toEqual(point(90, 1));
@@ -201,7 +201,7 @@ describe("Arrows", () => {
             const arrow = drawNewArrow(point(0, 0), point(10, 10));
             document.body.append(arrow.svgElement());
 
-            arrow.attachEndToBox(box.getBoundingClientRect());
+            arrow.attachEndToBox(boundingPageBoxOf(box));
             arrow.updateStart(point(150 - 90, 125));
 
             expect(positionOfDomElement(arrow.svgElement())).toEqual(point(60, 125));
@@ -210,6 +210,26 @@ describe("Arrows", () => {
                 moveTo(point(0, 0)), curveTo(point(45, 0), point(0, 0), point(90, 0))
             ]);
         });
+
+        test("the box location is correct even if the document is scrolled", () => {
+            scrollToBottomOfDocument();
+            const box = createBox(point(150, 100), point(100, 50));
+            const arrow = drawNewArrowToBox(point(200, 100 - 90), boundingPageBoxOf(box));
+            document.body.append(arrow.svgElement());
+
+            expect(positionOfDomElement(arrow.svgElement())).toEqual(point(200, 10));
+            expect(sizeOfDomElement(arrow.svgElement())).toEqual(point(1, 90));
+            expect(drawnPath(arrow)).toEqual([
+                moveTo(point(0, 0)), curveTo(point(10, 0), point(0, 0), point(0, 90))
+            ]);
+        });
+
+        function scrollToBottomOfDocument() {
+            const longDiv = createElement("div", {style: {height: "200vh "}});
+            const bottomDiv = createElement("div");
+            document.body.append(longDiv, bottomDiv);
+            bottomDiv.scrollIntoView(false);
+        }
     });
 
     function createBox(position: Position, size: Position) {

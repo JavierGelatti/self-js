@@ -1,5 +1,5 @@
 import {point, Position} from "./position.ts";
-import {centerOf, createSvgElement} from "./dom.ts";
+import {createSvgElement, PageBox} from "./dom.ts";
 
 export class Arrow {
     // We use this to reduce the end of the arrow so that the linecap can occupy that space
@@ -8,13 +8,13 @@ export class Arrow {
     private _start: Position;
     private _end: Position;
     private _endControl: Position;
-    private _endBox?: DOMRect;
+    private _endBox?: PageBox;
     private readonly _svgElement: SVGSVGElement;
     private _svgPath!: SVGPathElement;
 
-    constructor(from: Position, to: DOMRect)
+    constructor(from: Position, to: PageBox)
     constructor(from: Position, to: Position, endControl?: Position)
-    constructor(from: Position, to: Position | DOMRect, endControl?: Position) {
+    constructor(from: Position, to: Position | PageBox, endControl?: Position) {
         this._start = from;
 
         if (to instanceof Position) {
@@ -91,23 +91,23 @@ export class Arrow {
         return endPosition.deltaToReach(this._start);
     }
 
-    attachEndToBox(endBox: DOMRect) {
+    attachEndToBox(endBox: PageBox) {
         this._endBox = endBox;
         this._updateBoxEnd(this._endBox);
     }
 
-    private _updateBoxEnd(endBox: DOMRect) {
+    private _updateBoxEnd(endBox: PageBox) {
         this._end = this._endPointTargetingBox(endBox);
         this._endControl = this._endControlPointTargetingBox(endBox);
         this._updatePath();
     }
 
-    private _endControlPointTargetingBox(targetBox: DOMRect) {
-        return centerOf(targetBox).deltaToReach(this._start);
+    private _endControlPointTargetingBox(targetBox: PageBox) {
+        return targetBox.center().deltaToReach(this._start);
     }
 
-    private _endPointTargetingBox(targetBox: DOMRect) {
-        const lineToTargetCenter = new Line(this._start, centerOf(targetBox));
+    private _endPointTargetingBox(targetBox: PageBox) {
+        const lineToTargetCenter = new Line(this._start, targetBox.center());
 
         const diagonal1 = new Line(
             point(targetBox.left, targetBox.top),
@@ -136,7 +136,7 @@ export class Arrow {
         return this._start;
     }
 
-    end(): DOMRect | Position {
+    end(): PageBox | Position {
         return this._endBox ?? this._end;
     }
 }
@@ -177,7 +177,7 @@ export function drawNewArrow(from: Position, to: Position, endControl?: Position
     return new Arrow(from, to, endControl);
 }
 
-export function drawNewArrowToBox(from: Position, to: DOMRect) {
+export function drawNewArrowToBox(from: Position, to: PageBox) {
     return new Arrow(from, to);
 }
 
