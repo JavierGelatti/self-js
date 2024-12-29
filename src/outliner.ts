@@ -1,4 +1,4 @@
-import {point, Position, sumOf} from "./position.ts";
+import {point, Position} from "./position.ts";
 import {clientPositionOf, createElement, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
 import {CodeEditorElement, codeOn, createCodeEditorElement} from "./codeEditor.ts";
@@ -41,12 +41,12 @@ export abstract class Outliner<V> {
     }
 
     grab(pointerId: number, grabPosition: Position) {
-        this._moveTo(sumOf(grabPosition, point(-50, -10)));
+        this._moveTo(grabPosition.plus(point(-50, -10)));
         this._grab(pointerId, grabPosition);
     }
 
     protected _move(delta: Position) {
-        this._moveTo(sumOf(this._position, delta));
+        this._moveTo(this._position.plus(delta));
     }
 
     private _moveTo(position: Position) {
@@ -105,7 +105,7 @@ export abstract class Outliner<V> {
         try {
             action(this._evalExpression(this._currentCode()));
         } catch (error) {
-            this._world.openOutliner(error, sumOf(currentPosition, point(20, 20)));
+            this._world.openOutliner(error, currentPosition.plus(point(20, 20)));
         } finally {
             this._world.updateOutliners();
         }
