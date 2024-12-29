@@ -2,7 +2,7 @@ import {fireEvent, within} from "@testing-library/dom";
 import {vi} from "vitest";
 import {positionOfDomElement} from "../src/dom.ts";
 import {fireMousePointerEventOver} from "./dom_event_simulation.ts";
-import {point} from "../src/position.ts";
+import {point, Position} from "../src/position.ts";
 
 export class OutlinerFromDomElement {
     private _domElement: HTMLElement;
@@ -118,8 +118,21 @@ export class OutlinerFromDomElement {
     }
 
     inspectProperty(propertyName: string) {
-        const row = this._propertyRowFor(propertyName);
+        this.buttonToInspectProperty(propertyName).click();
+    }
 
-        within(row).getByTitle("Inspeccionar valor").click();
+    buttonToInspectProperty(propertyName: string) {
+        const row = this._propertyRowFor(propertyName);
+        return within(row).getByTitle("Inspeccionar valor");
+    }
+
+    domElement() {
+        return this._domElement;
+    }
+
+    move(positionDelta: Position) {
+        fireMousePointerEventOver(this.header(), "pointerDown", point(1, 1));
+        fireMousePointerEventOver(this.header(), "pointerMove", point(1, 1).plus(positionDelta));
+        fireMousePointerEventOver(this.header(), "pointerUp",   point(1, 1));
     }
 }

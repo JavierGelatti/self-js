@@ -60,4 +60,8 @@ export class Property {
     associationElement(): Element {
         return this._inspectPropertyButton;
     }
+
+    isNamed(aSelector: Selector) {
+        return this._key === aSelector;
+    }
 }

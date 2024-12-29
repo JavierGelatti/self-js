@@ -12,8 +12,9 @@ import {point, Position, sumOf} from "../src/position";
 
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
-import {asClientLocation, positionOfDomElement} from "../src/dom.ts";
+import {asClientLocation, getElementAt, positionOfDomElement} from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
+import {Selector} from "../src/property.ts";
 
 describe("The outliners in the world", () => {
     const { world, worldDomElement } = createWorldInDomBeforeEach();
@@ -99,12 +100,16 @@ describe("The outliners in the world", () => {
         });
 
         test("can inspect a property", () => {
-            const outlinerElement = openOutlinerFor({ x: 1, y: 2 });
+            document.body.append(worldDomElement()); // Needed to get the location of the inspect button (for the arrow)
+            const inspectedObject = { x: 1, y: 2 };
+            const outlinerElement = openOutlinerFor(inspectedObject);
 
             outlinerElement.inspectProperty("x");
 
             const outlinerForProperty = lastOutliner();
             expect(outlinerForProperty.title()).toEqual("1");
+            const association = world().associationFor(inspectedObject, "x");
+            expect(association).toBeDefined();
         });
     });
 
@@ -365,6 +370,60 @@ describe("The outliners in the world", () => {
             expect(outlinerElement.isMoving()).toBe(true);
             expect(outlinerElement.position()).toEqual(point(10, 20).plus(point(1, 5)));
         });
+
+        test("when inspecting a property, an arrow is shown", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outlinerElement = openOutlinerFor(inspectedObject);
+
+            outlinerElement.inspectProperty("x");
+
+            const associationArrow = arrowForAssociation(inspectedObject, "x");
+            expect(getElementAt(associationArrow.start()))
+                .toEqual(outlinerElement.buttonToInspectProperty("x"));
+            expect(associationArrow.end())
+                .toEqual(lastOutliner().domElement().getBoundingClientRect());
+        });
+
+        test("when the source outliner is moved, the arrow is updated", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outlinerElement = openOutlinerFor(inspectedObject);
+            outlinerElement.inspectProperty("x");
+            const associationArrow = arrowForAssociation(inspectedObject, "x");
+            const originalArrowStart = associationArrow.start();
+
+            outlinerElement.move(point(10, 20));
+
+            expect(associationArrow.start()).toEqual(originalArrowStart.plus(point(10, 20)));
+        });
+
+        test("when the target outliner is moved, the arrow is updated", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outlinerElement = openOutlinerFor(inspectedObject);
+            outlinerElement.inspectProperty("x");
+            const associationArrow = arrowForAssociation(inspectedObject, "x");
+            const targetOutliner = lastOutliner();
+
+            targetOutliner.move(point(10, 20));
+
+            // TODO: Evitar usar DOMRects (!)
+            expect(
+                [
+                    associationArrow.end().x,
+                    associationArrow.end().y,
+                    (associationArrow.end() as DOMRect).width,
+                    (associationArrow.end() as DOMRect).height,
+                ]
+            ).toEqual([
+                targetOutliner.domElement().getBoundingClientRect().x,
+                targetOutliner.domElement().getBoundingClientRect().y,
+                targetOutliner.domElement().getBoundingClientRect().width,
+                targetOutliner.domElement().getBoundingClientRect().height,
+            ]);
+        });
+
+        function arrowForAssociation(inspectedObject: InspectableObject, propertyName: Selector) {
+            return world().associationFor(inspectedObject, propertyName)!.arrow();
+        }
     });
 
     describe("code evaluation", () => {

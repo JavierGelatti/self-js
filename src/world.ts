@@ -2,12 +2,14 @@ import {point, Position} from "./position.ts";
 import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
 import {Outliner} from "./outliner.ts";
 import {Primitive, PrimitiveOutliner} from "./primitiveOutliner.ts";
-import {Property} from "./property.ts";
+import {Property, Selector} from "./property.ts";
 import {createElement, positionOfDomElement} from "./dom.ts";
+import {Association} from "./association.ts";
 
 export class World {
-    private _domElement: HTMLDivElement = createElement('div', { className: "world" });
-    private _outliners: Map<unknown, Outliner<unknown>> = new Map();
+    private readonly _domElement: HTMLDivElement = createElement('div', { className: "world" });
+    private readonly _outliners: Map<unknown, Outliner<unknown>> = new Map();
+    private readonly _associations: Association[] = [];
 
     domElement() {
         return this._domElement;
@@ -53,5 +55,15 @@ export class World {
             currentPosition.plus(point(50, 0))
         );
 
+        const association = new Association(propertyToInspect, ownerOutliner, valueOutliner);
+        document.body.append(association.domElement());
+        this._associations.push(association);
+
+        ownerOutliner.registerAssociationStart(association);
+        valueOutliner.registerAssociationEnd(association);
+    }
+
+    associationFor(anObject: InspectableObject, propertyName: Selector) {
+        return this._associations.find(association => association.isFor(anObject, propertyName));
     }
 }

@@ -1,5 +1,5 @@
 import {point, Position} from "./position.ts";
-import {createSvgElement} from "./dom.ts";
+import {centerOf, createSvgElement} from "./dom.ts";
 
 export class Arrow {
     // We use this to reduce the end of the arrow so that the linecap can occupy that space
@@ -131,6 +131,14 @@ export class Arrow {
             return lineToTargetCenter.pointAtY(targetBox.bottom);
         }
     }
+
+    start() {
+        return this._start;
+    }
+
+    end(): DOMRect | Position {
+        return this._endBox ?? this._end;
+    }
 }
 
 class Line {
@@ -171,10 +179,6 @@ export function drawNewArrow(from: Position, to: Position, endControl?: Position
 
 export function drawNewArrowToBox(from: Position, to: DOMRect) {
     return new Arrow(from, to);
-}
-
-function centerOf(domBox: DOMRect) {
-    return point(domBox.x + domBox.width / 2, domBox.y + domBox.height / 2);
 }
 
 export function svgDefinitions() {

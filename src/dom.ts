@@ -120,3 +120,11 @@ export function sizeOfDomElement(element: Element) {
     const clientRect = element.getBoundingClientRect();
     return point(clientRect.width, clientRect.height);
 }
+
+export function centerOf(domBox: DOMRect) {
+    return point(domBox.x + domBox.width / 2, domBox.y + domBox.height / 2);
+}
+
+export function getElementAt(position: Position) {
+    return document.elementFromPoint(position.x, position.y);
+}

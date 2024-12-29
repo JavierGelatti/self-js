@@ -2,6 +2,7 @@ import {point, Position} from "./position.ts";
 import {clientPositionOf, createElement, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
 import {CodeEditorElement, codeOn, createCodeEditorElement} from "./codeEditor.ts";
+import {Association} from "./association.ts";
 
 export abstract class Outliner<V> {
     protected _inspectedValue: V;
@@ -14,6 +15,8 @@ export abstract class Outliner<V> {
     private _inspectItButton!: HTMLButtonElement;
     protected _world: World;
     protected _grab: (pointerId: number, grabPosition: Position) => void;
+    private _associationStarts: Association[] = [];
+    private _associationEnds: Association[] = [];
 
     protected constructor(inspectedObject: V, position: Position, world: World) {
         this._inspectedValue = inspectedObject;
@@ -28,6 +31,10 @@ export abstract class Outliner<V> {
             onDragStart: () => {
                 this._domElement.classList.add("moving");
                 this._domElement.parentElement?.append(this._domElement);
+                // TODO: Testear esto
+                [...this._associationStarts, ...this._associationEnds].forEach(association => {
+                    this._domElement.parentElement?.append(association.domElement());
+                });
             },
             onDrag: (_, delta) => this._move(delta),
             onDragEnd: () => this._domElement.classList.remove("moving"),
@@ -52,6 +59,12 @@ export abstract class Outliner<V> {
     private _moveTo(position: Position) {
         this._domElement.style.translate = `${(position.x)}px ${(position.y)}px`;
         this._position = position;
+        this._associationStarts.forEach(association => {
+            association.updateArrowStart()
+        });
+        this._associationEnds.forEach(association => {
+            association.updateArrowEnd()
+        });
     }
 
     domElement() {
@@ -132,6 +145,14 @@ export abstract class Outliner<V> {
         this._domElement.addEventListener("animationend", () => {
             this._domElement.classList.remove("shaking");
         }, { once: true });
+    }
+
+    registerAssociationStart(association: Association) {
+        this._associationStarts.push(association);
+    }
+
+    registerAssociationEnd(association: Association) {
+        this._associationEnds.push(association);
     }
 }
 
