@@ -97,6 +97,15 @@ describe("The outliners in the world", () => {
             expect(Object.keys(anObject)).toEqual([]);
             expect(outlinerElement.numberOfProperties()).toEqual(0);
         });
+
+        test("can inspect a property", () => {
+            const outlinerElement = openOutlinerFor({ x: 1, y: 2 });
+
+            outlinerElement.inspectProperty("x");
+
+            const outlinerForProperty = lastOutliner();
+            expect(outlinerForProperty.title()).toEqual("1");
+        });
     });
 
     describe("updates", () => {

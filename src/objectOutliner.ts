@@ -50,12 +50,12 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     protected override _createDomElementContent() {
         return createElement("table", {title: "Slots"}, [
             createElement("tr", {}, [
-                createElement("td", {colSpan: 2}, [
+                createElement("td", {colSpan: 3}, [
                     createElement("button", {
                         title: "Add property",
                         textContent: "➕ Nueva propiedad",
                         onclick: () => {
-                            const newPropertyName = prompt("Nombre de la propiedad nueva")!;
+                            const newPropertyName = prompt("Nombre de la propiedad nueva");
                             if (newPropertyName === null) return;
                             this.createNewProperty(newPropertyName);
                         },
@@ -79,7 +79,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     }
 
     private _newProperty(key: string | symbol) {
-        const property = new Property(key, this._inspectedValue);
+        const property = new Property(key, this._inspectedValue, this._world);
         this._properties.set(key, property);
         return property;
     };

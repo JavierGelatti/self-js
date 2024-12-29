@@ -2,9 +2,11 @@ import {point, Position} from "./position.ts";
 import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
 import {Outliner} from "./outliner.ts";
 import {Primitive, PrimitiveOutliner} from "./primitiveOutliner.ts";
+import {Property} from "./property.ts";
+import {createElement, positionOfDomElement} from "./dom.ts";
 
 export class World {
-    private _domElement: HTMLDivElement = document.createElement('div');
+    private _domElement: HTMLDivElement = createElement('div', { className: "world" });
     private _outliners: Map<unknown, Outliner<unknown>> = new Map();
 
     domElement() {
@@ -41,5 +43,15 @@ export class World {
     closeOutliner(anOutliner: Outliner<unknown>) {
         this._domElement.removeChild(anOutliner.domElement());
         this._outliners.delete(anOutliner.inspectedValue());
+    }
+
+    openOutlinerForAssociation(propertyToInspect: Property) {
+        const ownerOutliner = this._outliners.get(propertyToInspect.owner())!;
+        const currentPosition = positionOfDomElement(propertyToInspect.associationElement());
+        const valueOutliner = this.openOutliner(
+            propertyToInspect.currentValue(),
+            currentPosition.plus(point(50, 0))
+        );
+
     }
 }

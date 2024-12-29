@@ -15,8 +15,8 @@ export class OutlinerFromDomElement {
         return this._domElement.dataset.type;
     }
 
-    title() {
-        return this.header().firstChild?.textContent;
+    title(): string | undefined {
+        return this.header().firstChild?.textContent ?? undefined;
     }
 
     stereotype() {
@@ -42,12 +42,16 @@ export class OutlinerFromDomElement {
     }
 
     valueOfProperty(propertyName: string) {
+        return within(this._propertyRowFor(propertyName)).getAllByRole("cell")[1].textContent;
+    }
+
+    private _propertyRowFor(propertyName: string) {
         const propertyRow = this._propertyRows()
             .find(row => this._propertyNameOn(row) === propertyName);
 
         if (propertyRow === undefined) throw new Error(`Cannot find property '${propertyName}' on outliner`);
 
-        return within(propertyRow).getAllByRole("cell")[1].textContent;
+        return propertyRow;
     }
 
     private _propertyNameOn(row: HTMLElement) {
@@ -111,5 +115,11 @@ export class OutlinerFromDomElement {
 
     isMoving() {
         return this._domElement.classList.contains("moving");
+    }
+
+    inspectProperty(propertyName: string) {
+        const row = this._propertyRowFor(propertyName);
+
+        within(row).getByTitle("Inspeccionar valor").click();
     }
 }

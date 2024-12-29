@@ -1,6 +1,9 @@
 body {
     background: whitesmoke;
     font-family: sans-serif;
+    position: relative;
+    margin: 0;
+    padding: 0;
 }
 
 button {
@@ -27,6 +30,8 @@ button[disabled] {
     background: white;
     border: 1px solid black;
     position: absolute;
+    top: 0;
+    left: 0;
     border-radius: 4px;
     overflow: hidden;
     transition-property: transform, box-shadow;
@@ -107,6 +112,10 @@ button[disabled] {
                 max-width: 15em;
                 overflow: hidden;
                 text-overflow: ellipsis;
+            }
+
+            &:nth-child(3) {
+                width: 1px;
             }
 
             &:only-child {
