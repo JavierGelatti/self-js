@@ -2,8 +2,8 @@ import {point, Position} from "./position.ts";
 import {createSvgElement} from "./dom.ts";
 
 export class Arrow {
-    private _from: Position;
-    private _to: Position;
+    private _start: Position;
+    private _end: Position;
     private _endControl: Position;
     private _endBox?: DOMRect;
     private readonly _svgElement: SVGSVGElement;
@@ -12,17 +12,15 @@ export class Arrow {
     constructor(from: Position, to: DOMRect)
     constructor(from: Position, to: Position, endControl?: Position)
     constructor(from: Position, to: Position | DOMRect, endControl?: Position) {
-        this._from = from;
+        this._start = from;
 
         if (to instanceof Position) {
-            this._to = to;
+            this._end = to;
             this._endControl = endControl ?? this.defaultEndControlFor(to);
         } else {
             this._endBox = to;
-            const [endPoint, endControl] = this.endPointTargetingBox(this._endBox);
-
-            this._to = endPoint;
-            this._endControl = endControl;
+            this._end = this._endPointTargetingBox(this._endBox);
+            this._endControl = this._endControlPointTargetingBox(this._endBox);
         }
 
         this._svgElement = this.createSvgElement();
@@ -34,9 +32,9 @@ export class Arrow {
     }
 
     updateStart(newStart: Position) {
-        this._from = newStart;
+        this._start = newStart;
         if (this._endBox) {
-            this.updateEndToBox(this._endBox);
+            this._updateBoxEnd(this._endBox);
         }
 
         this.updatePath();
@@ -61,15 +59,15 @@ export class Arrow {
 
     private updatePath() {
         const normalizedEndControl = this._endControl.normalized();
-        const boundStart = this._from.min(this._to);
-        const boundEnd = this._from.max(this._to);
+        const boundStart = this._start.min(this._end);
+        const boundEnd = this._start.max(this._end);
         const boundExtent = boundStart.deltaToReach(boundEnd);
 
-        const relativeFrom = boundStart.deltaToReach(this._from);
-        const relativeTo = boundStart.deltaToReach(this._to);
+        const relativeFrom = boundStart.deltaToReach(this._start);
+        const relativeTo = boundStart.deltaToReach(this._end);
 
         const p1 = relativeFrom;
-        const c1 = relativeFrom.plus(point(this._from.x < this._to.x ? Math.max(10, boundExtent.x / 2) : 10, 0));
+        const c1 = relativeFrom.plus(point(this._start.x < this._end.x ? Math.max(10, boundExtent.x / 2) : 10, 0));
         const c2 = relativeTo.plus(normalizedEndControl.dot(boundExtent)).map(n => +n.toFixed(2));
         const p2 = relativeTo;
 
@@ -80,68 +78,90 @@ export class Arrow {
     }
 
     updateEndToPoint(newEnd: Position, newEndControl: Position = this.defaultEndControlFor(newEnd)) {
-        this._to = newEnd;
+        this._end = newEnd;
         this._endControl = newEndControl;
         this._endBox = undefined;
         this.updatePath();
     }
 
     private defaultEndControlFor(endPosition: Position) {
-        return endPosition.deltaToReach(this._from);
+        return endPosition.deltaToReach(this._start);
     }
 
     attachEndToBox(endBox: DOMRect) {
         this._endBox = endBox;
-        this.updateEndToBox(this._endBox);
+        this._updateBoxEnd(this._endBox);
     }
 
-    private updateEndToBox(endBox: DOMRect) {
-        const [endPoint, endControlPoint] = this.endPointTargetingBox(endBox);
-
-        this.updateEndToPoint(endPoint, endControlPoint);
+    private _updateBoxEnd(endBox: DOMRect) {
+        // FIXME: This sets the box to undefined...
+        this.updateEndToPoint(
+            this._endPointTargetingBox(endBox),
+            this._endControlPointTargetingBox(endBox)
+        );
     }
 
-    private endPointTargetingBox(endBox: DOMRect) {
-        const endCenter = point(endBox.x + endBox.width / 2, endBox.y + endBox.height / 2);
+    private _endControlPointTargetingBox(targetBox: DOMRect) {
+        return centerOf(targetBox).deltaToReach(this._start);
+    }
 
-        const aspectRatio = endBox.height / endBox.width;
-        const diagonal1 = (x: number) => +aspectRatio * (x - endBox.x) + endBox.y;
-        const diagonal2 = (x: number) => -aspectRatio * (x - endBox.x) + endBox.y + endBox.height;
+    private _endPointTargetingBox(targetBox: DOMRect) {
+        const lineToTargetCenter = new Line(this._start, centerOf(targetBox));
 
-        const aboveDiagonal1 = diagonal1(this._from.x) > this._from.y;
-        const aboveDiagonal2 = diagonal2(this._from.x) > this._from.y;
+        const diagonal1 = new Line(
+            point(targetBox.left, targetBox.top),
+            point(targetBox.right, targetBox.bottom)
+        );
+        const diagonal2 = new Line(
+            point(targetBox.right, targetBox.top),
+            point(targetBox.left, targetBox.bottom)
+        );
 
-        let endPoint;
-        let endControlPoint = endCenter.deltaToReach(this._from);
-        if (aboveDiagonal1 && aboveDiagonal2) {
-            // Top
-            endPoint = pointInLineAtY(this._from, endCenter, endBox.top);
-        } else if (!aboveDiagonal1 && aboveDiagonal2) {
-            // Left
-            endPoint = pointInLineAtX(this._from, endCenter, endBox.left);
-        } else if (aboveDiagonal1) {
-            // Right
-            endPoint = pointInLineAtX(this._from, endCenter, endBox.right);
+        const startIsAboveDiagonal1 = diagonal1.isBelow(this._start);
+        const startIsAboveDiagonal2 = diagonal2.isBelow(this._start);
+
+        if (startIsAboveDiagonal1 && startIsAboveDiagonal2) {
+            return lineToTargetCenter.pointAtY(targetBox.top);
+        } else if (startIsAboveDiagonal1 && !startIsAboveDiagonal2) {
+            return lineToTargetCenter.pointAtX(targetBox.right);
+        } else if (startIsAboveDiagonal2) {
+            return lineToTargetCenter.pointAtX(targetBox.left);
         } else {
-            // Bottom
-            endPoint = pointInLineAtY(this._from, endCenter, endBox.bottom);
+            return lineToTargetCenter.pointAtY(targetBox.bottom);
         }
-        return [endPoint, endControlPoint];
     }
 }
 
-function pointInLineAtX(p1: Position, p2: Position, x: number) {
-    const delta = p1.deltaToReach(p2);
-    const slope = delta.y/delta.x;
+class Line {
+    private readonly _point: Position;
+    private readonly _slope: number;
 
-    return point(x, -slope * (p2.x - x) + p2.y);
-}
+    constructor(p1: Position, p2: Position) {
+        this._point = p1;
 
-function pointInLineAtY(p1: Position, p2: Position, y: number) {
-    const delta = p1.deltaToReach(p2);
-    const slope = delta.y/delta.x;
+        const delta = p1.deltaToReach(p2);
+        this._slope = delta.y/delta.x;
+    }
 
-    return point(-1/slope * (p2.y - y) + p2.x, y);
+    pointAtX(x: number) {
+        return point(x, this.yFor(x));
+    }
+
+    pointAtY(y: number) {
+        return point(this.xFor(y), y);
+    }
+
+    yFor(x: number) {
+        return this._slope * (x - this._point.x) + this._point.y
+    }
+
+    xFor(y: number) {
+        return 1 / this._slope * (y - this._point.y) + this._point.x;
+    }
+
+    isBelow(point: Position) {
+        return this.yFor(point.x) > point.y;
+    }
 }
 
 export function drawNewArrow(from: Position, to: Position, endControl?: Position) {
@@ -150,6 +170,10 @@ export function drawNewArrow(from: Position, to: Position, endControl?: Position
 
 export function drawNewArrowToBox(from: Position, to: DOMRect) {
     return new Arrow(from, to);
+}
+
+function centerOf(domBox: DOMRect) {
+    return point(domBox.x + domBox.width / 2, domBox.y + domBox.height / 2);
 }
 
 export function svgDefinitions() {
