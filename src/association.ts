@@ -2,7 +2,7 @@ import {Property, Selector} from "./property.ts";
 import {Outliner} from "./outliner.ts";
 import {Arrow, drawNewArrowToBox} from "./arrows.ts";
 import {InspectableObject} from "./objectOutliner.ts";
-import {centerOf, boundingPageBoxOf} from "./dom.ts";
+import {boundingPageBoxOf} from "./dom.ts";
 
 export class Association {
     private _property: Property;
@@ -30,8 +30,7 @@ export class Association {
     }
 
     private _arrowStartPosition() {
-        // FIXME: Esto va a andar mal si se scrollea...
-        return centerOf(this._property.associationElement().getBoundingClientRect());
+        return boundingPageBoxOf(this._property.associationElement()).center();
     }
 
     updateArrowEnd() {

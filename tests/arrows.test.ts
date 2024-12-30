@@ -1,9 +1,10 @@
 import {beforeEach, describe, expect, test} from "vitest";
 import {point, Position} from "../src/position.ts";
-import {createElement, boundingPageBoxOf, positionOfDomElement, sizeOfDomElement} from "../src/dom.ts";
+import {boundingPageBoxOf, createElement, positionOfDomElement, sizeOfDomElement} from "../src/dom.ts";
 import {curveTo, moveTo, parsePath} from "./svg_path.ts";
 import {Arrow, drawNewArrow, drawNewArrowToBox, svgDefinitions} from "../src/arrows.ts";
 import "../styles.css";
+import {scrollToBottomOfDocument} from "./dom_event_simulation.ts";
 
 describe("Arrows", () => {
     beforeEach(() => {
@@ -223,13 +224,6 @@ describe("Arrows", () => {
                 moveTo(point(0, 0)), curveTo(point(10, 0), point(0, 0), point(0, 90))
             ]);
         });
-
-        function scrollToBottomOfDocument() {
-            const longDiv = createElement("div", {style: {height: "200vh "}});
-            const bottomDiv = createElement("div");
-            document.body.append(longDiv, bottomDiv);
-            bottomDiv.scrollIntoView(false);
-        }
     });
 
     function createBox(position: Position, size: Position) {

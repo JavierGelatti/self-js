@@ -1,6 +1,11 @@
 import {createEvent} from "@testing-library/dom";
 import {Position} from "../src/position.ts";
-import {asClientLocation, ClientLocation, positionOfDomElement} from "../src/dom.ts";
+import {
+    asClientLocation,
+    ClientLocation,
+    clientPositionOfDomElement,
+    createElement,
+} from "../src/dom.ts";
 
 export type TestingLibraryPointerEventName
     = "pointerOver"
@@ -80,5 +85,12 @@ export function firePointerEvent(
 }
 
 export function offsetToClientLocation(offsetLocation: Position, element: Element): ClientLocation {
-    return asClientLocation(positionOfDomElement(element).plus(offsetLocation));
+    return asClientLocation(clientPositionOfDomElement(element).plus(offsetLocation));
+}
+
+export function scrollToBottomOfDocument() {
+    const longDiv = createElement("div", { style: { height: "200vh" } });
+    const bottomDiv = createElement("div");
+    document.body.append(longDiv, bottomDiv);
+    bottomDiv.scrollIntoView(false);
 }

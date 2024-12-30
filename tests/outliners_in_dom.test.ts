@@ -7,14 +7,16 @@ import {
     fireTouchPointerEventOver,
     firstFinger,
     secondFinger,
+    scrollToBottomOfDocument,
 } from "./dom_event_simulation";
 import {point, Position, sumOf} from "../src/position";
 
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
-import {asClientLocation, boundingPageBoxOf, getElementAt, PageBox, positionOfDomElement} from "../src/dom.ts";
+import {asClientLocation, boundingPageBoxOf, getElementAt, positionOfDomElement} from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
 import {Selector} from "../src/property.ts";
+import {svgDefinitions} from "../src/arrows.ts";
 
 describe("The outliners in the world", () => {
     const { world, worldDomElement } = createWorldInDomBeforeEach();
@@ -189,7 +191,7 @@ describe("The outliners in the world", () => {
 
     describe("movements", () => {
         beforeEach(() => {
-            document.body.append(worldDomElement());
+            document.body.append(worldDomElement(), svgDefinitions());
         });
 
         test("the starting position of the outliner can be specified", () => {
@@ -407,6 +409,19 @@ describe("The outliners in the world", () => {
 
             expect(associationArrow.end())
                 .toEqual(boundingPageBoxOf(targetOutliner.domElement()));
+        });
+
+        test("when the source outliner is moved after scrolling, the arrow is updated", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outlinerElement = openOutlinerFor(inspectedObject, point(0, 0));
+            outlinerElement.inspectProperty("x");
+            const associationArrow = arrowForAssociation(inspectedObject, "x");
+            const originalArrowStart = associationArrow.start();
+            scrollToBottomOfDocument();
+
+            outlinerElement.move(point(10, 20));
+
+            expect(associationArrow.start()).toEqual(originalArrowStart.plus(point(10, 20)));
         });
 
         function arrowForAssociation(inspectedObject: InspectableObject, propertyName: Selector) {

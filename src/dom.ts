@@ -152,12 +152,13 @@ export function positionOfDomElement(element: Element) {
     return boundingPageBoxOf(element).position;
 }
 
-export function sizeOfDomElement(element: Element) {
-    return boundingPageBoxOf(element).size;
+export function clientPositionOfDomElement(element: Element) {
+    const clientRect = element.getBoundingClientRect();
+    return point(clientRect.x, clientRect.y);
 }
 
-export function centerOf(domBox: DOMRect) {
-    return point(domBox.x + domBox.width / 2, domBox.y + domBox.height / 2);
+export function sizeOfDomElement(element: Element) {
+    return boundingPageBoxOf(element).size;
 }
 
 export function getElementAt(position: Position) {
