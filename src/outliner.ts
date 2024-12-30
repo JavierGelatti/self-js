@@ -67,7 +67,7 @@ export abstract class Outliner<V> {
 
     private _updateAssociationsPositions() {
         this._associations().forEach(association => {
-            association.update();
+            association.updatePosition();
         });
     }
 

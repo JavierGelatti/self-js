@@ -3,17 +3,20 @@ import {Outliner} from "./outliner.ts";
 import {Arrow, drawNewArrowToBox} from "./arrows.ts";
 import {ObjectOutliner} from "./objectOutliner.ts";
 import {boundingPageBoxOf} from "./dom.ts";
+import {World} from "./world.ts";
 
 export class Association {
-    private _property: Property;
-    private _ownerOutliner: ObjectOutliner;
+    private readonly _property: Property;
+    private readonly _ownerOutliner: ObjectOutliner;
     private _valueOutliner: Outliner<unknown>;
     private readonly _arrow: Arrow;
+    private readonly _world: World;
 
-    constructor(property: Property, ownerOutliner: ObjectOutliner, valueOutliner: Outliner<unknown>) {
+    constructor(property: Property, ownerOutliner: ObjectOutliner, valueOutliner: Outliner<unknown>, world: World) {
         this._property = property;
         this._ownerOutliner = ownerOutliner;
         this._valueOutliner = valueOutliner;
+        this._world = world;
         this._arrow = drawNewArrowToBox(this._arrowStartPosition(), this._arrowEndBox());
     }
 
@@ -21,7 +24,7 @@ export class Association {
         return this._arrow;
     }
 
-    update() {
+    updatePosition() {
         this._arrow.updateStart(this._arrowStartPosition());
         this._arrow.attachEndToBox(this._arrowEndBox());
     }
@@ -46,5 +49,28 @@ export class Association {
 
     selector() {
         return this._property.name();
+    }
+
+    update() {
+        const propertyValue = this._property.currentValue();
+
+        if (this._targetValueAlreadyIs(propertyValue)) return;
+
+        if (this._world.hasOutlinerFor(propertyValue)) {
+            this._redirectTo(this._world.openOutliner(propertyValue));
+            this.updatePosition();
+        } else {
+            this.remove();
+        }
+    }
+
+    private _redirectTo(newTarget: Outliner<unknown>) {
+        this._valueOutliner.removeAssociationEnd(this);
+        this._valueOutliner = newTarget;
+        this._valueOutliner.registerAssociationEnd(this);
+    }
+
+    private _targetValueAlreadyIs(propertyValue: unknown) {
+        return this._valueOutliner.inspectedValue() === propertyValue;
     }
 }

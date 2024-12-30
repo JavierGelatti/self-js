@@ -15,7 +15,7 @@ export class World {
     }
 
     openOutliner(anObject: unknown, position: Position = point(0, 0)) {
-        if (this._outliners.has(anObject)) {
+        if (this.hasOutlinerFor(anObject)) {
             const existingOutliner = this._outliners.get(anObject)!;
             existingOutliner.shake();
             return existingOutliner;
@@ -55,7 +55,7 @@ export class World {
             currentPosition.plus(point(50, 0))
         );
 
-        const association = new Association(propertyToInspect, ownerOutliner, valueOutliner);
+        const association = new Association(propertyToInspect, ownerOutliner, valueOutliner, this);
         this._domElement.append(association.domElement());
 
         ownerOutliner.registerAssociationStart(association);
@@ -68,5 +68,9 @@ export class World {
         if (outliner instanceof ObjectOutliner) {
             return outliner.associationFor(propertyName);
         }
+    }
+
+    hasOutlinerFor(anObject: unknown) {
+        return this._outliners.has(anObject);
     }
 }

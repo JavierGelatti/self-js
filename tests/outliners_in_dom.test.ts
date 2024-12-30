@@ -13,7 +13,7 @@ import {point, Position, sumOf} from "../src/position";
 
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
-import {asClientLocation, boundingPageBoxOf, getElementAt, positionOfDomElement} from "../src/dom.ts";
+import {asClientLocation, getElementAt, positionOfDomElement} from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
 import {Selector} from "../src/property.ts";
 import {svgDefinitions} from "../src/arrows.ts";
@@ -189,6 +189,69 @@ describe("The outliners in the world", () => {
                 const association = world().associationFor(inspectedObject, "x");
                 expect(association).not.toBeDefined();
                 expect(arrow.svgElement()).not.toBeInTheDocument();
+                expect(visibleArrowElements().length).toEqual(0);
+            });
+
+            test("when the value of an inspected property changes and there is no outliner for the new value, the arrow is removed", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const sourceOutliner = openOutlinerFor(inspectedObject);
+
+                sourceOutliner.inspectProperty("x");
+                sourceOutliner.doIt("this.x = 3");
+
+                const association = world().associationFor(inspectedObject, "x");
+                expect(association).not.toBeDefined();
+                expect(visibleArrowElements().length).toEqual(0);
+            });
+
+            test("when the value of an inspected property changes but there is an outliner for the new value, the arrow is updated", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const sourceOutliner = openOutlinerFor(inspectedObject);
+                const newValueOutliner = openOutlinerFor(3);
+
+                sourceOutliner.inspectProperty("x");
+                sourceOutliner.doIt("this.x = 3");
+
+                expect(world().associationFor(inspectedObject, "x")).toBeDefined();
+                expect(visibleArrowElements().length).toEqual(1);
+                expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(newValueOutliner.boundingBox());
+                expect(newValueOutliner.domElement()).toHaveClass("shaking");
+            });
+
+            test("when an inspected property is updated to the same value, the arrow is maintained", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const sourceOutliner = openOutlinerFor(inspectedObject);
+
+                sourceOutliner.inspectProperty("x");
+                sourceOutliner.doIt("this.x = 1");
+
+                expect(world().associationFor(inspectedObject, "x")).toBeDefined();
+                expect(visibleArrowElements().length).toEqual(1);
+                expect(lastOutliner().domElement()).not.toHaveClass("shaking");
+            });
+
+            test("when an arrow is redirected, updates its position when the new destination is moved", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const sourceOutliner = openOutlinerFor(inspectedObject);
+                const newValueOutliner = openOutlinerFor(3);
+                sourceOutliner.inspectProperty("x");
+
+                sourceOutliner.doIt("this.x = 3");
+                newValueOutliner.move(point(5, 5));
+
+                expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(newValueOutliner.boundingBox());
+            });
+
+            test("when an inspected property is removed, the arrow is removed (:. not pointed to undefined)", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const sourceOutliner = openOutlinerFor(inspectedObject);
+                sourceOutliner.inspectProperty("x");
+                openOutlinerFor(undefined);
+
+                sourceOutliner.doIt("delete this.x");
+
+                const association = world().associationFor(inspectedObject, "x");
+                expect(association).not.toBeDefined();
                 expect(visibleArrowElements().length).toEqual(0);
             });
         });
@@ -462,7 +525,7 @@ describe("The outliners in the world", () => {
             expect(getElementAt(associationArrow.start()))
                 .toEqual(outlinerElement.buttonToInspectProperty("x"));
             expect(associationArrow.end())
-                .toEqual(boundingPageBoxOf(lastOutliner().domElement()));
+                .toEqual(lastOutliner().boundingBox());
         });
 
         test("when the source outliner is moved, the arrow is updated", () => {
@@ -487,7 +550,7 @@ describe("The outliners in the world", () => {
             targetOutliner.move(point(10, 20));
 
             expect(associationArrow.end())
-                .toEqual(boundingPageBoxOf(targetOutliner.domElement()));
+                .toEqual(targetOutliner.boundingBox());
         });
 
         test("when the source outliner is moved after scrolling, the arrow is updated", () => {

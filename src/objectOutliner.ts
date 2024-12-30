@@ -104,7 +104,12 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         for (const [key, property] of this._properties.entries()) {
             property.update();
 
-            if (!currentKeys.includes(key)) this._properties.delete(key);
+            if (currentKeys.includes(key)) {
+                this.associationFor(key)?.update();
+            } else {
+                this._properties.delete(key);
+                this.associationFor(key)?.remove();
+            }
         }
 
         newKeys.forEach((newPropertyName) => {
@@ -128,7 +133,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         return !!this.associationFor(propertyToInspect.name());
     }
 
-    associationFor(propertyName: Selector): Association | undefined {
+    associationFor(propertyName: Selector) {
         return this._associationStarts.get(propertyName);
     }
 
