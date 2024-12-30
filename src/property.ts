@@ -1,5 +1,5 @@
 import {createElement} from "./dom.ts";
-import {InspectableObject} from "./objectOutliner.ts";
+import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
 import {World} from "./world.ts";
 
 export type Selector = string | symbol;
@@ -8,11 +8,13 @@ export class Property {
     private readonly _key: Selector;
     private readonly _owner: InspectableObject;
     private readonly _world: World;
+    private readonly _outliner: ObjectOutliner;
     private readonly _domElement: HTMLElement;
     private _propertyValueCell!: HTMLTableCellElement;
     private _inspectPropertyButton!: HTMLButtonElement;
 
-    constructor(key: Selector, owner: InspectableObject, world: World) {
+    constructor(key: Selector, owner: InspectableObject, outliner: ObjectOutliner, world: World) {
+        this._outliner = outliner;
         this._key = key;
         this._owner = owner;
         this._world = world;
@@ -27,7 +29,7 @@ export class Property {
                 this._inspectPropertyButton = createElement("button", {
                     title: "Inspeccionar valor",
                     textContent: ">",
-                    onclick: () => this._world.openOutlinerForAssociation(this)
+                    onclick: () => this._world.openOutlinerForAssociation(this, this._outliner)
                 })
             ]),
         ]);
@@ -53,15 +55,11 @@ export class Property {
         return Reflect.get(this._owner, this._key);
     }
 
-    owner() {
-        return this._owner;
-    }
-
     associationElement(): Element {
         return this._inspectPropertyButton;
     }
 
-    isNamed(aSelector: Selector) {
-        return this._key === aSelector;
+    name() {
+        return this._key;
     }
 }

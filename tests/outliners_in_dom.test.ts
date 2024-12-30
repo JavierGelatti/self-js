@@ -131,31 +131,65 @@ describe("The outliners in the world", () => {
                 expect(visibleArrowElements().length).toEqual(1);
             });
 
-            test("after inspecting a property, the arrow is removed when the origin outliner is closed", () => {
+            test("after inspecting a property, the arrow is removed when the source outliner is closed", () => {
                 const inspectedObject = { x: 1, y: 2 };
-                const outlinerElement = openOutlinerFor(inspectedObject);
-                outlinerElement.inspectProperty("x");
+                const originOutliner = openOutlinerFor(inspectedObject);
+                originOutliner.inspectProperty("x");
                 const arrow = arrowForAssociation(inspectedObject, "x");
 
-                outlinerElement.close();
+                originOutliner.close();
 
                 const association = world().associationFor(inspectedObject, "x");
                 expect(association).not.toBeDefined();
                 expect(arrow.svgElement()).not.toBeInTheDocument();
+                expect(visibleArrowElements().length).toEqual(0);
             });
 
             test("after inspecting a property, the arrow is removed when the destination outliner is closed", () => {
                 const inspectedObject = { x: 1, y: 2 };
-                const outlinerElement = openOutlinerFor(inspectedObject);
-                outlinerElement.inspectProperty("x");
+                const originOutliner = openOutlinerFor(inspectedObject);
+                originOutliner.inspectProperty("x");
                 const arrow = arrowForAssociation(inspectedObject, "x");
-                const outlinerForProperty = lastOutliner();
+                const destinationOutliner = lastOutliner();
 
-                outlinerForProperty.close();
+                destinationOutliner.close();
 
                 const association = world().associationFor(inspectedObject, "x");
                 expect(association).not.toBeDefined();
                 expect(arrow.svgElement()).not.toBeInTheDocument();
+                expect(visibleArrowElements().length).toEqual(0);
+            });
+
+            test("when the source outliner is closed and the destination is moved, the arrow is still gone", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const sourceOutliner = openOutlinerFor(inspectedObject);
+                sourceOutliner.inspectProperty("x");
+                const arrow = arrowForAssociation(inspectedObject, "x");
+                const destinationOutliner = lastOutliner();
+
+                sourceOutliner.close();
+                destinationOutliner.move(point(1, 1));
+
+                const association = world().associationFor(inspectedObject, "x");
+                expect(association).not.toBeDefined();
+                expect(arrow.svgElement()).not.toBeInTheDocument();
+                expect(visibleArrowElements().length).toEqual(0);
+            });
+
+            test("when the destination outliner is closed and the source is moved, the arrow is still gone", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const sourceOutliner = openOutlinerFor(inspectedObject);
+                sourceOutliner.inspectProperty("x");
+                const arrow = arrowForAssociation(inspectedObject, "x");
+                const destinationOutliner = lastOutliner();
+
+                destinationOutliner.close();
+                sourceOutliner.move(point(1, 1));
+
+                const association = world().associationFor(inspectedObject, "x");
+                expect(association).not.toBeDefined();
+                expect(arrow.svgElement()).not.toBeInTheDocument();
+                expect(visibleArrowElements().length).toEqual(0);
             });
         });
     });

@@ -3,12 +3,14 @@ import {Position} from "./position.ts";
 import {World} from "./world.ts";
 import {createElement} from "./dom.ts";
 import {Outliner} from "./outliner.ts";
+import {Association} from "./association.ts";
 
 export type InspectableObject = Record<string | symbol, unknown>;
 
 export class ObjectOutliner extends Outliner<InspectableObject> {
     private _internalSlotsSeparator: Element = this._content.lastElementChild!;
     private _properties: Map<Selector, Property> = new Map();
+    private _associationStarts: Map<Selector, Association> = new Map();
 
     constructor(inspectedObject: InspectableObject, position: Position, world: World) {
         super(inspectedObject, position, world);
@@ -79,7 +81,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     }
 
     private _newProperty(key: string | symbol) {
-        const property = new Property(key, this._inspectedValue, this._world);
+        const property = new Property(key, this._inspectedValue, this, this._world);
         this._properties.set(key, property);
         return property;
     };
@@ -112,5 +114,25 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
 
     private _refreshType() {
         this._domElement.dataset.type = this.type();
+    }
+
+    registerAssociationStart(association: Association) {
+        this._associationStarts.set(association.selector(), association);
+    }
+
+    removeAssociationStart(association: Association) {
+        this._associationStarts.delete(association.selector());
+    }
+
+    hasVisibleAssociationFor(propertyToInspect: Property) {
+        return !!this.associationFor(propertyToInspect.name());
+    }
+
+    associationFor(propertyName: Selector): Association | undefined {
+        return this._associationStarts.get(propertyName);
+    }
+
+    protected _associations(): Set<Association> {
+        return new Set([...super._associations(), ...this._associationStarts.values()]);
     }
 }
