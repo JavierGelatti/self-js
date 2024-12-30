@@ -21,6 +21,10 @@ export class Association {
         return this.isOwnedBy(anObject) && this._property.isNamed(propertyName);
     }
 
+    isForProperty(aProperty: Property) {
+        return this._property === aProperty;
+    }
+
     isOwnedBy(anObject: unknown) {
         return this._ownerOutliner.inspectedValue() === anObject;
     }

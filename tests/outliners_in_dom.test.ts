@@ -119,6 +119,18 @@ describe("The outliners in the world", () => {
                 expect(association).toBeDefined();
             });
 
+            test("inspecting a property is idempotent", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const outlinerElement = openOutlinerFor(inspectedObject);
+
+                outlinerElement.inspectProperty("x");
+                outlinerElement.inspectProperty("x");
+                outlinerElement.inspectProperty("x");
+
+                expect(openOutliners().length).toEqual(2);
+                expect(visibleArrowElements().length).toEqual(1);
+            });
+
             test("after inspecting a property, the arrow is removed when the origin outliner is closed", () => {
                 const inspectedObject = { x: 1, y: 2 };
                 const outlinerElement = openOutlinerFor(inspectedObject);
@@ -542,6 +554,10 @@ describe("The outliners in the world", () => {
     function openOutliners() {
         return Array.from(worldDomElement().querySelectorAll<HTMLElement>(".outliner"))
             .map(domElement => new OutlinerFromDomElement(domElement));
+    }
+
+    function visibleArrowElements() {
+        return Array.from(worldDomElement().querySelectorAll<SVGElement>("svg .arrow"));
     }
 
     function positionOf(domElement: HTMLElement) {

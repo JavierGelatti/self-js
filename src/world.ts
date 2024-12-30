@@ -57,6 +57,8 @@ export class World {
     }
 
     openOutlinerForAssociation(propertyToInspect: Property) {
+        if (this._associationAlreadyVisibleFor(propertyToInspect)) return;
+
         const ownerOutliner = this._outliners.get(propertyToInspect.owner())!;
         const currentPosition = positionOfDomElement(propertyToInspect.associationElement());
         const valueOutliner = this.openOutliner(
@@ -65,11 +67,15 @@ export class World {
         );
 
         const association = new Association(propertyToInspect, ownerOutliner, valueOutliner);
-        document.body.append(association.domElement());
+        this._domElement.append(association.domElement());
         this._associations.push(association);
 
         ownerOutliner.registerAssociationStart(association);
         valueOutliner.registerAssociationEnd(association);
+    }
+
+    private _associationAlreadyVisibleFor(propertyToInspect: Property) {
+        return this._associations.some(association => association.isForProperty(propertyToInspect));
     }
 
     associationFor(anObject: InspectableObject, propertyName: Selector) {
