@@ -43,8 +43,17 @@ export class World {
     }
 
     closeOutliner(anOutliner: Outliner<unknown>) {
-        this._domElement.removeChild(anOutliner.domElement());
+        const associationsToRemove = [
+            ...this.associationsFrom(anOutliner.inspectedValue()),
+            ...this.associationsTo(anOutliner.inspectedValue())
+        ];
+        associationsToRemove.forEach(association => {
+            this._associations.splice(this._associations.indexOf(association), 1);
+            association.domElement().remove();
+        });
+
         this._outliners.delete(anOutliner.inspectedValue());
+        anOutliner.domElement().remove();
     }
 
     openOutlinerForAssociation(propertyToInspect: Property) {
@@ -65,5 +74,13 @@ export class World {
 
     associationFor(anObject: InspectableObject, propertyName: Selector) {
         return this._associations.find(association => association.isFor(anObject, propertyName));
+    }
+
+    associationsFrom(anObject: unknown) {
+        return this._associations.filter(association => association.isOwnedBy(anObject));
+    }
+
+    associationsTo(anObject: unknown) {
+        return this._associations.filter(association => association.targetIs(anObject));
     }
 }

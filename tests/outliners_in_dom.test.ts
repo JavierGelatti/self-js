@@ -101,17 +101,50 @@ describe("The outliners in the world", () => {
             expect(outlinerElement.numberOfProperties()).toEqual(0);
         });
 
-        test("can inspect a property", () => {
-            document.body.append(worldDomElement()); // Needed to get the location of the inspect button (for the arrow)
-            const inspectedObject = { x: 1, y: 2 };
-            const outlinerElement = openOutlinerFor(inspectedObject);
+        describe("associations", () => {
+            beforeEach(() => {
+                // Needed to get the location of the inspect button (for the arrow)
+                document.body.append(worldDomElement(), svgDefinitions());
+            });
 
-            outlinerElement.inspectProperty("x");
+            test("can inspect a property", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const outlinerElement = openOutlinerFor(inspectedObject);
 
-            const outlinerForProperty = lastOutliner();
-            expect(outlinerForProperty.title()).toEqual("1");
-            const association = world().associationFor(inspectedObject, "x");
-            expect(association).toBeDefined();
+                outlinerElement.inspectProperty("x");
+
+                const outlinerForProperty = lastOutliner();
+                expect(outlinerForProperty.title()).toEqual("1");
+                const association = world().associationFor(inspectedObject, "x");
+                expect(association).toBeDefined();
+            });
+
+            test("after inspecting a property, the arrow is removed when the origin outliner is closed", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const outlinerElement = openOutlinerFor(inspectedObject);
+                outlinerElement.inspectProperty("x");
+                const arrow = arrowForAssociation(inspectedObject, "x");
+
+                outlinerElement.close();
+
+                const association = world().associationFor(inspectedObject, "x");
+                expect(association).not.toBeDefined();
+                expect(arrow.svgElement()).not.toBeInTheDocument();
+            });
+
+            test("after inspecting a property, the arrow is removed when the destination outliner is closed", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const outlinerElement = openOutlinerFor(inspectedObject);
+                outlinerElement.inspectProperty("x");
+                const arrow = arrowForAssociation(inspectedObject, "x");
+                const outlinerForProperty = lastOutliner();
+
+                outlinerForProperty.close();
+
+                const association = world().associationFor(inspectedObject, "x");
+                expect(association).not.toBeDefined();
+                expect(arrow.svgElement()).not.toBeInTheDocument();
+            });
         });
     });
 
@@ -423,10 +456,6 @@ describe("The outliners in the world", () => {
 
             expect(associationArrow.start()).toEqual(originalArrowStart.plus(point(10, 20)));
         });
-
-        function arrowForAssociation(inspectedObject: InspectableObject, propertyName: Selector) {
-            return world().associationFor(inspectedObject, propertyName)!.arrow();
-        }
     });
 
     describe("code evaluation", () => {
@@ -534,6 +563,10 @@ describe("The outliners in the world", () => {
 
     function numberOfOpenOutliners() {
         return openOutliners().length;
+    }
+
+    function arrowForAssociation(inspectedObject: InspectableObject, propertyName: Selector) {
+        return world().associationFor(inspectedObject, propertyName)!.arrow();
     }
 
     function createWorldInDomBeforeEach() {

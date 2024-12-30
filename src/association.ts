@@ -18,7 +18,15 @@ export class Association {
     }
 
     isFor(anObject: InspectableObject, propertyName: Selector) {
-        return this._ownerOutliner.inspectedValue() === anObject && this._property.isNamed(propertyName);
+        return this.isOwnedBy(anObject) && this._property.isNamed(propertyName);
+    }
+
+    isOwnedBy(anObject: unknown) {
+        return this._ownerOutliner.inspectedValue() === anObject;
+    }
+
+    targetIs(anObject: unknown) {
+        return this._property.currentValue() === anObject;
     }
 
     arrow() {
