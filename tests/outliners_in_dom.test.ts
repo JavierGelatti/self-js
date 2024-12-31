@@ -598,6 +598,18 @@ describe("The outliners in the world", () => {
             expect(arrow).toHaveClass("arrow-faded");
         });
 
+        test("arrows to self are visible", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const sourceOutliner = openOutlinerFor(inspectedObject);
+            sourceOutliner.doIt("this.x = this");
+
+            sourceOutliner.inspectProperty("x");
+
+            const [arrow] = visibleArrowElements();
+            expect(arrow).not.toHaveClass("arrow-hidden");
+            expect(arrow).not.toHaveClass("arrow-faded");
+        });
+
         test("by default, arrows are visible", () => {
             const inspectedObject = { x: 1, y: 2 };
             const sourceOutliner = openOutlinerFor(inspectedObject);

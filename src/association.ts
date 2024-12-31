@@ -36,6 +36,8 @@ export class Association {
         const valueOutlinerElement = this._valueOutliner.domElement();
         const arrowClassList = this._arrow.svgElement().classList;
         arrowClassList.remove("arrow-faded", "arrow-hidden");
+
+        if (this._valueOutliner === this._ownerOutliner) return;
         if (ownerOutlinerElement.compareDocumentPosition(valueOutlinerElement) === Node.DOCUMENT_POSITION_FOLLOWING) {
             arrowClassList.toggle(
                 "arrow-hidden",
