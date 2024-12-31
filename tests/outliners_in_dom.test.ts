@@ -119,16 +119,15 @@ describe("The outliners in the world", () => {
                 expect(association).toBeDefined();
             });
 
-            test("inspecting a property is idempotent", () => {
+            test("inspecting a property again hides the arrow", () => {
                 const inspectedObject = { x: 1, y: 2 };
                 const outlinerElement = openOutlinerFor(inspectedObject);
 
                 outlinerElement.inspectProperty("x");
                 outlinerElement.inspectProperty("x");
-                outlinerElement.inspectProperty("x");
 
                 expect(openOutliners().length).toEqual(2);
-                expect(visibleArrowElements().length).toEqual(1);
+                expect(visibleArrowElements().length).toEqual(0);
             });
 
             test("after inspecting a property, the arrow is removed when the source outliner is closed", () => {

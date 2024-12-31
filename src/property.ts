@@ -29,7 +29,14 @@ export class Property {
                 this._inspectPropertyButton = createElement("button", {
                     title: "Inspeccionar valor",
                     textContent: ">",
-                    onclick: () => this._world.openOutlinerForAssociation(this, this._outliner)
+                    onclick: () => {
+                        const currentAssociation = this._outliner.associationFor(this._key);
+                        if (currentAssociation) {
+                            currentAssociation.remove();
+                        } else {
+                            this._world.openOutlinerForAssociation(this, this._outliner);
+                        }
+                    }
                 })
             ]),
         ]);
