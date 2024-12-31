@@ -139,6 +139,10 @@ export class Arrow {
     end(): PageBox | Position {
         return this._endBox ?? this._end;
     }
+
+    endPosition() {
+        return this._end;
+    }
 }
 
 class Line {

@@ -27,17 +27,16 @@ export abstract class Outliner<V> {
         this._setPosition(this._position);
 
         this._grab = makeDraggable(this._header, {
-            onDragStart: () => {
-                this._domElement.classList.add("moving");
-                this._domElement.parentElement?.append(this._domElement);
-                // TODO: Testear esto
-                this._associations().forEach(association => {
-                    association.domElement().parentElement?.append(association.domElement());
-                });
-            },
+            onDragStart: () => this._onDragStart(),
             onDrag: (_, delta) => this._move(delta),
             onDragEnd: () => this._domElement.classList.remove("moving"),
         });
+    }
+
+    protected _onDragStart() {
+        this._domElement.classList.add("moving");
+        this._domElement.parentElement?.append(this._domElement);
+        this._updateAssociationsPositions();
     }
 
     abstract type(): string;

@@ -1,11 +1,11 @@
 import {fireEvent, within} from "@testing-library/dom";
 import {vi} from "vitest";
 import {boundingPageBoxOf, positionOfDomElement} from "../src/dom.ts";
-import {fireMousePointerEventOver} from "./dom_event_simulation.ts";
+import {fireMousePointerEventOn, fireMousePointerEventOver, offsetToClientLocation} from "./dom_event_simulation.ts";
 import {point, Position} from "../src/position.ts";
 
 export class OutlinerFromDomElement {
-    private _domElement: HTMLElement;
+    private readonly _domElement: HTMLElement;
 
     constructor(domElement: HTMLElement) {
         this._domElement = domElement;
@@ -131,9 +131,14 @@ export class OutlinerFromDomElement {
     }
 
     move(positionDelta: Position) {
-        fireMousePointerEventOver(this.header(), "pointerDown", point(1, 1));
-        fireMousePointerEventOver(this.header(), "pointerMove", point(1, 1).plus(positionDelta));
-        fireMousePointerEventOver(this.header(), "pointerUp",   point(1, 1));
+        const header = this.header();
+        const offsetLocation = point(1, 1);
+        const startLocation = offsetToClientLocation(offsetLocation, header);
+        const endLocation = offsetToClientLocation(offsetLocation.plus(positionDelta), header);
+
+        fireMousePointerEventOn(header, "pointerDown", startLocation);
+        fireMousePointerEventOn(header, "pointerMove", endLocation);
+        fireMousePointerEventOn(header, "pointerUp",   endLocation);
     }
 
     boundingBox() {

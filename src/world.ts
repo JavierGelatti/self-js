@@ -56,7 +56,7 @@ export class World {
         );
 
         const association = new Association(propertyToInspect, ownerOutliner, valueOutliner, this);
-        this._domElement.append(association.domElement());
+        ownerOutliner.domElement().insertAdjacentElement("afterend", association.domElement());
 
         ownerOutliner.registerAssociationStart(association);
         valueOutliner.registerAssociationEnd(association);

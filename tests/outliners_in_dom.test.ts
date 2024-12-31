@@ -253,6 +253,16 @@ describe("The outliners in the world", () => {
                 expect(association).not.toBeDefined();
                 expect(visibleArrowElements().length).toEqual(0);
             });
+
+            test("the arrows are added just above the source outliner", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const sourceOutliner = openOutlinerFor(inspectedObject);
+                const _anotherOutliner = openOutlinerFor("hola");
+                sourceOutliner.inspectProperty("x");
+
+                const [arrow] = visibleArrowElements();
+                expect(arrow.previousElementSibling).toBe(sourceOutliner.domElement());
+            });
         });
     });
 
@@ -564,6 +574,81 @@ describe("The outliners in the world", () => {
 
             expect(associationArrow.start()).toEqual(originalArrowStart.plus(point(10, 20)));
         });
+
+        test("when the destination outliner is over the arrow start, the arrow is hidden", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const sourceOutliner = openOutlinerFor(inspectedObject);
+            const _destinationOutliner = openOutlinerFor(1);
+            sourceOutliner.inspectProperty("x");
+
+            const [arrow] = visibleArrowElements();
+            expect(arrow).toHaveClass("arrow-hidden");
+            expect(arrow).not.toHaveClass("arrow-faded");
+        });
+
+        test("when the source outliner is over the arrow end, the arrow is faded", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const sourceOutliner = openOutlinerFor(inspectedObject);
+
+            sourceOutliner.inspectProperty("x");
+            sourceOutliner.move(point(20, 0));
+
+            const [arrow] = visibleArrowElements();
+            expect(arrow).not.toHaveClass("arrow-hidden");
+            expect(arrow).toHaveClass("arrow-faded");
+        });
+
+        test("by default, arrows are visible", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const sourceOutliner = openOutlinerFor(inspectedObject);
+
+            sourceOutliner.inspectProperty("x");
+
+            const [arrow] = visibleArrowElements();
+            expect(arrow).not.toHaveClass("arrow-hidden");
+            expect(arrow).not.toHaveClass("arrow-faded");
+        });
+
+        test("when the destination outliner is over the arrow start and then the source outliner is moved to the top, the arrow returns to normal", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const sourceOutliner = openOutlinerFor(inspectedObject);
+            const _destinationOutliner = openOutlinerFor(1, point(10, 10));
+            sourceOutliner.inspectProperty("x");
+            sourceOutliner.move(point(1, 1));
+
+            const [arrow] = visibleArrowElements();
+            expect(arrow).not.toHaveClass("arrow-hidden");
+            expect(arrow).not.toHaveClass("arrow-faded");
+        });
+
+        test("when the source outliner is over the arrow end and then the destination outliner is moved to the top, the arrow returns to normal", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const sourceOutliner = openOutlinerFor(inspectedObject);
+            sourceOutliner.inspectProperty("x");
+            sourceOutliner.move(point(20, 0));
+
+            const destinationOutliner = openOutlinerFor(1);
+            destinationOutliner.move(point(1, 1));
+
+            const [arrow] = visibleArrowElements();
+            expect(arrow).not.toHaveClass("arrow-hidden");
+            expect(arrow).not.toHaveClass("arrow-faded");
+        });
+
+        test("when an outliner is moved, its sourced-arrows are moved just above the outliner", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const sourceOutliner = openOutlinerFor(inspectedObject);
+            const targetOutliner = openOutlinerFor(1);
+            const anotherOutliner = openOutlinerFor("hola");
+            sourceOutliner.inspectProperty("x");
+
+            anotherOutliner.move(point(1, 1));
+            sourceOutliner.move(point(1, 1));
+            targetOutliner.move(point(1, 1));
+
+            const [arrow] = visibleArrowElements();
+            expect(arrow.previousElementSibling).toBe(sourceOutliner.domElement());
+        });
     });
 
     describe("code evaluation", () => {
@@ -653,7 +738,7 @@ describe("The outliners in the world", () => {
     }
 
     function visibleArrowElements() {
-        return Array.from(worldDomElement().querySelectorAll<SVGElement>("svg .arrow"));
+        return Array.from(worldDomElement().querySelectorAll<SVGSVGElement>("svg:has(.arrow)"));
     }
 
     function positionOf(domElement: HTMLElement) {
@@ -661,8 +746,9 @@ describe("The outliners in the world", () => {
     }
 
     function openOutlinerFor(anObject: unknown, position?: Position) {
-        world().openOutliner(anObject, position);
-        return lastOutliner();
+        return new OutlinerFromDomElement(
+            world().openOutliner(anObject, position).domElement()
+        );
     }
 
     function updateOutliners() {

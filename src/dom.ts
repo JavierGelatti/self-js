@@ -146,6 +146,15 @@ export class PageBox {
     center() {
         return point(this.x + this.width / 2, this.y + this.height / 2);
     }
+
+    contains(position: Position) {
+        return this._areOrdered(this.left, position.x, this.right) &&
+            this._areOrdered(this.top, position.y, this.bottom);
+    }
+
+    private _areOrdered(a: number, b: number, c: number) {
+        return a <= b && b <= c;
+    }
 }
 
 export function positionOfDomElement(element: Element) {

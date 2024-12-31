@@ -18,6 +18,7 @@ export class Association {
         this._valueOutliner = valueOutliner;
         this._world = world;
         this._arrow = drawNewArrowToBox(this._arrowStartPosition(), this._arrowEndBox());
+        this._updateArrowMode();
     }
 
     arrow() {
@@ -27,6 +28,25 @@ export class Association {
     updatePosition() {
         this._arrow.updateStart(this._arrowStartPosition());
         this._arrow.attachEndToBox(this._arrowEndBox());
+        this._updateArrowMode();
+    }
+
+    private _updateArrowMode() {
+        const ownerOutlinerElement = this._ownerOutliner.domElement();
+        const valueOutlinerElement = this._valueOutliner.domElement();
+        const arrowClassList = this._arrow.svgElement().classList;
+        arrowClassList.remove("arrow-faded", "arrow-hidden");
+        if (ownerOutlinerElement.compareDocumentPosition(valueOutlinerElement) === Node.DOCUMENT_POSITION_FOLLOWING) {
+            arrowClassList.toggle(
+                "arrow-hidden",
+                boundingPageBoxOf(valueOutlinerElement).contains(this._arrow.start()),
+            );
+        } else {
+            arrowClassList.toggle(
+                "arrow-faded",
+                boundingPageBoxOf(ownerOutlinerElement).contains(this._arrow.endPosition()),
+            );
+        }
     }
 
     private _arrowStartPosition() {

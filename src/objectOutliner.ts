@@ -140,4 +140,11 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     protected _associations(): Set<Association> {
         return new Set([...super._associations(), ...this._associationStarts.values()]);
     }
+
+    protected _onDragStart() {
+        super._onDragStart();
+        this._associationStarts.forEach(association => {
+            association.domElement().parentElement?.append(association.domElement());
+        });
+    }
 }

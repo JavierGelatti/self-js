@@ -66,7 +66,14 @@ export function fireMousePointerEvent(
 ) {
     const elementAtPosition = document.elementFromPoint(clientLocation.clientX, clientLocation.clientY);
     const target = elementAtPosition === null || elementAtPosition === document.body ? defaultTarget : elementAtPosition;
+    fireMousePointerEventOn(target, eventType, clientLocation);
+}
 
+export function fireMousePointerEventOn(
+    target: Element,
+    eventType: TestingLibraryPointerEventName,
+    clientLocation: ClientLocation
+) {
     firePointerEvent(target, eventType, {
         ...clientLocation,
         pointerType: "mouse",
