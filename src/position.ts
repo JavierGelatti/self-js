@@ -50,6 +50,10 @@ export class Position {
     magnitude() {
         return Math.sqrt(this.x ** 2 + this.y ** 2);
     }
+
+    times(number: number) {
+        return this.map(coordinate => coordinate * number);
+    }
 }
 
 export function point(x: number, y: number) {

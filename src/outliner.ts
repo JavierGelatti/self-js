@@ -29,9 +29,9 @@ export abstract class Outliner<V> {
         this._setPosition(this._position);
 
         this._grab = makeDraggable(this._header, {
-            onDragStart: () => this._onDragStart(),
+            onStart: () => this._onDragStart(),
             onDrag: (_, delta) => this._move(delta),
-            onDragEnd: () => this._domElement.classList.remove("moving"),
+            onDrop: () => this._domElement.classList.remove("moving"),
         });
     }
 

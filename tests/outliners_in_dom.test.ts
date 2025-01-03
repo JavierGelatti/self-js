@@ -3,17 +3,19 @@ import {setupPointerCaptureSimulation} from "./pointer_capture_simulation";
 import {World} from "../src/world";
 import {
     fireMousePointerEvent,
+    fireMousePointerEventOn,
     fireMousePointerEventOver,
     fireTouchPointerEventOver,
     firstFinger,
-    secondFinger,
+    offsetToClientLocation,
     scrollToBottomOfDocument,
+    secondFinger,
 } from "./dom_event_simulation";
 import {point, Position, sumOf} from "../src/position";
 
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
-import {asClientLocation, getElementAt, positionOfDomElement} from "../src/dom.ts";
+import {asClientLocation, boundingPageBoxOf, ClientLocation, getElementAt, positionOfDomElement} from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
 import {Selector} from "../src/property.ts";
 import {svgDefinitions} from "../src/arrows.ts";
@@ -261,7 +263,7 @@ describe("The outliners in the world", () => {
                 sourceOutliner.inspectProperty("x");
 
                 const [arrow] = visibleArrowElements();
-                expect(arrow.previousElementSibling).toBe(sourceOutliner.domElement());
+                expect(arrow.parentElement!.previousElementSibling).toBe(sourceOutliner.domElement());
             });
         });
     });
@@ -659,7 +661,125 @@ describe("The outliners in the world", () => {
             targetOutliner.move(point(1, 1));
 
             const [arrow] = visibleArrowElements();
-            expect(arrow.previousElementSibling).toBe(sourceOutliner.domElement());
+            expect(arrow.parentElement!.previousElementSibling).toBe(sourceOutliner.domElement());
+        });
+
+        test("it's possible to redirect associations", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outliner = openOutlinerFor(inspectedObject);
+            const newValueOutliner = openOutlinerFor(2, point(20, 200));
+            outliner.inspectProperty("x");
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociation(associationElement)
+                .dropInto(newValueOutliner.domElement());
+
+            expect(inspectedObject.x).toEqual(2);
+            expect(outliner.valueOfProperty("x")).toEqual("2");
+            expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
+                boundingPageBoxOf(newValueOutliner.domElement())
+            );
+            expect(newValueOutliner.domElement()).not.toHaveClass("hovered");
+        });
+
+        test("while redirecting an association, the currently-hovered outliner is highlighted and the arrow points to it", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outliner = openOutlinerFor(inspectedObject);
+            const anotherOutliner = openOutlinerFor(2, point(20, 200));
+            const yetAnotherOutliner = openOutlinerFor(3, point(40, 300));
+            outliner.inspectProperty("x");
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociation(associationElement)
+                .hover(anotherOutliner.domElement())
+                .hover(yetAnotherOutliner.domElement());
+
+            expect(anotherOutliner.domElement()).not.toHaveClass("hovered");
+            expect(yetAnotherOutliner.domElement()).toHaveClass("hovered");
+            expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
+                boundingPageBoxOf(yetAnotherOutliner.domElement())
+            );
+        });
+
+        test("while redirecting an association, if no outliner is hovered the arrow follows the cursor", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outliner = openOutlinerFor(inspectedObject);
+            const anotherOutliner = openOutlinerFor(2, point(20, 200));
+            outliner.inspectProperty("x");
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociation(associationElement)
+                .hover(anotherOutliner.domElement())
+                .moveTo(asClientLocation(point(999, 999)));
+
+            expect(anotherOutliner.domElement()).not.toHaveClass("hovered");
+            expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(point(999, 999));
+        });
+
+        test("if the arrow is not dropped to an outliner when redirecting an association, nothing is changed", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outliner = openOutlinerFor(inspectedObject);
+            const valueOutliner = openOutlinerFor(1, point(20, 200));
+            outliner.inspectProperty("x");
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociation(associationElement)
+                .hover(outliner.domElement())
+                .move(point(999, 999))
+                .drop();
+
+            expect(inspectedObject.x).toEqual(1);
+            expect(outliner.valueOfProperty("x")).toEqual("1");
+            expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
+                boundingPageBoxOf(valueOutliner.domElement())
+            )
+        });
+
+        test("if the interaction is cancelled when redirecting an association, nothing is changed", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outliner = openOutlinerFor(inspectedObject);
+            const valueOutliner = openOutlinerFor(1, point(20, 200));
+            outliner.inspectProperty("x");
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociation(associationElement)
+                .hover(outliner.domElement())
+                .cancel();
+
+            expect(outliner.domElement()).not.toHaveClass("hovered");
+            expect(inspectedObject.x).toEqual(1);
+            expect(outliner.valueOfProperty("x")).toEqual("1");
+            expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
+                boundingPageBoxOf(valueOutliner.domElement())
+            )
+        });
+
+        test("the arrow mode is updated when grabbing an association", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outlinerBelow = openOutlinerFor("this is below");
+            const outliner = openOutlinerFor(inspectedObject, point(0, 100));
+            outliner.inspectProperty("x");
+            outliner.move(point(1, 1));
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociation(associationElement)
+                .hover(outlinerBelow.domElement());
+
+            const [arrow] = visibleArrowElements();
+            expect(arrow).toHaveClass("arrow-faded");
+        });
+
+        test("while redirecting the association, the arrow moves with the cursor even when the view is scrolled", () => {
+            scrollToBottomOfDocument();
+            const inspectedObject = {x: 1, y: 2};
+            const outliner = openOutlinerFor(inspectedObject);
+            outliner.inspectProperty("x");
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociation(associationElement)
+                .moveTo(asClientLocation(point(100, 100)));
+
+            expect(arrowForAssociation(inspectedObject, "x").end().y).toBeGreaterThan(100);
         });
     });
 
@@ -750,7 +870,13 @@ describe("The outliners in the world", () => {
     }
 
     function visibleArrowElements() {
-        return Array.from(worldDomElement().querySelectorAll<SVGSVGElement>("svg:has(.arrow)"));
+        return visibleAssociationElements().map(associationElement => {
+            return associationElement.querySelector<SVGSVGElement>("svg:has(.arrow)")!;
+        });
+    }
+
+    function visibleAssociationElements() {
+        return Array.from(worldDomElement().querySelectorAll<HTMLElement>(".association"));
     }
 
     function positionOf(domElement: HTMLElement) {
@@ -777,6 +903,74 @@ describe("The outliners in the world", () => {
 
     function arrowForAssociation(inspectedObject: InspectableObject, propertyName: Selector) {
         return world().associationFor(inspectedObject, propertyName)!.arrow();
+    }
+
+    function grabAssociation(associationElement: HTMLElement) {
+        const arrowHandle = associationElement.querySelector(".arrow-end-area")!;
+
+        return grab(arrowHandle);
+    }
+
+    function grab(anElement: Element) {
+        return new DragAndDropInteraction(anElement).start();
+    }
+
+    class DragAndDropInteraction {
+        private readonly _draggedElement: Element;
+        private _dragOffset: Position | undefined;
+
+        constructor(draggedElement: Element) {
+            this._draggedElement = draggedElement;
+        }
+
+        start() {
+            this._dragOffset = boundingPageBoxOf(this._draggedElement).centerOffset();
+            fireMousePointerEventOn(
+                this._draggedElement,
+                "pointerDown",
+                this._currentGrabPosition()
+            );
+            return this;
+        }
+
+        hover(anotherElement: Element) {
+            const positionDelta = boundingPageBoxOf(this._draggedElement)
+                .deltaToReach(boundingPageBoxOf(anotherElement));
+
+            return this.move(
+                this._dragOffset!.plus(positionDelta)
+            );
+        }
+
+        move(offsetLocation: Position) {
+            const endLocation = this._toClientLocation(offsetLocation);
+            return this.moveTo(endLocation);
+        }
+
+        moveTo(endLocation: ClientLocation) {
+            fireMousePointerEventOn(this._draggedElement, "pointerMove", endLocation);
+            return this;
+        }
+
+        drop() {
+            fireMousePointerEventOn(this._draggedElement, "pointerUp", this._currentGrabPosition());
+        }
+
+        cancel() {
+            fireMousePointerEventOn(this._draggedElement, "pointerCancel", this._currentGrabPosition());
+        }
+
+        dropInto(anotherElement: Element) {
+            this.hover(anotherElement).drop();
+        }
+
+        private _currentGrabPosition() {
+            return this._toClientLocation(this._dragOffset!);
+        }
+
+        private _toClientLocation(offsetLocation: Position) {
+            return offsetToClientLocation(offsetLocation, this._draggedElement);
+        }
     }
 
     function createWorldInDomBeforeEach() {

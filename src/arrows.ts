@@ -7,7 +7,7 @@ export class Arrow {
 
     private _start: Position;
     private _end: Position;
-    private _endControl: Position;
+    private _normalizedEndControl: Position;
     private _endBox?: PageBox;
     private readonly _svgElement: SVGSVGElement;
     private _svgPath!: SVGPathElement;
@@ -19,11 +19,11 @@ export class Arrow {
 
         if (to instanceof Position) {
             this._end = to;
-            this._endControl = endControl ?? this._defaultEndControlFor(to);
+            this._normalizedEndControl = endControl?.normalized() ?? this._defaultEndControlFor(to);
         } else {
             this._endBox = to;
             this._end = this._endPointTargetingBox(this._endBox);
-            this._endControl = this._endControlPointTargetingBox(this._endBox);
+            this._normalizedEndControl = this._endControlPointTargetingBox(this._endBox);
         }
 
         this._svgElement = this._createSvgElement();
@@ -61,7 +61,6 @@ export class Arrow {
     }
 
     private _updatePath() {
-        const normalizedEndControl = this._endControl.normalized();
         const boundStart = this._start.min(this._end);
         const boundEnd = this._start.max(this._end);
         const boundExtent = boundStart.deltaToReach(boundEnd);
@@ -71,8 +70,8 @@ export class Arrow {
 
         const p1 = relativeFrom;
         const c1 = relativeFrom.plus(point(this._start.x < this._end.x ? Math.max(10, boundExtent.x / 2) : 10, 0));
-        const c2 = relativeTo.plus(normalizedEndControl.dot(boundExtent)).map(n => +n.toFixed(2));
-        const p2 = relativeTo.plus(normalizedEndControl.map(n => n * Arrow.linecapSize));
+        const c2 = relativeTo.plus(this._normalizedEndControl.dot(boundExtent)).map(n => +n.toFixed(2));
+        const p2 = relativeTo.plus(this._normalizedEndControl.map(n => n * Arrow.linecapSize));
 
         this._svgPath.setAttribute("d", `M ${p1.x},${p1.y} C ${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`);
         this._svgElement.style.translate = `${boundStart.x}px ${boundStart.y}px`;
@@ -82,13 +81,13 @@ export class Arrow {
 
     updateEndToPoint(newEnd: Position, newEndControl: Position = this._defaultEndControlFor(newEnd)) {
         this._end = newEnd;
-        this._endControl = newEndControl;
+        this._normalizedEndControl = newEndControl.normalized();
         this._endBox = undefined;
         this._updatePath();
     }
 
     private _defaultEndControlFor(endPosition: Position) {
-        return endPosition.deltaToReach(this._start);
+        return endPosition.deltaToReach(this._start).normalized();
     }
 
     attachEndToBox(endBox: PageBox) {
@@ -98,12 +97,12 @@ export class Arrow {
 
     private _updateBoxEnd(endBox: PageBox) {
         this._end = this._endPointTargetingBox(endBox);
-        this._endControl = this._endControlPointTargetingBox(endBox);
+        this._normalizedEndControl = this._endControlPointTargetingBox(endBox);
         this._updatePath();
     }
 
     private _endControlPointTargetingBox(targetBox: PageBox) {
-        return targetBox.center().deltaToReach(this._start);
+        return targetBox.center().deltaToReach(this._start).normalized();
     }
 
     private _endPointTargetingBox(targetBox: PageBox) {
@@ -142,6 +141,10 @@ export class Arrow {
 
     endPosition() {
         return this._end;
+    }
+
+    endControl() {
+        return this._normalizedEndControl;
     }
 }
 

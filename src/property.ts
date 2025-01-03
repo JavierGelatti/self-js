@@ -69,4 +69,8 @@ export class Property {
     name() {
         return this._key;
     }
+
+    assign(newValue: unknown) {
+        Reflect.set(this._owner, this._key, newValue);
+    }
 }

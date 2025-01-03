@@ -52,16 +52,17 @@ export function createSvgElement<K extends keyof SVGElementTagNameMap>(
 
 export function makeDraggable(
     draggableElement: HTMLElement,
-    {onDragStart, onDrag, onDragEnd}: {
-        onDragStart?: () => void,
+    {onStart, onDrag, onDrop, onCancel}: {
+        onStart?: () => void,
         onDrag?: (cursorPosition: Position, delta: Position) => void,
-        onDragEnd?: () => void,
+        onDrop?: () => void,
+        onCancel?: () => void,
     },
 ) {
     draggableElement.classList.add("draggable");
 
     function grab(pointerId: number, grabPosition: Position) {
-        onDragStart?.();
+        onStart?.();
         draggableElement.setPointerCapture(pointerId);
         draggableElement.classList.add("dragging");
 
@@ -75,21 +76,21 @@ export function makeDraggable(
             const newPosition = clientPositionOf(event);
             const delta = lastPosition.deltaToReach(newPosition);
 
-            onDrag?.(newPosition, delta);
+            onDrag?.(newPosition.plus(scrollPosition()), delta);
 
             lastPosition = newPosition;
         }, {signal: dragEnd.signal});
 
-        const endDrag = (event: PointerEvent) => {
+        const endDragRunning = (callback?: () => void) => (event: PointerEvent) => {
             if (event.pointerId !== pointerId) return;
 
-            onDragEnd?.();
+            callback?.();
             draggableElement.classList.remove("dragging");
             dragEnd.abort();
         };
 
-        draggableElement.addEventListener("pointerup", endDrag, {signal: dragEnd.signal});
-        draggableElement.addEventListener("pointercancel", endDrag, {signal: dragEnd.signal});
+        draggableElement.addEventListener("pointerup", endDragRunning(onDrop), {signal: dragEnd.signal});
+        draggableElement.addEventListener("pointercancel",endDragRunning(onCancel), {signal: dragEnd.signal});
         draggableElement.addEventListener("pointerdown", () => { dragEnd.abort() }, {signal: dragEnd.signal});
     }
 
@@ -101,6 +102,10 @@ export function makeDraggable(
     });
 
     return grab;
+}
+
+function scrollPosition() {
+    return point(window.scrollX, window.scrollY);
 }
 
 export function clientPositionOf(event: MouseEvent): Position {
@@ -145,6 +150,22 @@ export class PageBox {
 
     center() {
         return point(this.x + this.width / 2, this.y + this.height / 2);
+    }
+
+    origin() {
+        return point(this.x, this.y);
+    }
+
+    extent() {
+        return point(this.width, this.height);
+    }
+
+    centerOffset() {
+        return this.extent().map(c => c / 2);
+    }
+
+    deltaToReach(anotherBox: PageBox) {
+        return this.origin().deltaToReach(anotherBox.origin());
     }
 
     contains(position: Position) {
