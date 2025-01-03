@@ -5,6 +5,8 @@ import {CodeEditorElement, codeOn, createCodeEditorElement} from "./codeEditor.t
 import {Association} from "./association.ts";
 
 export abstract class Outliner<V> {
+    private static outlinerObject = Symbol("outlinerObject");
+
     protected _inspectedValue: V;
     protected _position: Position;
     protected _domElement: HTMLElement;
@@ -75,7 +77,7 @@ export abstract class Outliner<V> {
     }
 
     private _createDomElement() {
-        return createElement("div", {className: "outliner"}, [
+        return createElement("div", {className: "outliner", [Outliner.outlinerObject]: this }, [
             this._header = createElement("div", {role: "heading", textContent: this.title()}, [
                 createElement("button", {
                     title: "Close",
@@ -167,6 +169,15 @@ export abstract class Outliner<V> {
 
     protected _associations(): Set<Association> {
         return this._associationEnds;
+    }
+
+    static withDomElement(domElement: Element) {
+        if (!(this.outlinerObject in domElement)) {
+            throw new Error("The DOM element does not correspond to an outliner");
+        }
+
+        // @ts-ignore
+        return domElement[this.outlinerObject] as Outliner<unknown>;
     }
 }
 

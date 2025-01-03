@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, test} from "vitest";
 import {World} from "../src/world.ts";
+import {Outliner} from "../src/outliner.ts";
 
 describe("Outliners", () => {
     let world: World;
@@ -44,4 +45,19 @@ describe("Outliners", () => {
             expect(world.openOutliner([1, 2, 3]).title()).toEqual("un Array");
         });
     });
+
+    test("can get the outliner object from the DOM element", () => {
+        const outliner = world.openOutliner({});
+        const domElement = outliner.domElement();
+
+        expect(Outliner.withDomElement(domElement)).toBe(outliner);
+    });
+
+    test("cannot get the outliner from other DOM elements", () => {
+        const domElement = document.createElement("div");
+
+        expect(() => Outliner.withDomElement(domElement))
+            .toThrowError("The DOM element does not correspond to an outliner");
+    });
+
 });
