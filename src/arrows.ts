@@ -50,9 +50,7 @@ export class Arrow {
         svgElement.style.left = "0";
         svgElement.style.overflow = "visible";
 
-        const svgPath = createSvgElement("path", {
-            pathLength: 100
-        });
+        const svgPath = createSvgElement("path");
         svgPath.classList.add("arrow");
         svgElement.append(svgPath);
         this._svgPath = svgPath;
