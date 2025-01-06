@@ -802,19 +802,50 @@ describe("The outliners in the world", () => {
             )
         });
 
-        test("the arrow mode is updated when grabbing an association", () => {
-            const inspectedObject = { x: 1, y: 2 };
-            const outlinerBelow = openOutlinerFor("this is below");
-            const outliner = openOutlinerFor(inspectedObject, point(0, 100));
-            outliner.inspectProperty("x");
-            outliner.move(point(1, 1));
-            const [associationElement] = visibleAssociationElements();
+        describe("arrow mode is updated when grabbing an association", () => {
+            test("when the source outliner is above the arrow end", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const outlinerBelow = openOutlinerFor("this is below");
+                const outliner = openOutlinerFor(inspectedObject, point(0, 100));
+                outliner.inspectProperty("x");
+                outliner.move(point(1, 1));
+                const [associationElement] = visibleAssociationElements();
 
-            grabAssociation(associationElement)
-                .hover(outlinerBelow.domElement());
+                grabAssociation(associationElement)
+                    .hover(outlinerBelow.domElement());
 
-            const [arrow] = visibleArrowElements();
-            expect(arrow).toHaveClass("arrow-faded");
+                const [arrow] = visibleArrowElements();
+                expect(arrow).toHaveClass("arrow-faded");
+            });
+
+            test("considering the potentially-new target outliner as the target outliner to determine the arrow mode", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const outliner = openOutlinerFor(inspectedObject, point(10, 10));
+                const _valueOutliner = openOutlinerFor(1, point(220, 10));
+                outliner.inspectProperty("x");
+                const outlinerAbove = openOutlinerFor("this is above", point(10, 50));
+                const [associationElement] = visibleAssociationElements();
+
+                grabAssociation(associationElement)
+                    .hover(outlinerAbove.domElement());
+
+                const [arrow] = visibleArrowElements();
+                expect(arrow).toHaveClass("arrow-hidden");
+            });
+
+            test("the arrow is fully visible if the arrow is pointing to no outliner", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const outliner = openOutlinerFor(inspectedObject, point(10, 10));
+                const _valueOutliner = openOutlinerFor(1, point(10, 50));
+                outliner.inspectProperty("x");
+                const [associationElement] = visibleAssociationElements();
+
+                grabAssociation(associationElement)
+                    .move(point(200, 200));
+
+                const [arrow] = visibleArrowElements();
+                expect(arrow).not.toHaveClass("arrow-hidden");
+            });
         });
 
         test("while redirecting the association, the arrow moves with the cursor even when the view is scrolled", () => {

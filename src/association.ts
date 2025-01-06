@@ -41,7 +41,7 @@ export class Association {
                     currentTargetOutliner = undefined;
                     this._arrow.updateEndToPoint(cursorPosition);
                 }
-                this._updateArrowDrawing();
+                this._updateArrowDrawing(currentTargetOutliner);
             },
             onDrop: () => {
                 if (currentTargetOutliner) {
@@ -60,7 +60,7 @@ export class Association {
             }
         });
 
-        this._updateArrowDrawing();
+        this._updateArrowDrawing(this._valueOutliner);
     }
 
     arrow() {
@@ -70,12 +70,12 @@ export class Association {
     updatePosition() {
         this._arrow.updateStart(this._arrowStartPosition());
         this._arrow.attachEndToBox(this._arrowEndBox());
-        this._updateArrowDrawing();
+        this._updateArrowDrawing(this._valueOutliner);
     }
 
-    private _updateArrowDrawing() {
+    private _updateArrowDrawing(targetOutliner: Outliner<unknown> | undefined) {
         this._updateArrowEndAreaPosition();
-        this._updateArrowMode();
+        this._updateArrowModeTargeting(targetOutliner);
     }
 
     private _updateArrowEndAreaPosition() {
@@ -83,12 +83,18 @@ export class Association {
         this._arrowEndArea.style.translate = `${boundStart.x}px ${boundStart.y}px`;
     }
 
-    private _updateArrowMode() {
-        const ownerOutlinerElement = this._ownerOutliner.domElement();
-        const valueOutlinerElement = this._valueOutliner.domElement();
+    private _updateArrowModeTargeting(targetOutliner: Outliner<unknown> | undefined) {
         const arrowClassList = this._arrow.svgElement().classList;
 
-        if (this._valueOutliner === this._ownerOutliner) return;
+        if (targetOutliner === undefined) {
+            arrowClassList.remove("arrow-faded", "arrow-hidden");
+            return;
+        }
+
+        const ownerOutlinerElement = this._ownerOutliner.domElement();
+        const valueOutlinerElement = targetOutliner.domElement();
+
+        if (targetOutliner === this._ownerOutliner) return;
         if (ownerOutlinerElement.compareDocumentPosition(valueOutlinerElement) === Node.DOCUMENT_POSITION_FOLLOWING) {
             arrowClassList.remove("arrow-faded");
             arrowClassList.toggle(
