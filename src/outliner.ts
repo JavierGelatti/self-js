@@ -179,5 +179,13 @@ export abstract class Outliner<V> {
         // @ts-ignore
         return domElement[this.outlinerObject] as Outliner<unknown>;
     }
+
+    isAt(aPosition: Position) {
+        return this._position.equals(aPosition);
+    }
+
+    numberOfAssociations() {
+        return this._associationEnds.size;
+    }
 }
 

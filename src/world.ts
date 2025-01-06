@@ -3,7 +3,7 @@ import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
 import {Outliner} from "./outliner.ts";
 import {Primitive, PrimitiveOutliner} from "./primitiveOutliner.ts";
 import {Property, Selector} from "./property.ts";
-import {createElement, positionOfDomElement} from "./dom.ts";
+import {createElement} from "./dom.ts";
 import {Association} from "./association.ts";
 
 export class World {
@@ -46,14 +46,10 @@ export class World {
         anOutliner.remove();
     }
 
-    openOutlinerForAssociation(propertyToInspect: Property, ownerOutliner: ObjectOutliner) {
+    openOutlinerForAssociation(propertyToInspect: Property, ownerOutliner: ObjectOutliner, position: Position) {
         if (ownerOutliner.hasVisibleAssociationFor(propertyToInspect)) return;
 
-        const currentPosition = positionOfDomElement(propertyToInspect.associationElement());
-        const valueOutliner = this.openOutliner(
-            propertyToInspect.currentValue(),
-            currentPosition.plus(point(50, 0))
-        );
+        const valueOutliner = this.openOutliner(propertyToInspect.currentValue(), position);
 
         const association = new Association(propertyToInspect, ownerOutliner, valueOutliner, this);
         ownerOutliner.domElement().insertAdjacentElement("afterend", association.domElement());

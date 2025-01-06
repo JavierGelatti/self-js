@@ -147,4 +147,8 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
             association.domElement().parentElement?.append(association.domElement());
         });
     }
+
+    numberOfAssociations() {
+        return super.numberOfAssociations() + this._associationStarts.size;
+    }
 }

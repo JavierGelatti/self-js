@@ -1,6 +1,7 @@
-import {createElement} from "./dom.ts";
+import {boundingPageBoxOf, createElement, positionOfDomElement} from "./dom.ts";
 import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
 import {World} from "./world.ts";
+import {point} from "./position.ts";
 
 export type Selector = string | symbol;
 
@@ -32,14 +33,27 @@ export class Property {
                     onclick: () => {
                         const currentAssociation = this._outliner.associationFor(this._key);
                         if (currentAssociation) {
-                            currentAssociation.remove();
+                            const valueOutliner = currentAssociation.valueOutliner();
+                            if (valueOutliner.isAt(this._valueOutlinerDefaultPosition()) && valueOutliner.numberOfAssociations() === 1) {
+                                this._world.closeOutliner(valueOutliner);
+                            } else {
+                                currentAssociation.remove();
+                            }
                         } else {
-                            this._world.openOutlinerForAssociation(this, this._outliner);
+                            this._world.openOutlinerForAssociation(
+                                this,
+                                this._outliner,
+                                this._valueOutlinerDefaultPosition()
+                            );
                         }
                     }
                 })
             ]),
         ]);
+    }
+
+    private _valueOutlinerDefaultPosition() {
+        return positionOfDomElement(this._inspectPropertyButton).plus(point(50, 0));
     }
 
     domElement(): HTMLElement {
@@ -62,8 +76,8 @@ export class Property {
         return Reflect.get(this._owner, this._key);
     }
 
-    associationElement(): Element {
-        return this._inspectPropertyButton;
+    arrowStartPosition() {
+        return boundingPageBoxOf(this._inspectPropertyButton).center();
     }
 
     name() {

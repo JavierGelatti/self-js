@@ -121,15 +121,63 @@ describe("The outliners in the world", () => {
                 expect(association).toBeDefined();
             });
 
-            test("inspecting a property again hides the arrow", () => {
+            test("inspecting a property again hides the arrow and does not open an extra outliner", () => {
                 const inspectedObject = { x: 1, y: 2 };
                 const outlinerElement = openOutlinerFor(inspectedObject);
+                outlinerElement.inspectProperty("x");
 
                 outlinerElement.inspectProperty("x");
+
+                expect(openOutliners().length).toBeLessThanOrEqual(2);
+                expect(visibleArrowElements().length).toEqual(0);
+            });
+
+            test("inspecting a property again when the target outliner has not moved and is not referenced by other arrows closes the target outliner", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const outlinerElement = openOutlinerFor(inspectedObject);
+                outlinerElement.inspectProperty("x");
+
+                outlinerElement.inspectProperty("x");
+
+                expect(openOutliners()).toEqual([outlinerElement]);
+            });
+
+            test("inspecting a property again when the target outliner has moved does not close the target outliner", () => {
+                const inspectedObject = { x: 1, y: 2 };
+                const outlinerElement = openOutlinerFor(inspectedObject);
+                outlinerElement.inspectProperty("x");
+                const targetOutliner = lastOutliner();
+                targetOutliner.move(point(1, 1));
+
                 outlinerElement.inspectProperty("x");
 
                 expect(openOutliners().length).toEqual(2);
                 expect(visibleArrowElements().length).toEqual(0);
+            });
+
+            test("inspecting a property again when the target outliner is referenced by other target arrows does not close the target outliner", () => {
+                const inspectedObject = { x: 1, y: 1 };
+                const outlinerElement = openOutlinerFor(inspectedObject);
+                outlinerElement.inspectProperty("x");
+                outlinerElement.inspectProperty("y");
+
+                outlinerElement.inspectProperty("x");
+
+                expect(openOutliners().length).toEqual(2);
+                expect(visibleArrowElements().length).toEqual(1);
+            });
+
+            test("inspecting a property again when the target outliner is referenced by other source arrows does not close the target outliner", () => {
+                const inspectedObject = { x: { y: 1 } };
+                const outlinerElement = openOutlinerFor(inspectedObject);
+                outlinerElement.inspectProperty("x");
+                const targetOutliner = lastOutliner();
+                targetOutliner.inspectProperty("y");
+
+                outlinerElement.inspectProperty("x");
+
+                expect(openOutliners().length).toEqual(3);
+                expect(visibleArrowElements().length).toEqual(1);
             });
 
             test("after inspecting a property, the arrow is removed when the source outliner is closed", () => {

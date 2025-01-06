@@ -105,7 +105,7 @@ export class Association {
     }
 
     private _arrowStartPosition() {
-        return boundingPageBoxOf(this._property.associationElement()).center();
+        return this._property.arrowStartPosition();
     }
 
     private _arrowEndBox() {
@@ -154,5 +154,9 @@ export class Association {
 
     private _targetValueAlreadyIs(propertyValue: unknown) {
         return this._valueOutliner.inspectedValue() === propertyValue;
+    }
+
+    valueOutliner() {
+        return this._valueOutliner;
     }
 }

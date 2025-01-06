@@ -54,6 +54,10 @@ export class Position {
     times(number: number) {
         return this.map(coordinate => coordinate * number);
     }
+
+    equals(anotherPosition: Position) {
+        return this.x === anotherPosition.x && this.y === anotherPosition.y;
+    }
 }
 
 export function point(x: number, y: number) {
