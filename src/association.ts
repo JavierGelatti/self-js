@@ -23,8 +23,7 @@ export class Association {
         this._world = world;
 
         if (valueOutlinerOrArrowEndPosition instanceof Position) {
-            const arrowEndPosition = valueOutlinerOrArrowEndPosition;
-            this._arrow = drawNewArrow(this._arrowStartPosition(), arrowEndPosition);
+            this._arrow = drawNewArrow(this._arrowStartPosition(), valueOutlinerOrArrowEndPosition);
         } else {
             this._valueOutliner = valueOutlinerOrArrowEndPosition;
             this._arrow = drawNewArrowToBox(this._arrowStartPosition(), boundingPageBoxOf(this._valueOutliner.domElement()));
@@ -35,6 +34,10 @@ export class Association {
         makeDraggable(this._arrowEndArea, () => this.dragHandler());
 
         this._updateArrowDrawing(this._valueOutliner);
+
+        this._ownerOutliner.domElement().insertAdjacentElement("afterend", this._domElement);
+        this._ownerOutliner.registerAssociationStart(this);
+        this._valueOutliner?.registerAssociationEnd(this);
     }
 
     dragHandler(): DragHandler {

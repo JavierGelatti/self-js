@@ -3,6 +3,7 @@ import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
 import {World} from "./world.ts";
 import {point} from "./position.ts";
 import {Outliner} from "./outliner.ts";
+import {Association} from "./association.ts";
 
 export type Selector = string | symbol;
 
@@ -27,8 +28,8 @@ export class Property {
             if (currentAssociation) {
                 return currentAssociation.dragHandler();
             } else {
-                return this._world.showTemporalAssociationFor(
-                    this, this._outliner, clientGrabPosition.plus(point(30, 0))
+                return new Association(
+                    this, this._outliner, clientGrabPosition.plus(point(30, 0)), this._world
                 ).dragHandler();
             }
         });

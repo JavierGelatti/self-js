@@ -51,11 +51,7 @@ export class World {
 
         const valueOutliner = this.openOutliner(propertyToInspect.currentValue(), position);
 
-        const association = new Association(propertyToInspect, ownerOutliner, valueOutliner, this);
-        ownerOutliner.domElement().insertAdjacentElement("afterend", association.domElement());
-
-        ownerOutliner.registerAssociationStart(association);
-        valueOutliner.registerAssociationEnd(association);
+        new Association(propertyToInspect, ownerOutliner, valueOutliner, this);
     }
 
     associationFor(anObject: InspectableObject, propertyName: Selector): Association | undefined {
@@ -68,14 +64,5 @@ export class World {
 
     hasOutlinerFor(anObject: unknown) {
         return this._outliners.has(anObject);
-    }
-
-    showTemporalAssociationFor(property: Property, ownerOutliner: ObjectOutliner, clientPosition: Position) {
-        const association = new Association(property, ownerOutliner, clientPosition, this);
-
-        ownerOutliner.domElement().insertAdjacentElement("afterend", association.domElement());
-        ownerOutliner.registerAssociationStart(association);
-
-        return association;
     }
 }
