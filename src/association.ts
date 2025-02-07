@@ -1,30 +1,46 @@
 import {Property} from "./property.ts";
 import {Outliner} from "./outliner.ts";
-import {Arrow, drawNewArrowToBox} from "./arrows.ts";
+import {Arrow, drawNewArrow, drawNewArrowToBox} from "./arrows.ts";
 import {ObjectOutliner} from "./objectOutliner.ts";
-import {boundingPageBoxOf, createElement, makeDraggable} from "./dom.ts";
+import {boundingPageBoxOf, createElement, DragHandler, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
 import {Position} from "./position.ts";
 
 export class Association {
     private readonly _property: Property;
     private readonly _ownerOutliner: ObjectOutliner;
-    private _valueOutliner: Outliner<unknown>;
+    private _valueOutliner: Outliner<unknown> | undefined;
     private readonly _arrow: Arrow;
     private readonly _world: World;
     private readonly _domElement: Element;
     private _arrowEndArea!: HTMLDivElement;
 
-    constructor(property: Property, ownerOutliner: ObjectOutliner, valueOutliner: Outliner<unknown>, world: World) {
+    constructor(property: Property, ownerOutliner: ObjectOutliner, valueOutliner: Outliner<unknown>, world: World)
+    constructor(property: Property, ownerOutliner: ObjectOutliner, arrowEndPosition: Position, world: World)
+    constructor(property: Property, ownerOutliner: ObjectOutliner, valueOutlinerOrArrowEndPosition: Outliner<unknown> | Position, world: World) {
         this._property = property;
         this._ownerOutliner = ownerOutliner;
-        this._valueOutliner = valueOutliner;
         this._world = world;
-        this._arrow = drawNewArrowToBox(this._arrowStartPosition(), this._arrowEndBox());
+
+        if (valueOutlinerOrArrowEndPosition instanceof Position) {
+            const arrowEndPosition = valueOutlinerOrArrowEndPosition;
+            this._arrow = drawNewArrow(this._arrowStartPosition(), arrowEndPosition);
+        } else {
+            this._valueOutliner = valueOutlinerOrArrowEndPosition;
+            this._arrow = drawNewArrowToBox(this._arrowStartPosition(), boundingPageBoxOf(this._valueOutliner.domElement()));
+        }
+
         this._domElement = this._createDomElement();
 
+        makeDraggable(this._arrowEndArea, () => this.dragHandler());
+
+        this._updateArrowDrawing(this._valueOutliner);
+    }
+
+    dragHandler(): DragHandler {
         let currentTargetOutliner: Outliner<unknown> | undefined;
-        const associationDragHandler = {
+        return {
+            grabbedElement: this._arrowEndArea,
             onDrag: (cursorPosition: Position, _delta: Position) => {
                 const targetOutlinerElement = document.elementsFromPoint(cursorPosition.x, cursorPosition.y)
                     .find(element => element.classList.contains("outliner"));
@@ -58,15 +74,8 @@ export class Association {
                 currentTargetOutliner?.domElement()?.classList?.remove("hovered");
                 currentTargetOutliner = undefined;
                 this.updatePosition();
-            }
+            },
         };
-        makeDraggable(this._arrowEndArea, associationDragHandler);
-        makeDraggable(property.arrowStartDomElement(), {
-            onStart: () => this._arrowEndArea,
-            ...associationDragHandler
-        });
-
-        this._updateArrowDrawing(this._valueOutliner);
     }
 
     arrow() {
@@ -74,8 +83,12 @@ export class Association {
     }
 
     updatePosition() {
+        if (this._valueOutliner === undefined) return this.remove();
+
         this._arrow.updateStart(this._arrowStartPosition());
-        this._arrow.attachEndToBox(this._arrowEndBox());
+        this._arrow.attachEndToBox(
+            boundingPageBoxOf(this._valueOutliner.domElement())
+        );
         this._updateArrowDrawing(this._valueOutliner);
     }
 
@@ -120,10 +133,6 @@ export class Association {
         return this._property.arrowStartPosition();
     }
 
-    private _arrowEndBox() {
-        return boundingPageBoxOf(this._valueOutliner.domElement());
-    }
-
     domElement(): Element {
         return this._domElement;
     }
@@ -138,7 +147,7 @@ export class Association {
     remove() {
         this.domElement().remove();
         this._ownerOutliner.removeAssociationStart(this);
-        this._valueOutliner.removeAssociationEnd(this);
+        this._valueOutliner?.removeAssociationEnd(this);
     }
 
     selector() {
@@ -148,7 +157,7 @@ export class Association {
     update() {
         const propertyValue = this._property.currentValue();
 
-        if (this._targetValueAlreadyIs(propertyValue)) return;
+        if (this._valueOutliner !== undefined && this._valueOutliner.inspectedValue() === propertyValue) return;
 
         if (this._world.hasOutlinerFor(propertyValue)) {
             this._redirectTo(this._world.openOutliner(propertyValue));
@@ -159,13 +168,9 @@ export class Association {
     }
 
     private _redirectTo(newTarget: Outliner<unknown>) {
-        this._valueOutliner.removeAssociationEnd(this);
+        this._valueOutliner?.removeAssociationEnd(this);
         this._valueOutliner = newTarget;
         this._valueOutliner.registerAssociationEnd(this);
-    }
-
-    private _targetValueAlreadyIs(propertyValue: unknown) {
-        return this._valueOutliner.inspectedValue() === propertyValue;
     }
 
     valueOutliner() {

@@ -28,10 +28,14 @@ export abstract class Outliner<V> {
         this._domElement.dataset.type = this.type();
         this._setPosition(this._position);
 
-        this._grab = makeDraggable(this._header, {
-            onStart: () => this._onDragStart(),
-            onDrag: (_, delta) => this._move(delta),
-            onDrop: () => this._domElement.classList.remove("moving"),
+        this._grab = makeDraggable(this._header, () => {
+            this._onDragStart();
+
+            return ({
+                grabbedElement: this._header,
+                onDrag: (_, delta) => this._move(delta),
+                onDrop: () => this._domElement.classList.remove("moving"),
+            });
         });
     }
 

@@ -69,4 +69,13 @@ export class World {
     hasOutlinerFor(anObject: unknown) {
         return this._outliners.has(anObject);
     }
+
+    showTemporalAssociationFor(property: Property, ownerOutliner: ObjectOutliner, clientPosition: Position) {
+        const association = new Association(property, ownerOutliner, clientPosition, this);
+
+        ownerOutliner.domElement().insertAdjacentElement("afterend", association.domElement());
+        ownerOutliner.registerAssociationStart(association);
+
+        return association;
+    }
 }

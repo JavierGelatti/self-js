@@ -861,7 +861,7 @@ describe("The outliners in the world", () => {
             expect(arrowForAssociation(inspectedObject, "x").end().y).toBeGreaterThan(100);
         });
 
-        test("can redirect an association from its source", () => {
+        test("can redirect an association from its source when the association is already visible", () => {
             const inspectedObject = { x: 1, y: 2 };
             const outliner = openOutlinerFor(inspectedObject);
             const newValueOutliner = openOutlinerFor(2, point(20, 200));
@@ -890,6 +890,22 @@ describe("The outliners in the world", () => {
             grabAssociationFromStartingPoint(outliner, "x");
 
             expect(arrowEndHandleOf(associationElement)).toHaveClass("dragging");
+        });
+
+        test("can redirect an association from its source when the association is not already visible", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outliner = openOutlinerFor(inspectedObject);
+            const newValueOutliner = openOutlinerFor(2, point(20, 200));
+
+            grabAssociationFromStartingPoint(outliner, "x")
+                .dropInto(newValueOutliner.domElement());
+
+            expect(inspectedObject.x).toEqual(2);
+            expect(outliner.valueOfProperty("x")).toEqual("2");
+            expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
+                boundingPageBoxOf(newValueOutliner.domElement())
+            );
+            expect(newValueOutliner.domElement()).not.toHaveClass("hovered");
         });
     });
 

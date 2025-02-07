@@ -1,7 +1,8 @@
-import {boundingPageBoxOf, createElement, positionOfDomElement} from "./dom.ts";
+import {boundingPageBoxOf, createElement, makeDraggable, positionOfDomElement} from "./dom.ts";
 import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
 import {World} from "./world.ts";
 import {point} from "./position.ts";
+import {Outliner} from "./outliner.ts";
 
 export type Selector = string | symbol;
 
@@ -20,6 +21,17 @@ export class Property {
         this._owner = owner;
         this._world = world;
         this._domElement = this._createDomElement();
+
+        makeDraggable(this.arrowStartDomElement(), clientGrabPosition => {
+            const currentAssociation = this.currentAssociation();
+            if (currentAssociation) {
+                return currentAssociation.dragHandler();
+            } else {
+                return this._world.showTemporalAssociationFor(
+                    this, this._outliner, clientGrabPosition.plus(point(30, 0))
+                ).dragHandler();
+            }
+        });
     }
 
     private _createDomElement() {
@@ -31,11 +43,11 @@ export class Property {
                     title: "Inspeccionar valor",
                     textContent: ">",
                     onclick: () => {
-                        const currentAssociation = this._outliner.associationFor(this._key);
+                        const currentAssociation = this.currentAssociation();
                         if (currentAssociation) {
                             const valueOutliner = currentAssociation.valueOutliner();
-                            if (valueOutliner.isAt(this._valueOutlinerDefaultPosition()) && valueOutliner.numberOfAssociations() === 1) {
-                                this._world.closeOutliner(valueOutliner);
+                            if (this._isOpenAtDefaultPositionWithoutAnyOtherAssociations(valueOutliner)) {
+                                this._world.closeOutliner(valueOutliner!);
                             } else {
                                 currentAssociation.remove();
                             }
@@ -50,6 +62,16 @@ export class Property {
                 })
             ]),
         ]);
+    }
+
+    private _isOpenAtDefaultPositionWithoutAnyOtherAssociations(valueOutliner: Outliner<unknown> | undefined) {
+        return valueOutliner !== undefined &&
+            valueOutliner.isAt(this._valueOutlinerDefaultPosition()) &&
+            valueOutliner.numberOfAssociations() === 1;
+    }
+
+    private currentAssociation() {
+        return this._outliner.associationFor(this._key);
     }
 
     private _valueOutlinerDefaultPosition() {

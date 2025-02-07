@@ -50,29 +50,30 @@ export function createSvgElement<K extends keyof SVGElementTagNameMap>(
     return newElement;
 }
 
+export type DragHandler = {
+    grabbedElement: HTMLElement,
+    onDrag?: (cursorPosition: Position, delta: Position) => void,
+    onDrop?: () => void,
+    onCancel?: () => void,
+};
+
 export function makeDraggable(
     draggableElement: HTMLElement,
-    {onStart, onDrag, onDrop, onCancel}: {
-        onStart?: () => void | HTMLElement,
-        onDrag?: (cursorPosition: Position, delta: Position) => void,
-        onDrop?: () => void,
-        onCancel?: () => void,
-    },
+    onStart: (clientGrabPosition: Position) => DragHandler,
 ) {
     draggableElement.classList.add("draggable");
 
-    function grab(pointerId: number, grabPosition: Position) {
-        const grabbedElementMaybe = onStart?.();
-        const grabbedElement = grabbedElementMaybe instanceof HTMLElement ? grabbedElementMaybe : draggableElement;
-        draggableElement.setPointerCapture(pointerId);
+    function grab(pointerId: number, clientGrabPosition: Position) {
+        const { grabbedElement, onDrag, onDrop, onCancel } = onStart(clientGrabPosition);
+        grabbedElement.setPointerCapture(pointerId);
         draggableElement.classList.add("dragging");
         grabbedElement.classList.add("dragging");
 
         const dragEnd = new AbortController();
 
-        let lastPosition: Position = grabPosition;
+        let lastPosition: Position = clientGrabPosition;
 
-        draggableElement.addEventListener("pointermove", (event: PointerEvent) => {
+        grabbedElement.addEventListener("pointermove", (event: PointerEvent) => {
             if (event.pointerId !== pointerId) return;
 
             const newPosition = clientPositionOf(event);
@@ -92,9 +93,9 @@ export function makeDraggable(
             dragEnd.abort();
         };
 
-        draggableElement.addEventListener("pointerup", endDragRunning(onDrop), {signal: dragEnd.signal});
-        draggableElement.addEventListener("pointercancel",endDragRunning(onCancel), {signal: dragEnd.signal});
-        draggableElement.addEventListener("pointerdown", () => { dragEnd.abort() }, {signal: dragEnd.signal});
+        grabbedElement.addEventListener("pointerup", endDragRunning(onDrop), {signal: dragEnd.signal});
+        grabbedElement.addEventListener("pointercancel", endDragRunning(onCancel), {signal: dragEnd.signal});
+        grabbedElement.addEventListener("pointerdown", () => { dragEnd.abort() }, {signal: dragEnd.signal});
     }
 
     draggableElement.addEventListener("pointerdown", (event: PointerEvent) => {
