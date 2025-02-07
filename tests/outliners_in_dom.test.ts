@@ -883,7 +883,7 @@ describe("The outliners in the world", () => {
         test("while redirecting an association from its source, the association is marked as dragging", () => {
             const inspectedObject = { x: 1, y: 2 };
             const outliner = openOutlinerFor(inspectedObject);
-            const newValueOutliner = openOutlinerFor(2, point(20, 200));
+            const _newValueOutliner = openOutlinerFor(2, point(20, 200));
             outliner.inspectProperty("x");
             const [associationElement] = visibleAssociationElements();
 
