@@ -73,6 +73,9 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         this._inspectedValue[newPropertyName] = undefined;
 
         this._addProperty(newPropertyName);
+
+        // We have to do this because the new property name may change the size of the inspector...
+        this.updateAssociationPositions();
     }
 
     private _addProperty(key: Selector) {
@@ -115,6 +118,15 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         newKeys.forEach((newPropertyName) => {
             this._addProperty(newPropertyName);
         });
+
+        // We have to do this because the updated key or value of an association may change the size of the inspector...
+        this.updateAssociationPositions();
+    }
+
+    private updateAssociationPositions() {
+        for (const association of this._associationStarts.values()) {
+            association.updatePosition();
+        }
     }
 
     private _refreshType() {
