@@ -719,7 +719,7 @@ describe("The outliners in the world", () => {
             outliner.inspectProperty("x");
             const [associationElement] = visibleAssociationElements();
 
-            grabAssociation(associationElement)
+            grabAssociationFromArrowEnd(associationElement)
                 .dropInto(newValueOutliner.domElement());
 
             expect(inspectedObject.x).toEqual(2);
@@ -738,7 +738,7 @@ describe("The outliners in the world", () => {
             outliner.inspectProperty("x");
             const [associationElement] = visibleAssociationElements();
 
-            grabAssociation(associationElement)
+            grabAssociationFromArrowEnd(associationElement)
                 .hover(anotherOutliner.domElement())
                 .hover(yetAnotherOutliner.domElement());
 
@@ -756,7 +756,7 @@ describe("The outliners in the world", () => {
             outliner.inspectProperty("x");
             const [associationElement] = visibleAssociationElements();
 
-            grabAssociation(associationElement)
+            grabAssociationFromArrowEnd(associationElement)
                 .hover(anotherOutliner.domElement())
                 .moveTo(asClientLocation(point(999, 999)));
 
@@ -771,7 +771,7 @@ describe("The outliners in the world", () => {
             outliner.inspectProperty("x");
             const [associationElement] = visibleAssociationElements();
 
-            grabAssociation(associationElement)
+            grabAssociationFromArrowEnd(associationElement)
                 .hover(outliner.domElement())
                 .move(point(999, 999))
                 .drop();
@@ -790,7 +790,7 @@ describe("The outliners in the world", () => {
             outliner.inspectProperty("x");
             const [associationElement] = visibleAssociationElements();
 
-            grabAssociation(associationElement)
+            grabAssociationFromArrowEnd(associationElement)
                 .hover(outliner.domElement())
                 .cancel();
 
@@ -811,7 +811,7 @@ describe("The outliners in the world", () => {
                 outliner.move(point(1, 1));
                 const [associationElement] = visibleAssociationElements();
 
-                grabAssociation(associationElement)
+                grabAssociationFromArrowEnd(associationElement)
                     .hover(outlinerBelow.domElement());
 
                 const [arrow] = visibleArrowElements();
@@ -826,7 +826,7 @@ describe("The outliners in the world", () => {
                 const outlinerAbove = openOutlinerFor("this is above", point(10, 50));
                 const [associationElement] = visibleAssociationElements();
 
-                grabAssociation(associationElement)
+                grabAssociationFromArrowEnd(associationElement)
                     .hover(outlinerAbove.domElement());
 
                 const [arrow] = visibleArrowElements();
@@ -840,7 +840,7 @@ describe("The outliners in the world", () => {
                 outliner.inspectProperty("x");
                 const [associationElement] = visibleAssociationElements();
 
-                grabAssociation(associationElement)
+                grabAssociationFromArrowEnd(associationElement)
                     .move(point(200, 200));
 
                 const [arrow] = visibleArrowElements();
@@ -855,10 +855,41 @@ describe("The outliners in the world", () => {
             outliner.inspectProperty("x");
             const [associationElement] = visibleAssociationElements();
 
-            grabAssociation(associationElement)
+            grabAssociationFromArrowEnd(associationElement)
                 .moveTo(asClientLocation(point(100, 100)));
 
             expect(arrowForAssociation(inspectedObject, "x").end().y).toBeGreaterThan(100);
+        });
+
+        test("can redirect an association from its source", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outliner = openOutlinerFor(inspectedObject);
+            const newValueOutliner = openOutlinerFor(2, point(20, 200));
+            outliner.inspectProperty("x");
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociationFromStartingPoint(outliner, "x")
+                .dropInto(newValueOutliner.domElement());
+
+            expect(inspectedObject.x).toEqual(2);
+            expect(outliner.valueOfProperty("x")).toEqual("2");
+            expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
+                boundingPageBoxOf(newValueOutliner.domElement())
+            );
+            expect(newValueOutliner.domElement()).not.toHaveClass("hovered");
+            expect(arrowEndHandleOf(associationElement)).not.toHaveClass("dragging");
+        });
+
+        test("while redirecting an association from its source, the association is marked as dragging", () => {
+            const inspectedObject = { x: 1, y: 2 };
+            const outliner = openOutlinerFor(inspectedObject);
+            const newValueOutliner = openOutlinerFor(2, point(20, 200));
+            outliner.inspectProperty("x");
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociationFromStartingPoint(outliner, "x");
+
+            expect(arrowEndHandleOf(associationElement)).toHaveClass("dragging");
         });
     });
 
@@ -984,10 +1015,18 @@ describe("The outliners in the world", () => {
         return world().associationFor(inspectedObject, propertyName)!.arrow();
     }
 
-    function grabAssociation(associationElement: HTMLElement) {
-        const arrowHandle = associationElement.querySelector(".arrow-end-area")!;
+    function grabAssociationFromArrowEnd(associationElement: HTMLElement) {
+        return grab(arrowEndHandleOf(associationElement));
+    }
 
-        return grab(arrowHandle);
+    function arrowEndHandleOf(associationElement: HTMLElement) {
+        return associationElement.querySelector(".arrow-end-area")!;
+    }
+
+    function grabAssociationFromStartingPoint(outliner: OutlinerFromDomElement, propertyName: string) {
+        const startingPointHandle = outliner.buttonToInspectProperty(propertyName);
+
+        return grab(startingPointHandle);
     }
 
     function grab(anElement: Element) {

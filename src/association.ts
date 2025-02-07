@@ -4,6 +4,7 @@ import {Arrow, drawNewArrowToBox} from "./arrows.ts";
 import {ObjectOutliner} from "./objectOutliner.ts";
 import {boundingPageBoxOf, createElement, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
+import {Position} from "./position.ts";
 
 export class Association {
     private readonly _property: Property;
@@ -23,8 +24,8 @@ export class Association {
         this._domElement = this._createDomElement();
 
         let currentTargetOutliner: Outliner<unknown> | undefined;
-        makeDraggable(this._arrowEndArea, {
-            onDrag: (cursorPosition, _delta) => {
+        const associationDragHandler = {
+            onDrag: (cursorPosition: Position, _delta: Position) => {
                 const targetOutlinerElement = document.elementsFromPoint(cursorPosition.x, cursorPosition.y)
                     .find(element => element.classList.contains("outliner"));
 
@@ -58,6 +59,11 @@ export class Association {
                 currentTargetOutliner = undefined;
                 this.updatePosition();
             }
+        };
+        makeDraggable(this._arrowEndArea, associationDragHandler);
+        makeDraggable(property.arrowStartDomElement(), {
+            onStart: () => this._arrowEndArea,
+            ...associationDragHandler
         });
 
         this._updateArrowDrawing(this._valueOutliner);

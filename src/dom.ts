@@ -53,7 +53,7 @@ export function createSvgElement<K extends keyof SVGElementTagNameMap>(
 export function makeDraggable(
     draggableElement: HTMLElement,
     {onStart, onDrag, onDrop, onCancel}: {
-        onStart?: () => void,
+        onStart?: () => void | HTMLElement,
         onDrag?: (cursorPosition: Position, delta: Position) => void,
         onDrop?: () => void,
         onCancel?: () => void,
@@ -62,9 +62,11 @@ export function makeDraggable(
     draggableElement.classList.add("draggable");
 
     function grab(pointerId: number, grabPosition: Position) {
-        onStart?.();
+        const grabbedElementMaybe = onStart?.();
+        const grabbedElement = grabbedElementMaybe instanceof HTMLElement ? grabbedElementMaybe : draggableElement;
         draggableElement.setPointerCapture(pointerId);
         draggableElement.classList.add("dragging");
+        grabbedElement.classList.add("dragging");
 
         const dragEnd = new AbortController();
 
@@ -85,6 +87,7 @@ export function makeDraggable(
             if (event.pointerId !== pointerId) return;
 
             callback?.();
+            grabbedElement.classList.remove("dragging");
             draggableElement.classList.remove("dragging");
             dragEnd.abort();
         };

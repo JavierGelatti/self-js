@@ -80,6 +80,10 @@ export class Property {
         return boundingPageBoxOf(this._inspectPropertyButton).center();
     }
 
+    arrowStartDomElement(): HTMLElement {
+        return this._inspectPropertyButton;
+    }
+
     name() {
         return this._key;
     }
