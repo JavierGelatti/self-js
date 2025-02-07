@@ -907,6 +907,36 @@ describe("The outliners in the world", () => {
             );
             expect(newValueOutliner.domElement()).not.toHaveClass("hovered");
         });
+
+        test("if redirecting a not visible association doesn't change the value of the property, the arrow should disappear", () => {
+            const inspectedObject = function aFunction() {} as unknown as InspectableObject;
+            const outliner = openOutlinerFor(inspectedObject);
+            const targetValueOutliner = openOutlinerFor("Hola", point(20, 200));
+
+            grabAssociationFromStartingPoint(outliner, "name")
+                .dropInto(targetValueOutliner.domElement());
+
+            expect(inspectedObject.name).toEqual("aFunction");
+            expect(outliner.valueOfProperty("name")).toEqual("aFunction");
+            expect(world().associationFor(inspectedObject, "name")).toBeUndefined();
+        });
+
+        test("if redirecting a visible association doesn't change the value of the property, the arrow should point to the unchanged value", () => {
+            const inspectedObject = function aFunction() {} as unknown as InspectableObject;
+            const outliner = openOutlinerFor(inspectedObject);
+            outliner.inspectProperty("name");
+            const currentValueOutliner = lastOutliner();
+
+            const targetValueOutliner = openOutlinerFor("Hola", point(200, 300));
+
+            grabAssociationFromStartingPoint(outliner, "name")
+                .dropInto(targetValueOutliner.domElement());
+
+            expect(arrowForAssociation(inspectedObject, "name").end()).toEqual(
+                boundingPageBoxOf(currentValueOutliner.domElement())
+            );
+            expect(currentValueOutliner.domElement()).toHaveClass("shaking");
+        });
     });
 
     describe("code evaluation", () => {

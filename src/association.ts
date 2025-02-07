@@ -69,9 +69,10 @@ export class Association {
                     this._ownerOutliner.update();
                     currentTargetOutliner.domElement().classList.remove("hovered");
                     currentTargetOutliner = undefined;
-                } else {
-                    this.updatePosition();
+                    this._valueOutliner?.shake();
                 }
+
+                this.updatePosition();
             },
             onCancel: () => {
                 currentTargetOutliner?.domElement()?.classList?.remove("hovered");
