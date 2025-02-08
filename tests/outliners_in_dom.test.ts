@@ -454,6 +454,7 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor({}, point(0, 0));
 
             fireMousePointerEventOver(outlinerElement.header(), "pointerDown", point(5, 3));
+            fireMousePointerEventOver(outlinerElement.header(), "pointerOut", point(888, 999));
             fireMousePointerEvent("pointerMove", asClientLocation(point(888, 999)));
 
             expect(positionOfDomElement(outlinerElement.header())).toEqual(point(888, 999).minus(point(5, 3)));
@@ -1131,11 +1132,11 @@ describe("The outliners in the world", () => {
 
         start() {
             this._dragOffset = boundingPageBoxOf(this._draggedElement).centerOffset();
-            fireMousePointerEventOn(
-                this._draggedElement,
-                "pointerDown",
-                this._currentGrabPosition()
-            );
+            fireMousePointerEventOn(this._draggedElement, "pointerDown", this._currentGrabPosition());
+
+            // To confirm the drag interaction and capture the pointer
+            fireMousePointerEventOn(this._draggedElement, "pointerOut", this._currentGrabPosition());
+
             return this;
         }
 

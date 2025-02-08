@@ -65,11 +65,17 @@ export function makeDraggable(
 
     function grab(pointerId: number, clientGrabPosition: Position) {
         const { grabbedElement, onDrag, onDrop, onCancel } = onStart(clientGrabPosition);
-        grabbedElement.setPointerCapture(pointerId);
+
         draggableElement.classList.add("dragging");
         grabbedElement.classList.add("dragging");
 
         const dragEnd = new AbortController();
+
+        draggableElement.addEventListener("pointerout", (event) => {
+            if (event.pointerId !== pointerId) return;
+
+            grabbedElement.setPointerCapture(pointerId);
+        }, {signal: dragEnd.signal});
 
         let lastPosition: Position = clientGrabPosition;
 
@@ -96,6 +102,10 @@ export function makeDraggable(
         grabbedElement.addEventListener("pointerup", endDragRunning(onDrop), {signal: dragEnd.signal});
         grabbedElement.addEventListener("pointercancel", endDragRunning(onCancel), {signal: dragEnd.signal});
         grabbedElement.addEventListener("pointerdown", () => { dragEnd.abort() }, {signal: dragEnd.signal});
+
+        draggableElement.addEventListener("pointerup", endDragRunning(onDrop), {signal: dragEnd.signal});
+        draggableElement.addEventListener("pointercancel", endDragRunning(onCancel), {signal: dragEnd.signal});
+        draggableElement.addEventListener("pointerdown", () => { dragEnd.abort() }, {signal: dragEnd.signal});
     }
 
     draggableElement.addEventListener("pointerdown", (event: PointerEvent) => {
