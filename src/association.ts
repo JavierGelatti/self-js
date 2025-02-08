@@ -1,23 +1,22 @@
 import {Slot} from "./slot.ts";
 import {Outliner} from "./outliner.ts";
 import {Arrow, drawNewArrow, drawNewArrowToBox} from "./arrows.ts";
-import {ObjectOutliner} from "./objectOutliner.ts";
 import {boundingPageBoxOf, createElement, DragHandler, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
 import {Position} from "./position.ts";
 
 export class Association {
     private readonly _slot: Slot;
-    private readonly _ownerOutliner: ObjectOutliner;
-    private _valueOutliner: Outliner<unknown> | undefined;
+    private readonly _ownerOutliner: Outliner;
+    private _valueOutliner: Outliner | undefined;
     private readonly _arrow: Arrow;
     private readonly _world: World;
     private readonly _domElement: Element;
     private _arrowEndArea!: HTMLDivElement;
 
-    constructor(slot: Slot, ownerOutliner: ObjectOutliner, valueOutliner: Outliner<unknown>, world: World)
-    constructor(slot: Slot, ownerOutliner: ObjectOutliner, arrowEndPosition: Position, world: World)
-    constructor(slot: Slot, ownerOutliner: ObjectOutliner, valueOutlinerOrArrowEndPosition: Outliner<unknown> | Position, world: World) {
+    constructor(slot: Slot, ownerOutliner: Outliner, valueOutliner: Outliner, world: World)
+    constructor(slot: Slot, ownerOutliner: Outliner, arrowEndPosition: Position, world: World)
+    constructor(slot: Slot, ownerOutliner: Outliner, valueOutlinerOrArrowEndPosition: Outliner | Position, world: World) {
         this._slot = slot;
         this._ownerOutliner = ownerOutliner;
         this._world = world;
@@ -41,7 +40,7 @@ export class Association {
     }
 
     dragHandler(): DragHandler {
-        let currentTargetOutliner: Outliner<unknown> | undefined;
+        let currentTargetOutliner: Outliner | undefined;
         return {
             grabbedElement: this._arrowEndArea,
             onDrag: (cursorPosition: Position, _delta: Position) => {
@@ -96,7 +95,7 @@ export class Association {
         this._updateArrowDrawing(this._valueOutliner);
     }
 
-    private _updateArrowDrawing(targetOutliner: Outliner<unknown> | undefined) {
+    private _updateArrowDrawing(targetOutliner: Outliner | undefined) {
         this._updateArrowEndAreaPosition();
         this._updateArrowModeTargeting(targetOutliner);
     }
@@ -106,7 +105,7 @@ export class Association {
         this._arrowEndArea.style.translate = `${boundStart.x}px ${boundStart.y}px`;
     }
 
-    private _updateArrowModeTargeting(targetOutliner: Outliner<unknown> | undefined) {
+    private _updateArrowModeTargeting(targetOutliner: Outliner | undefined) {
         const arrowClassList = this._arrow.svgElement().classList;
 
         if (targetOutliner === undefined) {
@@ -171,7 +170,7 @@ export class Association {
         }
     }
 
-    private _redirectTo(newTarget: Outliner<unknown>) {
+    private _redirectTo(newTarget: Outliner) {
         this._valueOutliner?.removeAssociationEnd(this);
         this._valueOutliner = newTarget;
         this._valueOutliner.registerAssociationEnd(this);

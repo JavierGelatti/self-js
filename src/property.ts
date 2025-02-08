@@ -1,6 +1,7 @@
 import {Slot} from "./slot.ts";
+import {InspectableObject} from "./objectOutliner.ts";
 
-export class Property extends Slot {
+export class Property extends Slot<InspectableObject> {
     name() {
         return String(this._key);
     }
@@ -15,5 +16,9 @@ export class Property extends Slot {
 
     assign(newValue: unknown) {
         Reflect.set(this._owner, this._key, newValue);
+    }
+
+    protected _elementClassName(): string {
+        return "property";
     }
 }

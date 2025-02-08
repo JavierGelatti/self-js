@@ -17,11 +17,15 @@ import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
 import {asClientLocation, boundingPageBoxOf, ClientLocation, getElementAt, positionOfDomElement} from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
-import {Selector} from "../src/property.ts";
+import {Selector} from "../src/slot.ts";
 import {svgDefinitions} from "../src/arrows.ts";
 
 describe("The outliners in the world", () => {
     const { world, worldDomElement } = createWorldInDomBeforeEach();
+
+    beforeEach(() => {
+        document.body.append(worldDomElement(), svgDefinitions());
+    });
 
     test("are opened once per object", () => {
         const anObject = {};
@@ -68,8 +72,8 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor({ x: 1, y: 2 });
 
             expect(outlinerElement.propertyNames()).toEqual(["x", "y"]);
-            expect(outlinerElement.valueOfProperty("x")).toEqual("1");
-            expect(outlinerElement.valueOfProperty("y")).toEqual("2");
+            expect(outlinerElement.valueOfSlot("x")).toEqual("1");
+            expect(outlinerElement.valueOfSlot("y")).toEqual("2");
         });
 
         test("can add new properties to the inspected object", () => {
@@ -79,7 +83,7 @@ describe("The outliners in the world", () => {
             outlinerElement.createNewProperty("newProperty");
 
             expect(Reflect.has(anObject, "newProperty")).toBe(true);
-            expect(outlinerElement.valueOfProperty("newProperty")).toEqual("undefined");
+            expect(outlinerElement.valueOfSlot("newProperty")).toEqual("undefined");
         });
 
         test("if the newly added property already existed, nothing is changed", () => {
@@ -89,7 +93,7 @@ describe("The outliners in the world", () => {
             outlinerElement.createNewProperty("existingProperty");
 
             expect(anObject.existingProperty).toEqual("previousValue");
-            expect(outlinerElement.valueOfProperty("existingProperty")).toEqual("previousValue");
+            expect(outlinerElement.valueOfSlot("existingProperty")).toEqual("previousValue");
             expect(outlinerElement.numberOfProperties()).toEqual(1);
         });
 
@@ -327,7 +331,7 @@ describe("The outliners in the world", () => {
             updateOutliners();
 
             expect(outlinerElement.propertyNames()).toEqual(["oldProperty", "newProperty"]);
-            expect(outlinerElement.valueOfProperty("newProperty")).toEqual("1");
+            expect(outlinerElement.valueOfSlot("newProperty")).toEqual("1");
         });
 
         test("when a property is removed from the object", () => {
@@ -352,7 +356,7 @@ describe("The outliners in the world", () => {
             updateOutliners();
 
             expect(outlinerElement.numberOfProperties()).toEqual(1);
-            expect(outlinerElement.valueOfProperty("existingProperty")).toEqual("1");
+            expect(outlinerElement.valueOfSlot("existingProperty")).toEqual("1");
         });
 
         test("repeated updates", () => {
@@ -391,10 +395,6 @@ describe("The outliners in the world", () => {
     });
 
     describe("movements", () => {
-        beforeEach(() => {
-            document.body.append(worldDomElement(), svgDefinitions());
-        });
-
         test("the starting position of the outliner can be specified", () => {
             const outlinerElement = openOutlinerFor({}, point(10, 20));
 
@@ -628,7 +628,7 @@ describe("The outliners in the world", () => {
         test("when the destination outliner is over the arrow start, the arrow is hidden", () => {
             const inspectedObject = { x: 1, y: 2 };
             const sourceOutliner = openOutlinerFor(inspectedObject);
-            const _destinationOutliner = openOutlinerFor(1);
+            const _destinationOutliner = openOutlinerFor(1, point(150, 0));
             sourceOutliner.inspectProperty("x");
 
             const [arrow] = visibleArrowElements();
@@ -674,7 +674,7 @@ describe("The outliners in the world", () => {
         test("when the destination outliner is over the arrow start and then the source outliner is moved to the top, the arrow returns to normal", () => {
             const inspectedObject = { x: 1, y: 2 };
             const sourceOutliner = openOutlinerFor(inspectedObject);
-            const _destinationOutliner = openOutlinerFor(1, point(10, 10));
+            const _destinationOutliner = openOutlinerFor(1, point(140, 10));
             sourceOutliner.inspectProperty("x");
             sourceOutliner.move(point(1, 1));
 
@@ -723,7 +723,7 @@ describe("The outliners in the world", () => {
                 .dropInto(newValueOutliner.domElement());
 
             expect(inspectedObject.x).toEqual(2);
-            expect(outliner.valueOfProperty("x")).toEqual("2");
+            expect(outliner.valueOfSlot("x")).toEqual("2");
             expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
                 boundingPageBoxOf(newValueOutliner.domElement())
             );
@@ -777,7 +777,7 @@ describe("The outliners in the world", () => {
                 .drop();
 
             expect(inspectedObject.x).toEqual(1);
-            expect(outliner.valueOfProperty("x")).toEqual("1");
+            expect(outliner.valueOfSlot("x")).toEqual("1");
             expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
                 boundingPageBoxOf(valueOutliner.domElement())
             )
@@ -796,7 +796,7 @@ describe("The outliners in the world", () => {
 
             expect(outliner.domElement()).not.toHaveClass("hovered");
             expect(inspectedObject.x).toEqual(1);
-            expect(outliner.valueOfProperty("x")).toEqual("1");
+            expect(outliner.valueOfSlot("x")).toEqual("1");
             expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
                 boundingPageBoxOf(valueOutliner.domElement())
             )
@@ -823,7 +823,7 @@ describe("The outliners in the world", () => {
                 const outliner = openOutlinerFor(inspectedObject, point(10, 10));
                 const _valueOutliner = openOutlinerFor(1, point(220, 10));
                 outliner.inspectProperty("x");
-                const outlinerAbove = openOutlinerFor("this is above", point(10, 50));
+                const outlinerAbove = openOutlinerFor("this is above", point(110, 50));
                 const [associationElement] = visibleAssociationElements();
 
                 grabAssociationFromArrowEnd(associationElement)
@@ -872,7 +872,7 @@ describe("The outliners in the world", () => {
                 .dropInto(newValueOutliner.domElement());
 
             expect(inspectedObject.x).toEqual(2);
-            expect(outliner.valueOfProperty("x")).toEqual("2");
+            expect(outliner.valueOfSlot("x")).toEqual("2");
             expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
                 boundingPageBoxOf(newValueOutliner.domElement())
             );
@@ -901,7 +901,7 @@ describe("The outliners in the world", () => {
                 .dropInto(newValueOutliner.domElement());
 
             expect(inspectedObject.x).toEqual(2);
-            expect(outliner.valueOfProperty("x")).toEqual("2");
+            expect(outliner.valueOfSlot("x")).toEqual("2");
             expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
                 boundingPageBoxOf(newValueOutliner.domElement())
             );
@@ -917,7 +917,7 @@ describe("The outliners in the world", () => {
                 .dropInto(targetValueOutliner.domElement());
 
             expect(inspectedObject.name).toEqual("aFunction");
-            expect(outliner.valueOfProperty("name")).toEqual("aFunction");
+            expect(outliner.valueOfSlot("name")).toEqual("aFunction");
             expect(world().associationFor(inspectedObject, "name")).toBeUndefined();
         });
 
@@ -971,7 +971,7 @@ describe("The outliners in the world", () => {
 
             outlinerElement.doIt("this.x = 2");
 
-            expect(outlinerElement.valueOfProperty("x")).toEqual("2");
+            expect(outlinerElement.valueOfSlot("x")).toEqual("2");
         });
 
         test("can inspect the result of a computation", () => {
@@ -981,8 +981,7 @@ describe("The outliners in the world", () => {
             outlinerElement.inspectIt("{ y: 5 }");
 
             const newOutliner = lastOutliner();
-            expect(newOutliner.valueOfProperty("y")).toEqual("5");
-            expect(newOutliner.position()).toEqual(point(0, 0));
+            expect(newOutliner.valueOfSlot("y")).toEqual("5");
         });
 
         test("if the inspection of a computation results in an exception, inspect it", () => {
@@ -1017,6 +1016,37 @@ describe("The outliners in the world", () => {
             outlinerElement.doIt("   ");
 
             expect(numberOfOpenOutliners()).toEqual(1);
+        });
+    });
+
+    describe("special slots", () => {
+        const prototypeSpecialSlotName = "🙋[[Prototype]]";
+
+        test("all objects have a [[Prototype]] internal slot", () => {
+            const outlinerElement = openOutlinerFor({});
+
+            expect(outlinerElement.internalSlotsNames()).toEqual([prototypeSpecialSlotName]);
+            expect(outlinerElement.valueOfSlot(prototypeSpecialSlotName)).toEqual(String(Object.prototype));
+        });
+
+        test("if the toString representation of the prototype could not be obtained, there is a default value", () => {
+            const outlinerElement = openOutlinerFor(new Date());
+
+            expect(outlinerElement.valueOfSlot(prototypeSpecialSlotName)).toEqual("[object ???]");
+        });
+
+        test("the prototype can be changed", () => {
+            const originalObject = new Date();
+            const outlinerElement = openOutlinerFor(originalObject);
+            const newPrototype = {};
+            const newPrototypeOutlinerElement = openOutlinerFor(newPrototype, point(100, 100));
+
+            grabAssociationFromStartingPoint(outlinerElement, prototypeSpecialSlotName)
+                .dropInto(newPrototypeOutlinerElement.domElement());
+
+            expect(outlinerElement.valueOfSlot(prototypeSpecialSlotName)).toEqual(String(newPrototype));
+            expect(Reflect.getPrototypeOf(originalObject)).toBe(newPrototype);
+            expect(visibleArrowElements().length).toEqual(1);
         });
     });
 

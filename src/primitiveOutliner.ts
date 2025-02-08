@@ -28,7 +28,7 @@ export class PrimitiveOutliner extends Outliner<Primitive> {
         return String(this._inspectedValue);
     }
 
-    update(): void {
+    protected _update(): void {
         // Does nothing, since primitives are immutable
     }
 }

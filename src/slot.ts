@@ -1,22 +1,23 @@
 import {boundingPageBoxOf, createElement, makeDraggable, positionOfDomElement} from "./dom.ts";
-import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
+import {InspectableObject} from "./objectOutliner.ts";
 import {World} from "./world.ts";
 import {point} from "./position.ts";
 import {Outliner} from "./outliner.ts";
 import {Association} from "./association.ts";
+import {Primitive} from "./primitiveOutliner.ts";
 
 export type Selector = string | symbol;
 
-export abstract class Slot {
+export abstract class Slot<Owner extends InspectableObject | Primitive = InspectableObject | Primitive> {
     protected readonly _key: Selector;
-    protected readonly _owner: InspectableObject;
+    protected readonly _owner: Owner;
     private readonly _world: World;
-    private readonly _outliner: ObjectOutliner;
+    private readonly _outliner: Outliner<Owner>;
     private readonly _domElement: HTMLElement;
     private _propertyValueCell!: HTMLTableCellElement;
     private _inspectPropertyButton!: HTMLButtonElement;
 
-    constructor(key: Selector, owner: InspectableObject, outliner: ObjectOutliner, world: World) {
+    constructor(key: Selector, owner: Owner, outliner: Outliner<Owner>, world: World) {
         this._outliner = outliner;
         this._key = key;
         this._owner = owner;
@@ -36,11 +37,15 @@ export abstract class Slot {
     }
 
     private _currentValueAsString() {
-        return String(this.currentValue());
+        try {
+            return String(this.currentValue());
+        } catch (error) {
+            return "[object ???]";
+        }
     };
 
     private _createDomElement() {
-        return createElement("tr", {className: "property"}, [
+        return createElement("tr", {className: this._elementClassName()}, [
             createElement("td", {textContent: this.name()}),
             this._propertyValueCell = createElement("td", {textContent: this._currentValueAsString()}),
             createElement("td", {}, [
@@ -69,7 +74,9 @@ export abstract class Slot {
         ]);
     }
 
-    private _isOpenAtDefaultPositionWithoutAnyOtherAssociations(valueOutliner: Outliner<unknown> | undefined) {
+    protected abstract _elementClassName(): string;
+
+    private _isOpenAtDefaultPositionWithoutAnyOtherAssociations(valueOutliner: Outliner | undefined) {
         return valueOutliner !== undefined &&
             valueOutliner.isAt(this._valueOutlinerDefaultPosition()) &&
             valueOutliner.numberOfAssociations() === 1;
@@ -111,7 +118,7 @@ export abstract class Slot {
 
     protected abstract isPresentInOwner(): boolean;
 
-    abstract currentValue(): any;
+    abstract currentValue(): unknown;
 
     abstract assign(newValue: unknown): void;
 }

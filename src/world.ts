@@ -8,7 +8,7 @@ import {Association} from "./association.ts";
 
 export class World {
     private readonly _domElement: HTMLDivElement = createElement('div', { className: "world" });
-    private readonly _outliners: Map<unknown, Outliner<unknown>> = new Map();
+    private readonly _outliners: Map<unknown, Outliner> = new Map();
 
     domElement() {
         return this._domElement;
@@ -41,12 +41,12 @@ export class World {
         this._outliners.forEach(outliner => outliner.update());
     }
 
-    closeOutliner(anOutliner: Outliner<unknown>) {
+    closeOutliner(anOutliner: Outliner) {
         this._outliners.delete(anOutliner.inspectedValue());
         anOutliner.remove();
     }
 
-    openOutlinerForAssociation(slotToInspect: Slot, ownerOutliner: ObjectOutliner, position: Position) {
+    openOutlinerForAssociation(slotToInspect: Slot, ownerOutliner: Outliner, position: Position) {
         if (ownerOutliner.hasVisibleAssociationFor(slotToInspect)) return;
 
         const valueOutliner = this.openOutliner(slotToInspect.currentValue(), position);

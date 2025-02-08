@@ -38,24 +38,28 @@ export class OutlinerFromDomElement {
 
     propertyNames() {
         return this._propertyRows()
-            .map(row => this._propertyNameOn(row));
+            .map(row => this._slotNameOn(row));
     }
 
-    valueOfProperty(propertyName: string) {
-        return within(this._propertyRowFor(propertyName)).getAllByRole("cell")[1].textContent;
+    valueOfSlot(propertyName: string) {
+        return this._slotValueOn(this._slotRowFor(propertyName));
     }
 
-    private _propertyRowFor(propertyName: string) {
-        const propertyRow = this._propertyRows()
-            .find(row => this._propertyNameOn(row) === propertyName);
+    private _slotRowFor(slotName: string) {
+        const slotRow = [...this._propertyRows(), ...this._internalSlotsRows()]
+            .find(row => this._slotNameOn(row) === slotName);
 
-        if (propertyRow === undefined) throw new Error(`Cannot find property '${propertyName}' on outliner`);
+        if (slotRow === undefined) throw new Error(`Cannot find slot '${slotName}' on outliner`);
 
-        return propertyRow;
+        return slotRow;
     }
 
-    private _propertyNameOn(row: HTMLElement) {
+    private _slotNameOn(row: HTMLElement) {
         return within(row).getAllByRole("cell")[0].textContent ?? "";
+    }
+
+    private _slotValueOn(row: HTMLElement) {
+        return within(row).getAllByRole("cell")[1].textContent;
     }
 
     numberOfProperties() {
@@ -66,6 +70,17 @@ export class OutlinerFromDomElement {
         return within(this._domElement)
             .queryAllByRole("row", {})
             .filter(row => row.classList.contains("property"));
+    }
+
+    internalSlotsNames() {
+        return this._internalSlotsRows()
+            .map(row => this._slotNameOn(row));
+    }
+
+    private _internalSlotsRows() {
+        return within(this._domElement)
+            .queryAllByRole("row", {})
+            .filter(row => row.classList.contains("internal-slot"));
     }
 
     position() {
@@ -122,7 +137,7 @@ export class OutlinerFromDomElement {
     }
 
     buttonToInspectProperty(propertyName: string) {
-        const row = this._propertyRowFor(propertyName);
+        const row = this._slotRowFor(propertyName);
         return within(row).getByTitle("Inspeccionar valor");
     }
 

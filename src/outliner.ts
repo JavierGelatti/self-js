@@ -3,9 +3,12 @@ import {clientPositionOf, createElement, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
 import {CodeEditorElement, codeOn, createCodeEditorElement} from "./codeEditor.ts";
 import {Association} from "./association.ts";
-import {Selector} from "./slot.ts";
+import {Selector, Slot} from "./slot.ts";
+import {InternalSlot, PrototypeInternalSlot} from "./internalSlot.ts";
+import {InspectableObject} from "./objectOutliner.ts";
+import {Primitive} from "./primitiveOutliner.ts";
 
-export abstract class Outliner<V> {
+export abstract class Outliner<V extends InspectableObject | Primitive = InspectableObject | Primitive> {
     private static outlinerObject = Symbol("outlinerObject");
 
     protected _inspectedValue: V;
@@ -19,8 +22,10 @@ export abstract class Outliner<V> {
     protected _world: World;
     protected _grab: (pointerId: number, grabPosition: Position) => void;
 
-    protected _associationStarts: Map<Selector, Association> = new Map();
-    private _associationEnds: Set<Association> = new Set();
+    private readonly _internalSlots: Set<InternalSlot> = new Set();
+
+    protected readonly _associationStarts: Map<Selector, Association> = new Map();
+    private readonly _associationEnds: Set<Association> = new Set();
 
     protected constructor(inspectedObject: V, position: Position, world: World) {
         this._inspectedValue = inspectedObject;
@@ -31,6 +36,9 @@ export abstract class Outliner<V> {
         this._domElement.dataset.type = this.type();
         this._setPosition(this._position);
 
+        if (this._inspectedValue !== undefined && this._inspectedValue !== null)
+            this._addPrototypeInternalSlot();
+
         this._grab = makeDraggable(this._header, () => {
             this._onDragStart();
 
@@ -40,6 +48,12 @@ export abstract class Outliner<V> {
                 onDrop: () => this._domElement.classList.remove("moving"),
             });
         });
+    }
+
+    private _addPrototypeInternalSlot() {
+        const internalSlot = new PrototypeInternalSlot(this._inspectedValue, this, this._world);
+        this._internalSlots.add(internalSlot);
+        this._content.append(internalSlot.domElement());
     }
 
     protected _onDragStart() {
@@ -77,7 +91,7 @@ export abstract class Outliner<V> {
         this._position = position;
     }
 
-    private _updateAssociationsPositions() {
+    protected _updateAssociationsPositions() {
         this._associations().forEach(association => {
             association.updatePosition();
         });
@@ -154,7 +168,16 @@ export abstract class Outliner<V> {
 
     abstract title(): string;
 
-    abstract update(): void;
+    update(): void {
+        this._internalSlots.forEach(slot => {
+            slot.update();
+            this.associationFor(slot.selector())?.update();
+        });
+        this._update();
+        this._updateAssociationsPositions()
+    }
+
+    protected abstract _update(): void;
 
     shake() {
         this._domElement.classList.add("shaking");
@@ -200,7 +223,7 @@ export abstract class Outliner<V> {
         }
 
         // @ts-ignore
-        return domElement[this.outlinerObject] as Outliner<unknown>;
+        return domElement[this.outlinerObject] as Outliner;
     }
 
     isAt(aPosition: Position) {
@@ -209,6 +232,10 @@ export abstract class Outliner<V> {
 
     numberOfAssociations() {
         return this._associationEnds.size + this._associationStarts.size;
+    }
+
+    hasVisibleAssociationFor(slotToInspect: Slot) {
+        return !!this.associationFor(slotToInspect.selector());
     }
 }
 

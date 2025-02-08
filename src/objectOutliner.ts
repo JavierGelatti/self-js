@@ -1,4 +1,4 @@
-import {Selector, Slot} from "./slot.ts";
+import {Selector} from "./slot.ts";
 import {Position} from "./position.ts";
 import {World} from "./world.ts";
 import {createElement} from "./dom.ts";
@@ -8,7 +8,7 @@ import {Property} from "./property.ts";
 export type InspectableObject = Record<string | symbol, unknown>;
 
 export class ObjectOutliner extends Outliner<InspectableObject> {
-    private _internalSlotsSeparator: Element = this._content.lastElementChild!;
+    declare private _internalSlotsSeparator: Element;
     private _properties: Map<Selector, Property> = new Map();
 
     constructor(inspectedObject: InspectableObject, position: Position, world: World) {
@@ -50,7 +50,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
 
     protected override _createDomElementContent() {
         return createElement("table", {title: "Slots"}, [
-            createElement("tr", {}, [
+            this._internalSlotsSeparator = createElement("tr", {}, [
                 createElement("td", {colSpan: 3}, [
                     createElement("button", {
                         title: "Add property",
@@ -74,21 +74,16 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         this._addProperty(newPropertyName);
 
         // We have to do this because the new property name may change the size of the inspector...
-        this.updateAssociationPositions();
+        this._updateAssociationsPositions();
     }
 
     private _addProperty(key: Selector) {
-        const property = this._newProperty(key);
+        const property = new Property(key, this._inspectedValue, this, this._world);
+        this._properties.set(key, property);
         this._internalSlotsSeparator.insertAdjacentElement("beforebegin", property.domElement());
     }
 
-    private _newProperty(key: string | symbol) {
-        const property = new Property(key, this._inspectedValue, this, this._world);
-        this._properties.set(key, property);
-        return property;
-    };
-
-    update() {
+    protected _update() {
         this._refreshTitle();
         this._refreshType();
         this._refreshProperties();
@@ -119,20 +114,10 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         });
 
         // We have to do this because the updated key or value of an association may change the size of the inspector...
-        this.updateAssociationPositions();
-    }
-
-    private updateAssociationPositions() {
-        for (const association of this._associationStarts.values()) {
-            association.updatePosition();
-        }
+        this._updateAssociationsPositions();
     }
 
     private _refreshType() {
         this._domElement.dataset.type = this.type();
-    }
-
-    hasVisibleAssociationFor(slotToInspect: Slot) {
-        return !!this.associationFor(slotToInspect.selector());
     }
 }
