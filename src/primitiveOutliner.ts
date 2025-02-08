@@ -10,8 +10,14 @@ export class PrimitiveOutliner extends Outliner<Primitive> {
         super(anObject, position, world);
     }
 
-    protected _createDomElementContent(): HTMLElement {
-        return createElement("p", { className: 'stereotype', textContent: `«primitivo : ${typeof this._inspectedValue}»` });
+    protected _createDomElementContent() {
+        return createElement("table", { title: "Special slots" }, [
+            createElement("tr", {}, [
+                createElement("td", {colSpan: 3}, [
+                    createElement("p", { className: 'stereotype', textContent: `«primitivo : ${typeof this._inspectedValue}»` })
+                ]),
+            ]),
+        ]);
     }
 
     type(): string {

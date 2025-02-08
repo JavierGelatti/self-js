@@ -3,6 +3,7 @@ import {clientPositionOf, createElement, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
 import {CodeEditorElement, codeOn, createCodeEditorElement} from "./codeEditor.ts";
 import {Association} from "./association.ts";
+import {Selector} from "./property.ts";
 
 export abstract class Outliner<V> {
     private static outlinerObject = Symbol("outlinerObject");
@@ -11,12 +12,14 @@ export abstract class Outliner<V> {
     protected _position: Position;
     protected _domElement: HTMLElement;
     protected _header!: HTMLElement;
-    protected _content!: HTMLElement;
+    protected _content!: HTMLTableElement;
     protected _codeEditor!: CodeEditorElement;
     private _doItButton!: HTMLButtonElement;
     private _inspectItButton!: HTMLButtonElement;
     protected _world: World;
     protected _grab: (pointerId: number, grabPosition: Position) => void;
+
+    protected _associationStarts: Map<Selector, Association> = new Map();
     private _associationEnds: Set<Association> = new Set();
 
     protected constructor(inspectedObject: V, position: Position, world: World) {
@@ -43,6 +46,10 @@ export abstract class Outliner<V> {
         this._domElement.classList.add("moving");
         this._domElement.parentElement?.append(this._domElement);
         this._updateAssociationsPositions();
+
+        this._associationStarts.forEach(association => {
+            association.domElement().parentElement?.append(association.domElement());
+        });
     }
 
     abstract type(): string;
@@ -143,7 +150,7 @@ export abstract class Outliner<V> {
         }).bind(this._inspectedValue)();
     }
 
-    protected abstract _createDomElementContent(): HTMLElement;
+    protected abstract _createDomElementContent(): HTMLTableElement;
 
     abstract title(): string;
 
@@ -160,19 +167,31 @@ export abstract class Outliner<V> {
         this._associationEnds.add(association);
     }
 
+    removeAssociationEnd(association: Association) {
+        this._associationEnds.delete(association);
+    }
+
+    registerAssociationStart(association: Association) {
+        this._associationStarts.set(association.selector(), association);
+    }
+
+    removeAssociationStart(association: Association) {
+        this._associationStarts.delete(association.selector());
+    }
+
+    protected _associations(): Set<Association> {
+        return new Set([...this._associationEnds, ...this._associationStarts.values()]);
+    }
+
+    associationFor(propertyName: Selector) {
+        return this._associationStarts.get(propertyName);
+    }
+
     remove() {
         this._domElement.remove();
         this._associations().forEach(association => {
             association.remove();
         });
-    }
-
-    removeAssociationEnd(association: Association) {
-        this._associationEnds.delete(association);
-    }
-
-    protected _associations(): Set<Association> {
-        return this._associationEnds;
     }
 
     static withDomElement(domElement: Element) {
@@ -189,7 +208,7 @@ export abstract class Outliner<V> {
     }
 
     numberOfAssociations() {
-        return this._associationEnds.size;
+        return this._associationEnds.size + this._associationStarts.size;
     }
 }
 
