@@ -1,8 +1,9 @@
-import {Property, Selector} from "./property.ts";
+import {Selector, Slot} from "./slot.ts";
 import {Position} from "./position.ts";
 import {World} from "./world.ts";
 import {createElement} from "./dom.ts";
 import {Outliner} from "./outliner.ts";
+import {Property} from "./property.ts";
 
 export type InspectableObject = Record<string | symbol, unknown>;
 
@@ -131,7 +132,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         this._domElement.dataset.type = this.type();
     }
 
-    hasVisibleAssociationFor(propertyToInspect: Property) {
-        return !!this.associationFor(propertyToInspect.name());
+    hasVisibleAssociationFor(slotToInspect: Slot) {
+        return !!this.associationFor(slotToInspect.selector());
     }
 }

@@ -1,4 +1,4 @@
-import {Property} from "./property.ts";
+import {Slot} from "./slot.ts";
 import {Outliner} from "./outliner.ts";
 import {Arrow, drawNewArrow, drawNewArrowToBox} from "./arrows.ts";
 import {ObjectOutliner} from "./objectOutliner.ts";
@@ -7,7 +7,7 @@ import {World} from "./world.ts";
 import {Position} from "./position.ts";
 
 export class Association {
-    private readonly _property: Property;
+    private readonly _slot: Slot;
     private readonly _ownerOutliner: ObjectOutliner;
     private _valueOutliner: Outliner<unknown> | undefined;
     private readonly _arrow: Arrow;
@@ -15,10 +15,10 @@ export class Association {
     private readonly _domElement: Element;
     private _arrowEndArea!: HTMLDivElement;
 
-    constructor(property: Property, ownerOutliner: ObjectOutliner, valueOutliner: Outliner<unknown>, world: World)
-    constructor(property: Property, ownerOutliner: ObjectOutliner, arrowEndPosition: Position, world: World)
-    constructor(property: Property, ownerOutliner: ObjectOutliner, valueOutlinerOrArrowEndPosition: Outliner<unknown> | Position, world: World) {
-        this._property = property;
+    constructor(slot: Slot, ownerOutliner: ObjectOutliner, valueOutliner: Outliner<unknown>, world: World)
+    constructor(slot: Slot, ownerOutliner: ObjectOutliner, arrowEndPosition: Position, world: World)
+    constructor(slot: Slot, ownerOutliner: ObjectOutliner, valueOutlinerOrArrowEndPosition: Outliner<unknown> | Position, world: World) {
+        this._slot = slot;
         this._ownerOutliner = ownerOutliner;
         this._world = world;
 
@@ -65,7 +65,7 @@ export class Association {
             },
             onDrop: () => {
                 if (currentTargetOutliner) {
-                    this._property.assign(currentTargetOutliner.inspectedValue());
+                    this._slot.assign(currentTargetOutliner.inspectedValue());
                     this._ownerOutliner.update();
                     currentTargetOutliner.domElement().classList.remove("hovered");
                     currentTargetOutliner = undefined;
@@ -134,7 +134,7 @@ export class Association {
     }
 
     private _arrowStartPosition() {
-        return this._property.arrowStartPosition();
+        return this._slot.arrowStartPosition();
     }
 
     domElement(): Element {
@@ -155,16 +155,16 @@ export class Association {
     }
 
     selector() {
-        return this._property.name();
+        return this._slot.selector();
     }
 
     update() {
-        const propertyValue = this._property.currentValue();
+        const slotValue = this._slot.currentValue();
 
-        if (this._valueOutliner !== undefined && this._valueOutliner.inspectedValue() === propertyValue) return;
+        if (this._valueOutliner !== undefined && this._valueOutliner.inspectedValue() === slotValue) return;
 
-        if (this._world.hasOutlinerFor(propertyValue)) {
-            this._redirectTo(this._world.openOutliner(propertyValue));
+        if (this._world.hasOutlinerFor(slotValue)) {
+            this._redirectTo(this._world.openOutliner(slotValue));
             this.updatePosition();
         } else {
             this.remove();

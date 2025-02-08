@@ -3,7 +3,7 @@ import {clientPositionOf, createElement, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
 import {CodeEditorElement, codeOn, createCodeEditorElement} from "./codeEditor.ts";
 import {Association} from "./association.ts";
-import {Selector} from "./property.ts";
+import {Selector} from "./slot.ts";
 
 export abstract class Outliner<V> {
     private static outlinerObject = Symbol("outlinerObject");

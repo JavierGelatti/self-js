@@ -2,7 +2,7 @@ import {point, Position} from "./position.ts";
 import {InspectableObject, ObjectOutliner} from "./objectOutliner.ts";
 import {Outliner} from "./outliner.ts";
 import {Primitive, PrimitiveOutliner} from "./primitiveOutliner.ts";
-import {Property, Selector} from "./property.ts";
+import {Selector, Slot} from "./slot.ts";
 import {createElement} from "./dom.ts";
 import {Association} from "./association.ts";
 
@@ -46,12 +46,12 @@ export class World {
         anOutliner.remove();
     }
 
-    openOutlinerForAssociation(propertyToInspect: Property, ownerOutliner: ObjectOutliner, position: Position) {
-        if (ownerOutliner.hasVisibleAssociationFor(propertyToInspect)) return;
+    openOutlinerForAssociation(slotToInspect: Slot, ownerOutliner: ObjectOutliner, position: Position) {
+        if (ownerOutliner.hasVisibleAssociationFor(slotToInspect)) return;
 
-        const valueOutliner = this.openOutliner(propertyToInspect.currentValue(), position);
+        const valueOutliner = this.openOutliner(slotToInspect.currentValue(), position);
 
-        new Association(propertyToInspect, ownerOutliner, valueOutliner, this);
+        new Association(slotToInspect, ownerOutliner, valueOutliner, this);
     }
 
     associationFor(anObject: InspectableObject, propertyName: Selector): Association | undefined {
