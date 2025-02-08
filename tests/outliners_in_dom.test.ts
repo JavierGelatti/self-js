@@ -1048,6 +1048,18 @@ describe("The outliners in the world", () => {
             expect(Reflect.getPrototypeOf(originalObject)).toBe(newPrototype);
             expect(visibleArrowElements().length).toEqual(1);
         });
+
+        test("if setting the value of a slot causes an error, inspect the error", () => {
+            const outlinerElement = openOutlinerFor(Object.prototype);
+            const newPrototypeOutlinerElement = openOutlinerFor({}, point(100, 100));
+
+            grabAssociationFromStartingPoint(outlinerElement, prototypeSpecialSlotName)
+                .dropInto(newPrototypeOutlinerElement.domElement());
+
+            const newOutliner = lastOutliner();
+            expect(newOutliner.title()).toContain("TypeError");
+            expect(visibleArrowElements().length).toEqual(0);
+        });
     });
 
     function openOutliners() {

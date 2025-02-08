@@ -3,7 +3,7 @@ import {Outliner} from "./outliner.ts";
 import {Arrow, drawNewArrow, drawNewArrowToBox} from "./arrows.ts";
 import {boundingPageBoxOf, createElement, DragHandler, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
-import {Position} from "./position.ts";
+import {point, Position} from "./position.ts";
 
 export class Association {
     private readonly _slot: Slot;
@@ -62,9 +62,14 @@ export class Association {
                 }
                 this._updateArrowDrawing(currentTargetOutliner);
             },
-            onDrop: () => {
+            onDrop: currentPosition => {
                 if (currentTargetOutliner) {
-                    this._slot.assign(currentTargetOutliner.inspectedValue());
+                    try {
+                        this._slot.assign(currentTargetOutliner.inspectedValue());
+                    } catch (error) {
+                        this._world.openOutliner(error, currentPosition.plus(point(20, 20)));
+                    }
+
                     this._ownerOutliner.update();
                     currentTargetOutliner.domElement().classList.remove("hovered");
                     currentTargetOutliner = undefined;
