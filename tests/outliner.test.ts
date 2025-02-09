@@ -46,18 +46,19 @@ describe("Outliners", () => {
         });
     });
 
-    test("can get the outliner object from the DOM element", () => {
-        const outliner = world.openOutliner({});
-        const domElement = outliner.domElement();
+    describe("from DOM element", () => {
+        test("can get the outliner object from the DOM element", () => {
+            const outliner = world.openOutliner({});
+            const domElement = outliner.domElement();
 
-        expect(Outliner.withDomElement(domElement)).toBe(outliner);
+            expect(Outliner.withDomElement(domElement)).toBe(outliner);
+        });
+
+        test("cannot get the outliner from other DOM elements", () => {
+            const domElement = document.createElement("div");
+
+            expect(() => Outliner.withDomElement(domElement))
+                .toThrowError("The DOM element does not correspond to an outliner");
+        });
     });
-
-    test("cannot get the outliner from other DOM elements", () => {
-        const domElement = document.createElement("div");
-
-        expect(() => Outliner.withDomElement(domElement))
-            .toThrowError("The DOM element does not correspond to an outliner");
-    });
-
 });
