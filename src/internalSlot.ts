@@ -33,6 +33,13 @@ export class PrototypeInternalSlot extends InternalSlot {
         return Object.getPrototypeOf(this._owner);
     }
 
+    protected _currentValueAsString(): string {
+        const currentValue = this.currentValue();
+        if (currentValue === null) return "null";
+
+        return Object.prototype.toString.call(currentValue);
+    }
+
     assign(newValue: unknown): void {
         Object.setPrototypeOf(
             this._owner,

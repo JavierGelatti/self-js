@@ -43,7 +43,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
             return String(value);
         } catch (e) {
             if (e instanceof TypeError) {
-                return Object.prototype.toString.bind(value)();
+                return Object.prototype.toString.call(value);
             }
             throw e;
         }

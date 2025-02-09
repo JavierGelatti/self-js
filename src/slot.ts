@@ -36,7 +36,7 @@ export abstract class Slot<Owner extends InspectableObject | Primitive = Inspect
         });
     }
 
-    private _currentValueAsString() {
+    protected _currentValueAsString() {
         const currentValue = this.currentValue();
 
         if (typeof currentValue === "function") return "<function>";

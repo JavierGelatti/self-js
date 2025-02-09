@@ -706,7 +706,7 @@ describe("The outliners in the world", () => {
 
         test("when the destination outliner is over the arrow start and then the source outliner is moved to the top, the arrow returns to normal", () => {
             const inspectedObject = { x: 1, y: 2 };
-            const sourceOutliner = openOutlinerFor(inspectedObject);
+            const sourceOutliner = openOutlinerFor(inspectedObject, point(0, 20));
             const _destinationOutliner = openOutlinerFor(1, point(140, 10));
             sourceOutliner.inspectProperty("x");
             sourceOutliner.move(point(1, 1));
@@ -1072,10 +1072,9 @@ describe("The outliners in the world", () => {
             expect(outlinerElement.valueOfSlot(prototypeSpecialSlotName)).toEqual(String(Object.prototype));
         });
 
-        test("if the toString representation of the prototype could not be obtained, there is a default value", () => {
-            const outlinerElement = openOutlinerFor(new Date());
-
-            expect(outlinerElement.valueOfSlot(prototypeSpecialSlotName)).toEqual("[object ???]");
+        test("the toString representation of the prototype is given by the Object.prototype.toString method; or is null", () => {
+            expect(openOutlinerFor(new Date()).valueOfSlot(prototypeSpecialSlotName)).toEqual("[object Object]");
+            expect(openOutlinerFor({ __proto__: null }).valueOfSlot(prototypeSpecialSlotName)).toEqual("null");
         });
 
         test("the prototype can be changed", () => {
