@@ -94,6 +94,7 @@ export function makeDraggable(
             onDrag?.(newPosition, delta);
 
             lastPosition = newPosition;
+            event.preventDefault();
         }, {signal: dragEnd.signal});
 
         const endDragRunning = (callback?: (cursorPosition: Position) => void) => (event: PointerEvent) => {
@@ -199,10 +200,6 @@ export class PageBox {
 
     centerOffset() {
         return this.extent().map(c => c / 2);
-    }
-
-    deltaToReach(anotherBox: PageBox) {
-        return this.origin().deltaToReach(anotherBox.origin());
     }
 
     contains(position: Position) {
