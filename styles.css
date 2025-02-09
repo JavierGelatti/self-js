@@ -131,21 +131,25 @@ button[disabled] {
         }
     }
 
-    pre[role="textbox"] {
-        margin: .5em 0;
-        border: 1px none gray;
-        border-bottom-style: dashed;
-        padding-right: .5em;
-        padding-left: 1em;
-        font-family: monospace;
-        outline: none;
+    pre {
+        text-align: left;
 
-        &::before {
-            content: '>';
-            padding-right: .3em;
-            margin-left: -1em;
-            color: gray;
-            font-weight: bold;
+        &[role="textbox"] {
+            margin: .5em 0;
+            border: 1px none gray;
+            border-bottom-style: dashed;
+            padding-right: .5em;
+            padding-left: 1em;
+            font-family: monospace;
+            outline: none;
+
+            &::before {
+                content: '>';
+                padding-right: .3em;
+                margin-left: -1em;
+                color: gray;
+                font-weight: bold;
+            }
         }
     }
 }

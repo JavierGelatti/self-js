@@ -21,6 +21,17 @@ export function createCodeEditorElement(options: { onChange?: () => void } = {})
     return codeElement as CodeEditorElement;
 }
 
+export function createCodeViewElementWith(code: string) {
+    const codeElement: HTMLElement = createElement("pre", {
+        className: "javascript",
+        textContent: code,
+    });
+
+    hljs.highlightElement(codeElement);
+
+    return codeElement as CodeEditorElement;
+}
+
 function highlightCode(codeElement: CodeEditorElement) {
     const charactersBeforeAnchor = getSelectionOffset(codeElement);
 

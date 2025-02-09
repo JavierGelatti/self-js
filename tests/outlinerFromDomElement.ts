@@ -159,4 +159,8 @@ export class OutlinerFromDomElement {
     boundingBox() {
         return boundingPageBoxOf(this._domElement);
     }
+
+    functionCode() {
+        return this._domElement.querySelector("tr:first-of-type pre")?.textContent ?? "";
+    }
 }

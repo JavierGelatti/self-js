@@ -19,7 +19,8 @@ import {
     asClientLocation,
     asPosition,
     boundingPageBoxOf,
-    ClientLocation, clientPositionOfDomElement,
+    ClientLocation,
+    clientPositionOfDomElement,
     getElementAt,
     positionOfDomElement,
 } from "../src/dom.ts";
@@ -112,6 +113,30 @@ describe("The outliners in the world", () => {
 
             expect(Object.keys(anObject)).toEqual([]);
             expect(outlinerElement.numberOfProperties()).toEqual(0);
+        });
+
+        describe("code of functions", () => {
+            test("when inspecting a function, shows the code of the function", () => {
+                const outlinerElement = openOutlinerFor((x: number) => x + 1);
+
+                expect(outlinerElement.functionCode()).toEqual("(x) => x + 1");
+            });
+
+            test("when inspecting an object that is not a function, doesn't show any code", () => {
+                const outlinerElement = openOutlinerFor({});
+
+                expect(outlinerElement.functionCode()).toEqual("");
+            });
+
+            test("when inspecting a class, shows an abbreviation of the code", () => {
+                const outlinerElement = openOutlinerFor(class X {});
+
+                expect(outlinerElement.functionCode()).toEqual("class X { ... }");
+            });
+
+            test("when inspecting an unnamed class, the abbreviation looks correct", () => {
+                expect(openOutlinerFor(class {}).functionCode()).toEqual("class { ... }");
+            });
         });
 
         describe("associations", () => {

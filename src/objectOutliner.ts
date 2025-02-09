@@ -4,6 +4,7 @@ import {World} from "./world.ts";
 import {createElement} from "./dom.ts";
 import {Outliner} from "./outliner.ts";
 import {Property} from "./property.ts";
+import {createCodeViewElementWith} from "./codeEditor.ts";
 
 export type InspectableObject = Record<string | symbol, unknown>;
 
@@ -50,6 +51,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
 
     protected override _createDomElementContent() {
         return createElement("table", {title: "Slots"}, [
+            this._functionCodeElement(),
             this._internalSlotsSeparator = createElement("tr", {}, [
                 createElement("td", {colSpan: 3}, [
                     createElement("button", {
@@ -64,6 +66,25 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
                 ]),
             ]),
         ]);
+    }
+
+    private _functionCodeElement() {
+        const inspectedValue: unknown = this._inspectedValue;
+        if (typeof inspectedValue !== "function") return "";
+
+        return createElement("tr", {}, [
+            createElement("td", {colSpan: 3}, [
+                createCodeViewElementWith(this._functionCode(inspectedValue))
+            ]),
+        ]);
+    }
+
+    private _functionCode(fn: Function) {
+        if (isClass(fn)) {
+            return `class ${fn.name === "" ? "" : fn.name + " "}{ ... }`
+        }
+
+        return String(fn);
     }
 
     createNewProperty(newPropertyName: string) {
@@ -120,4 +141,10 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     private _refreshType() {
         this._domElement.dataset.type = this.type();
     }
+}
+
+const functionToString = Function.prototype.toString;
+
+function isClass(fn: Function) {
+    return /^\s*class\s+/.test(functionToString.call(fn));
 }
