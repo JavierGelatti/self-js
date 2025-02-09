@@ -33,4 +33,21 @@ class Punto {
     }
 }
 
+type Executor<T> = {
+    resolve: (value: T | PromiseLike<T>) => void,
+    reject: (reason?: any) => void
+    promise?: Promise<T>
+};
+
+// @ts-ignore
+window.createPromise = function () {
+    let executor!: Executor<unknown>;
+    // noinspection UnnecessaryLocalVariableJS
+    const promise: Promise<unknown> = new Promise((resolve, reject) => {
+        executor = { resolve, reject };
+    });
+    executor.promise = promise;
+    return executor;
+}
+
 world.openOutliner(new Punto(1, 2), point(10, 10));

@@ -4,7 +4,12 @@ import {World} from "./world.ts";
 import {CodeEditorElement, codeOn, createCodeEditorElement} from "./codeEditor.ts";
 import {Association} from "./association.ts";
 import {Selector, Slot} from "./slot.ts";
-import {InternalSlot, PrototypeInternalSlot} from "./internalSlot.ts";
+import {
+    InternalSlot,
+    PromiseResultInternalSlot,
+    PromiseStateInternalSlot,
+    PrototypeInternalSlot,
+} from "./internalSlot.ts";
 import {InspectableObject} from "./objectOutliner.ts";
 import {Primitive} from "./primitiveOutliner.ts";
 
@@ -36,8 +41,22 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
         this._domElement.dataset.type = this.type();
         this._setPosition(this._position);
 
+        if (this._inspectedValue instanceof Promise) {
+            this._addInternalSlot(new PromiseStateInternalSlot(
+                this._inspectedValue,
+                this as unknown as Outliner<InspectableObject & Promise<unknown>>,
+                this._world
+            ));
+
+            this._addInternalSlot(new PromiseResultInternalSlot(
+                this._inspectedValue,
+                this as unknown as Outliner<InspectableObject & Promise<unknown>>,
+                this._world
+            ));
+        }
+
         if (this._inspectedValue !== undefined && this._inspectedValue !== null)
-            this._addPrototypeInternalSlot();
+            this._addInternalSlot(new PrototypeInternalSlot(this._inspectedValue, this, this._world));
 
         this._grab = makeDraggable(this._header, () => {
             this._onDragStart();
@@ -50,8 +69,7 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
         });
     }
 
-    private _addPrototypeInternalSlot() {
-        const internalSlot = new PrototypeInternalSlot(this._inspectedValue, this, this._world);
+    private _addInternalSlot(internalSlot: InternalSlot) {
         this._internalSlots.add(internalSlot);
         this._slotsDomElement.append(internalSlot.domElement());
     }

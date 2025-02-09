@@ -4,8 +4,8 @@ import {Primitive} from "./primitiveOutliner.ts";
 import {Outliner} from "./outliner.ts";
 import {World} from "./world.ts";
 
-export abstract class InternalSlot extends Slot {
-    constructor(owner: InspectableObject | Primitive, outliner: Outliner, world: World) {
+export abstract class InternalSlot<Owner extends InspectableObject | Primitive = InspectableObject | Primitive> extends Slot<Owner> {
+    constructor(owner: Owner, outliner: Outliner<Owner>, world: World) {
         super(Symbol(), owner, outliner, world);
     }
 
@@ -17,7 +17,13 @@ export abstract class InternalSlot extends Slot {
         return "internal-slot";
     }
 
-    abstract name(): string;
+    name() {
+        return `${this._icon()}[[${this._name()}]]`;
+    }
+
+    protected abstract _name(): string;
+
+    protected abstract _icon(): string;
 
     abstract currentValue(): unknown;
 
@@ -25,8 +31,12 @@ export abstract class InternalSlot extends Slot {
 }
 
 export class PrototypeInternalSlot extends InternalSlot {
-    name(): string {
-        return "🙋[[Prototype]]";
+    protected _name() {
+        return "Prototype";
+    }
+
+    protected _icon(): string {
+        return "🙋";
     }
 
     currentValue(): unknown {
@@ -46,5 +56,72 @@ export class PrototypeInternalSlot extends InternalSlot {
             // @ts-expect-error
             newValue
         );
+    }
+}
+
+abstract class ReadonlyInternalSlot<Owner extends InspectableObject | Primitive> extends InternalSlot<Owner> {
+    private _currentValue: unknown;
+
+    protected constructor(initialValue: unknown, owner: Owner, outliner: Outliner<Owner>, world: World) {
+        super(owner, outliner, world);
+        this._currentValue = initialValue;
+        this.update();
+    }
+
+    currentValue(): unknown {
+        return this._currentValue;
+    }
+
+    assign(_newValue: unknown): void {
+        throw new Error("This is a readonly slot");
+    }
+
+    protected _changeValue(newValue: unknown) {
+        this._currentValue = newValue;
+        this.update();
+    }
+}
+
+export class PromiseStateInternalSlot extends ReadonlyInternalSlot<InspectableObject> {
+    constructor(owner: Promise<unknown>, outliner: Outliner<Promise<unknown> & InspectableObject>, world: World) {
+        super("⏳ pending", owner as Promise<unknown> & InspectableObject, outliner, world);
+
+        owner.then(() => {
+            this._changeValue("🟢 fulfilled");
+        }).catch(() => {
+            this._changeValue("🔴 rejected");
+        });
+    }
+
+    protected _name() {
+        return "PromiseState";
+    }
+
+    protected _icon(): string {
+        return "⚡";
+    }
+}
+
+export class PromiseResultInternalSlot extends ReadonlyInternalSlot<InspectableObject> {
+    constructor(owner: Promise<unknown>, outliner: Outliner<Promise<unknown> & InspectableObject>, world: World) {
+        super(undefined, owner as Promise<unknown> & InspectableObject, outliner, world);
+
+        owner.then(result => {
+            this._changeValue(result);
+        }).catch(result => {
+            this._changeValue(result);
+        });
+    }
+
+    protected _name() {
+        return "PromiseResult";
+    }
+
+    protected _icon(): string {
+        return "⚡";
+    }
+
+    assign(_newValue: unknown): void {
+        throw new Error("This is a readonly internal slot");
     }
 }
