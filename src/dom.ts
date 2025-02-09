@@ -77,15 +77,15 @@ export function makeDraggable(
             grabbedElement.setPointerCapture(pointerId);
         }, {signal: dragEnd.signal});
 
-        let lastPosition: Position = clientGrabPosition;
+        let lastPosition: Position = clientGrabPosition.plus(scrollPosition());
 
         grabbedElement.addEventListener("pointermove", (event: PointerEvent) => {
             if (event.pointerId !== pointerId) return;
 
-            const newPosition = clientPositionOf(event);
+            const newPosition = clientPositionOf(event).plus(scrollPosition());
             const delta = lastPosition.deltaToReach(newPosition);
 
-            onDrag?.(newPosition.plus(scrollPosition()), delta);
+            onDrag?.(newPosition, delta);
 
             lastPosition = newPosition;
         }, {signal: dragEnd.signal});
@@ -132,6 +132,10 @@ export function clientPositionOf(event: MouseEvent): Position {
 
 export function asClientLocation(position: Position): ClientLocation {
     return {clientX: position.x, clientY: position.y};
+}
+
+export function asPosition(clientLocation: ClientLocation): Position {
+    return point(clientLocation.clientX, clientLocation.clientY);
 }
 
 export class PageBox {

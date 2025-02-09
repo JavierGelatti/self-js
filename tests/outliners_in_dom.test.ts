@@ -15,7 +15,14 @@ import {point, Position, sumOf} from "../src/position";
 
 import "../styles.css";
 import {InspectableObject} from "../src/objectOutliner";
-import {asClientLocation, boundingPageBoxOf, ClientLocation, getElementAt, positionOfDomElement} from "../src/dom.ts";
+import {
+    asClientLocation,
+    asPosition,
+    boundingPageBoxOf,
+    ClientLocation, clientPositionOfDomElement,
+    getElementAt,
+    positionOfDomElement,
+} from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
 import {Selector} from "../src/slot.ts";
 import {svgDefinitions} from "../src/arrows.ts";
@@ -938,6 +945,16 @@ describe("The outliners in the world", () => {
             );
             expect(currentValueOutliner.domElement()).toHaveClass("shaking");
         });
+
+        test("when the user scrolls while dragging an outliner, the position of the outliner follows the cursor", () => {
+            const outlinerElement = openOutlinerFor({x: 1, y: 2}, point(0, 0));
+            const dragInteraction = grabOutliner(outlinerElement);
+            scrollToBottomOfDocument();
+
+            dragInteraction.moveTo(asClientLocation(point(10, 10)));
+
+            expect(clientPositionOfDomElement(outlinerElement.header())).toEqual(point(10, 10));
+        });
     });
 
     describe("code evaluation", () => {
@@ -1105,7 +1122,7 @@ describe("The outliners in the world", () => {
     }
 
     function grabAssociationFromArrowEnd(associationElement: HTMLElement) {
-        return grab(arrowEndHandleOf(associationElement));
+        return grab(arrowEndHandleOf(associationElement), point(0, 0));
     }
 
     function arrowEndHandleOf(associationElement: HTMLElement) {
@@ -1115,23 +1132,29 @@ describe("The outliners in the world", () => {
     function grabAssociationFromStartingPoint(outliner: OutlinerFromDomElement, propertyName: string) {
         const startingPointHandle = outliner.buttonToInspectProperty(propertyName);
 
-        return grab(startingPointHandle);
+        return grab(startingPointHandle, boundingPageBoxOf(startingPointHandle).centerOffset());
     }
 
-    function grab(anElement: Element) {
-        return new DragAndDropInteraction(anElement).start();
+    function grabOutliner(outliner: OutlinerFromDomElement) {
+        const outlinerHeaderElement = outliner.header();
+
+        return grab(outlinerHeaderElement, boundingPageBoxOf(outlinerHeaderElement).centerOffset());
+    }
+
+    function grab(anElement: Element, dragOffset: Position) {
+        return new DragAndDropInteraction(anElement, dragOffset).start();
     }
 
     class DragAndDropInteraction {
         private readonly _draggedElement: Element;
-        private _dragOffset: Position | undefined;
+        private readonly _dragOffset: Position;
 
-        constructor(draggedElement: Element) {
+        constructor(draggedElement: Element, dragOffset: Position) {
             this._draggedElement = draggedElement;
+            this._dragOffset = dragOffset;
         }
 
         start() {
-            this._dragOffset = boundingPageBoxOf(this._draggedElement).centerOffset();
             fireMousePointerEventOn(this._draggedElement, "pointerDown", this._currentGrabPosition());
 
             // To confirm the drag interaction and capture the pointer
@@ -1141,12 +1164,16 @@ describe("The outliners in the world", () => {
         }
 
         hover(anotherElement: Element) {
-            const positionDelta = boundingPageBoxOf(this._draggedElement)
-                .deltaToReach(boundingPageBoxOf(anotherElement));
+            const positionDelta = this._currentCursorPagePosition()
+                .deltaToReach(boundingPageBoxOf(anotherElement).center());
 
-            return this.move(
-                this._dragOffset!.plus(positionDelta)
-            );
+            return this.move(positionDelta);
+        }
+
+        private _currentCursorPagePosition() {
+            return boundingPageBoxOf(this._draggedElement)
+                .origin()
+                .plus(this._dragOffset);
         }
 
         move(offsetLocation: Position) {
@@ -1155,7 +1182,12 @@ describe("The outliners in the world", () => {
         }
 
         moveTo(endLocation: ClientLocation) {
-            fireMousePointerEventOn(this._draggedElement, "pointerMove", endLocation);
+            fireMousePointerEventOn(
+                this._draggedElement,
+                "pointerMove",
+                asClientLocation(asPosition(endLocation).plus(this._dragOffset))
+            );
+
             return this;
         }
 
@@ -1172,7 +1204,7 @@ describe("The outliners in the world", () => {
         }
 
         private _currentGrabPosition() {
-            return this._toClientLocation(this._dragOffset!);
+            return this._toClientLocation(this._dragOffset);
         }
 
         private _toClientLocation(offsetLocation: Position) {
