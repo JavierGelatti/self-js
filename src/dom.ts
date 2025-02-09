@@ -65,12 +65,12 @@ export type DragHandler = {
 
 export function makeDraggable(
     draggableElement: HTMLElement,
-    onStart: (clientGrabPosition: Position) => DragHandler,
+    onStart: (pageGrabPosition: Position) => DragHandler,
 ) {
     draggableElement.classList.add("draggable");
 
-    function grab(pointerId: number, clientGrabPosition: Position) {
-        const { grabbedElement, onDrag, onDrop, onCancel } = onStart(clientGrabPosition);
+    function grab(pointerId: number, pageGrabPosition: Position) {
+        const { grabbedElement, onDrag, onDrop, onCancel } = onStart(pageGrabPosition);
 
         draggableElement.classList.add("dragging");
         grabbedElement.classList.add("dragging");
@@ -83,12 +83,12 @@ export function makeDraggable(
             grabbedElement.setPointerCapture(pointerId);
         }, {signal: dragEnd.signal});
 
-        let lastPosition: Position = clientGrabPosition.plus(scrollPosition());
+        let lastPosition: Position = pageGrabPosition;
 
         grabbedElement.addEventListener("pointermove", (event: PointerEvent) => {
             if (event.pointerId !== pointerId) return;
 
-            const newPosition = clientPositionOf(event).plus(scrollPosition());
+            const newPosition = pagePositionOf(event);
             const delta = lastPosition.deltaToReach(newPosition);
 
             onDrag?.(newPosition, delta);
@@ -99,7 +99,7 @@ export function makeDraggable(
         const endDragRunning = (callback?: (cursorPosition: Position) => void) => (event: PointerEvent) => {
             if (event.pointerId !== pointerId) return;
 
-            callback?.(clientPositionOf(event));
+            callback?.(pagePositionOf(event));
             grabbedElement.classList.remove("dragging");
             draggableElement.classList.remove("dragging");
             dragEnd.abort();
@@ -122,18 +122,22 @@ export function makeDraggable(
         // Avoid implicit pointer capture on touch
         draggableElement.releasePointerCapture(event.pointerId);
 
-        grab(event.pointerId, clientPositionOf(event));
+        grab(event.pointerId, pagePositionOf(event));
     });
 
     return grab;
 }
 
-function scrollPosition() {
+export function scrollPosition() {
     return point(window.scrollX, window.scrollY);
 }
 
 export function clientPositionOf(event: MouseEvent): Position {
     return point(event.clientX, event.clientY);
+}
+
+export function pagePositionOf(event: MouseEvent): Position {
+    return clientPositionOf(event).plus(scrollPosition());
 }
 
 export function asClientLocation(position: Position): ClientLocation {

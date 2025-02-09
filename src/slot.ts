@@ -24,13 +24,13 @@ export abstract class Slot<Owner extends InspectableObject | Primitive = Inspect
         this._world = world;
         this._domElement = this._createDomElement();
 
-        makeDraggable(this.arrowStartDomElement(), clientGrabPosition => {
+        makeDraggable(this.arrowStartDomElement(), pageGrabPosition => {
             const currentAssociation = this.currentAssociation();
             if (currentAssociation) {
                 return currentAssociation.dragHandler();
             } else {
                 return new Association(
-                    this, this._outliner, clientGrabPosition.plus(point(30, 0)), this._world
+                    this, this._outliner, pageGrabPosition.plus(point(30, 0)), this._world
                 ).dragHandler();
             }
         });

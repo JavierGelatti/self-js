@@ -22,7 +22,7 @@ import {
     ClientLocation,
     clientPositionOfDomElement,
     getElementAt,
-    positionOfDomElement,
+    positionOfDomElement, scrollPosition,
 } from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
 import {Selector} from "../src/slot.ts";
@@ -749,6 +749,25 @@ describe("The outliners in the world", () => {
             const inspectedObject = { x: 1, y: 2 };
             const outliner = openOutlinerFor(inspectedObject);
             const newValueOutliner = openOutlinerFor(2, point(20, 200));
+            outliner.inspectProperty("x");
+            const [associationElement] = visibleAssociationElements();
+
+            grabAssociationFromArrowEnd(associationElement)
+                .dropInto(newValueOutliner.domElement());
+
+            expect(inspectedObject.x).toEqual(2);
+            expect(outliner.valueOfSlot("x")).toEqual("2");
+            expect(arrowForAssociation(inspectedObject, "x").end()).toEqual(
+                boundingPageBoxOf(newValueOutliner.domElement())
+            );
+            expect(newValueOutliner.domElement()).not.toHaveClass("hovered");
+        });
+
+        test("redirecting associations when the view is scrolled works the same", () => {
+            scrollToBottomOfDocument();
+            const inspectedObject = { x: 1, y: 2 };
+            const outliner = openOutlinerFor(inspectedObject, scrollPosition());
+            const newValueOutliner = openOutlinerFor(2, point(20, 200).plus(scrollPosition()));
             outliner.inspectProperty("x");
             const [associationElement] = visibleAssociationElements();
 

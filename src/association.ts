@@ -1,7 +1,7 @@
 import {Slot} from "./slot.ts";
 import {Outliner} from "./outliner.ts";
 import {Arrow, drawNewArrow, drawNewArrowToBox} from "./arrows.ts";
-import {boundingPageBoxOf, createElement, DragHandler, makeDraggable} from "./dom.ts";
+import {boundingPageBoxOf, createElement, DragHandler, makeDraggable, scrollPosition} from "./dom.ts";
 import {World} from "./world.ts";
 import {point, Position} from "./position.ts";
 
@@ -44,7 +44,8 @@ export class Association {
         return {
             grabbedElement: this._arrowEndArea,
             onDrag: (cursorPosition: Position, _delta: Position) => {
-                const targetOutlinerElement = document.elementsFromPoint(cursorPosition.x, cursorPosition.y)
+                const clientCursorPosition = cursorPosition.minus(scrollPosition());
+                const targetOutlinerElement = document.elementsFromPoint(clientCursorPosition.x, clientCursorPosition.y)
                     .find(element => element.classList.contains("outliner"));
 
                 if (targetOutlinerElement) {

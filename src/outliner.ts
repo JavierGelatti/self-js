@@ -1,5 +1,5 @@
 import {point, Position} from "./position.ts";
-import {clientPositionOf, createElement, makeDraggable} from "./dom.ts";
+import {clientPositionOf, createElement, makeDraggable, pagePositionOf} from "./dom.ts";
 import {World} from "./world.ts";
 import {CodeEditorElement, codeOn, createCodeEditorElement} from "./codeEditor.ts";
 import {Association} from "./association.ts";
@@ -135,7 +135,7 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
                     if (this._inspectItButton.disabled) return;
 
                     this._evaluateCodeAndDo(clientPositionOf(event), result => {
-                        const clickPosition = clientPositionOf(event);
+                        const clickPosition = pagePositionOf(event);
                         const outliner = this._world.openOutliner(result);
                         outliner.grab(event.pointerId, clickPosition);
                     });
