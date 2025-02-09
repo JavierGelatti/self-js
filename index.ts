@@ -1,5 +1,6 @@
 import {World} from "./src/world";
 import {Arrow, svgDefinitions} from "./src/arrows";
+import {point} from "./src/position";
 
 Arrow.linecapSize = 2;
 
@@ -10,5 +11,4 @@ document.body.append(
     svgDefinitions()
 );
 
-world.openOutliner({});
-world.openOutliner({ x: 1, y: 2 });
+world.openOutliner(point(1, 2), point(10, 10));
