@@ -11,4 +11,26 @@ document.body.append(
     svgDefinitions()
 );
 
-world.openOutliner(point(1, 2), point(10, 10));
+class Punto {
+    private readonly _x: number;
+    private readonly _y: number;
+
+    constructor(x: number, y: number) {
+        this._x = x;
+        this._y = y;
+    }
+
+    x() {
+        return this._x;
+    }
+
+    y() {
+        return this._y;
+    }
+
+    mas(otroPunto: Punto) {
+        return new Punto(this._x + otroPunto.x(), this._y + otroPunto.y());
+    }
+}
+
+world.openOutliner(new Punto(1, 2), point(10, 10));
