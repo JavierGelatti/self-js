@@ -148,6 +148,11 @@ export function asPosition(clientLocation: ClientLocation): Position {
     return point(clientLocation.clientX, clientLocation.clientY);
 }
 
+export function elementsAt(pagePosition: Position): Element[] {
+    const clientPosition = pagePosition.minus(scrollPosition());
+    return document.elementsFromPoint(clientPosition.x, clientPosition.y);
+}
+
 export class PageBox {
     constructor(
         public readonly x: number,
