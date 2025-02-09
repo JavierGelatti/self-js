@@ -115,6 +115,12 @@ describe("The outliners in the world", () => {
             expect(outlinerElement.numberOfProperties()).toEqual(0);
         });
 
+        test("if a property value fails to be represented as string, a placeholder is shown", () => {
+            const outlinerElement = openOutlinerFor({ get x() { throw new Error() }});
+
+            expect(outlinerElement.valueOfSlot("x")).toEqual("???");
+        });
+
         describe("code of functions", () => {
             test("when inspecting a function, shows the code of the function", () => {
                 const outlinerElement = openOutlinerFor((x: number) => x + 1);
