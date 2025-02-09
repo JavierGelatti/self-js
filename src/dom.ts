@@ -112,6 +112,10 @@ export function makeDraggable(
         if (event.target !== draggableElement) return;
 
         event.preventDefault();
+
+        // Avoid implicit pointer capture on touch
+        draggableElement.releasePointerCapture(event.pointerId);
+
         grab(event.pointerId, clientPositionOf(event));
     });
 
