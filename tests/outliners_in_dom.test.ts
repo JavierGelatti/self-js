@@ -356,7 +356,7 @@ describe("The outliners in the world", () => {
                 expect(arrow.parentElement!.previousElementSibling).toBe(sourceOutliner.domElement());
             });
 
-            test.only("if inspecting a property raises an error, an outliner for the error is opened", () => {
+            test("if inspecting a property raises an error, an outliner for the error is opened", () => {
                 const outlinerElement = openOutlinerFor({ get x() { throw new Error() }});
 
                 outlinerElement.inspectProperty("x");
