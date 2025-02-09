@@ -161,6 +161,6 @@ export class OutlinerFromDomElement {
     }
 
     functionCode() {
-        return this._domElement.querySelector("tr:first-of-type pre")?.textContent ?? "";
+        return this._domElement.querySelector('pre:not([role="textbox"])')?.textContent ?? "";
     }
 }

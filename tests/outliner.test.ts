@@ -44,6 +44,10 @@ describe("Outliners", () => {
         test("show a special title for arrays", () => {
             expect(world.openOutliner([1, 2, 3]).title()).toEqual("un Array");
         });
+
+        test("shows the quoted value for strings", () => {
+            expect(world.openOutliner("hola").title()).toEqual("\"hola\"");
+        });
     });
 
     describe("from DOM element", () => {

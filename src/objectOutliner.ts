@@ -1,7 +1,7 @@
 import {Selector} from "./slot.ts";
 import {Position} from "./position.ts";
 import {World} from "./world.ts";
-import {createElement} from "./dom.ts";
+import {createElement, createFragment} from "./dom.ts";
 import {Outliner} from "./outliner.ts";
 import {Property} from "./property.ts";
 import {createCodeViewElementWith} from "./codeEditor.ts";
@@ -49,9 +49,12 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         }
     }
 
-    protected override _createDomElementContent() {
+    protected _createDetailsDomElement(): Node {
+        return this._functionCodeElement() ?? createFragment();
+    }
+
+    protected override _createSlotsDomElement() {
         return createElement("table", {title: "Slots"}, [
-            this._functionCodeElement(),
             this._internalSlotsSeparator = createElement("tr", {}, [
                 createElement("td", {colSpan: 3}, [
                     createElement("button", {
@@ -68,15 +71,11 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         ]);
     }
 
-    private _functionCodeElement() {
+    private _functionCodeElement(): Node | undefined {
         const inspectedValue: unknown = this._inspectedValue;
-        if (typeof inspectedValue !== "function") return "";
+        if (typeof inspectedValue !== "function") return;
 
-        return createElement("tr", {}, [
-            createElement("td", {colSpan: 3}, [
-                createCodeViewElementWith(this._functionCode(inspectedValue))
-            ]),
-        ]);
+        return createCodeViewElementWith(this._functionCode(inspectedValue));
     }
 
     private _functionCode(fn: Function) {

@@ -839,7 +839,7 @@ describe("The outliners in the world", () => {
             test("when the source outliner is above the arrow end", () => {
                 const inspectedObject = { x: 1, y: 2 };
                 const outlinerBelow = openOutlinerFor("this is below");
-                const outliner = openOutlinerFor(inspectedObject, point(0, 100));
+                const outliner = openOutlinerFor(inspectedObject, point(0, 150));
                 outliner.inspectProperty("x");
                 outliner.move(point(1, 1));
                 const [associationElement] = visibleAssociationElements();

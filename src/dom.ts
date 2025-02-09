@@ -23,6 +23,12 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
     return newElement;
 }
 
+export function createFragment(children: (Node | string)[] = []) {
+    const fragment = document.createDocumentFragment();
+    fragment.append(...children);
+    return fragment;
+}
+
 type SVGAttributesMap = {
     "path": {
         d: string,

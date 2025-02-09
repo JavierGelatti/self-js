@@ -15,7 +15,7 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
     protected _position: Position;
     protected _domElement: HTMLElement;
     protected _header!: HTMLElement;
-    protected _content!: HTMLTableElement;
+    protected _slotsDomElement!: HTMLTableElement;
     protected _codeEditor!: CodeEditorElement;
     private _doItButton!: HTMLButtonElement;
     private _inspectItButton!: HTMLButtonElement;
@@ -53,7 +53,7 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
     private _addPrototypeInternalSlot() {
         const internalSlot = new PrototypeInternalSlot(this._inspectedValue, this, this._world);
         this._internalSlots.add(internalSlot);
-        this._content.append(internalSlot.domElement());
+        this._slotsDomElement.append(internalSlot.domElement());
     }
 
     protected _onDragStart() {
@@ -103,14 +103,18 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
 
     private _createDomElement() {
         return createElement("div", {className: "outliner", [Outliner.outlinerObject]: this }, [
-            this._header = createElement("div", {role: "heading", textContent: this.title()}, [
+            this._header = createElement("div", {role: "heading"}, [
+                createElement("span", {
+                    textContent: this.title(),
+                }),
                 createElement("button", {
                     title: "Close",
                     textContent: "X",
                     onclick: () => this._world.closeOutliner(this)
                 })
             ]),
-            this._content = this._createDomElementContent(),
+            this._createDetailsDomElement(),
+            this._slotsDomElement = this._createSlotsDomElement(),
             this._codeEditor = createCodeEditorElement({
                 onChange: () => {
                     this._doItButton.disabled = this._inspectItButton.disabled = this._codeIsBlank();
@@ -164,7 +168,9 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
         }).bind(this._inspectedValue)();
     }
 
-    protected abstract _createDomElementContent(): HTMLTableElement;
+    protected abstract _createDetailsDomElement(): Node;
+
+    protected abstract _createSlotsDomElement(): HTMLTableElement;
 
     abstract title(): string;
 
