@@ -49,9 +49,12 @@ export class World {
     openOutlinerForAssociation(slotToInspect: Slot, ownerOutliner: Outliner, position: Position) {
         if (ownerOutliner.hasVisibleAssociationFor(slotToInspect)) return;
 
-        const valueOutliner = this.openOutliner(slotToInspect.currentValue(), position);
-
-        new Association(slotToInspect, ownerOutliner, valueOutliner, this);
+        try {
+            const valueOutliner = this.openOutliner(slotToInspect.currentValue(), position);
+            new Association(slotToInspect, ownerOutliner, valueOutliner, this);
+        } catch (error) {
+            this.openOutliner(error, position.plus(point(20, 20)));
+        }
     }
 
     associationFor(anObject: InspectableObject, propertyName: Selector): Association | undefined {

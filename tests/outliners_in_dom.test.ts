@@ -355,6 +355,15 @@ describe("The outliners in the world", () => {
                 const [arrow] = visibleArrowElements();
                 expect(arrow.parentElement!.previousElementSibling).toBe(sourceOutliner.domElement());
             });
+
+            test.only("if inspecting a property raises an error, an outliner for the error is opened", () => {
+                const outlinerElement = openOutlinerFor({ get x() { throw new Error() }});
+
+                outlinerElement.inspectProperty("x");
+
+                const outlinerForProperty = lastOutliner();
+                expect(outlinerForProperty.title()).toEqual("Error");
+            });
         });
     });
 
