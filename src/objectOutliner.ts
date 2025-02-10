@@ -5,6 +5,7 @@ import {createElement, createFragment, emojiIcon} from "./dom.ts";
 import {Outliner} from "./outliner.ts";
 import {Property} from "./property.ts";
 import {createCodeViewElementWith} from "./codeEditor.ts";
+import {withArticle} from "./article.ts";
 
 export type InspectableObject = Record<string | symbol, unknown>;
 
@@ -35,14 +36,14 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         if (defaultString !== "[object Object]") return defaultString;
 
         const inspectedObjectPrototype = Reflect.getPrototypeOf(this._inspectedValue);
-        if (inspectedObjectPrototype === null) return "an object";
+        if (inspectedObjectPrototype === null) return withArticle("object");
 
-        return `an ${inspectedObjectPrototype.constructor.name}`;
+        return withArticle(inspectedObjectPrototype.constructor.name);
     }
 
     private _asString(value: unknown) {
         if (typeof value === "function") return `function ${value.name}`;
-        if (value instanceof Array) return `an Array`;
+        if (value instanceof Array) return withArticle("Array");
 
         try {
             return String(value);
