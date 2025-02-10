@@ -85,6 +85,15 @@ describe("The outliners in the world", () => {
             expect(outlinerElement.valueOfSlot("y")).toEqual("2");
         });
 
+        test("shows 'this' for self-referential properties", () => {
+            const inspectedObject: Record<string, unknown> = {};
+            inspectedObject.x = inspectedObject;
+
+            const outlinerElement = openOutlinerFor(inspectedObject);
+
+            expect(outlinerElement.valueOfSlot("x")).toEqual("this");
+        });
+
         describe("adding properties", () => {
             test("can add new properties to the inspected object", () => {
                 const anObject = {};

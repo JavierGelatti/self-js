@@ -45,6 +45,7 @@ export abstract class Slot<Owner extends InspectableObject | Primitive = Inspect
             return "???";
         }
 
+        if (currentValue === this._owner) return "this";
         if (typeof currentValue === "function") return "<function>";
 
         try {
