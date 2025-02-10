@@ -21,6 +21,7 @@ export default defineWorkspace([
                     },
                 },
             },
+            globalSetup: "tests/setup.webdriverio.ts"
         },
     },
 ]);
