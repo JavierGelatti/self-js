@@ -44,13 +44,17 @@ export class PrototypeInternalSlot extends InternalSlot {
         return "🙋";
     }
 
-    currentValue(): unknown {
+    currentValue(): object | null {
         return Object.getPrototypeOf(this._owner);
     }
 
     protected _currentValueAsString(): string {
         const currentValue = this.currentValue();
         if (currentValue === null) return "null";
+
+        if (currentValue.constructor?.prototype === currentValue && currentValue.constructor.name !== "") {
+            return `${currentValue.constructor.name}.prototype`;
+        }
 
         return Object.prototype.toString.call(currentValue);
     }

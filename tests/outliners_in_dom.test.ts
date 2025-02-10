@@ -1328,11 +1328,12 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor({});
 
             expect(outlinerElement.internalSlotsNames()).toEqual([prototypeSpecialSlotName]);
-            expect(outlinerElement.valueOfSlot(prototypeSpecialSlotName)).toEqual(String(Object.prototype));
+            expect(outlinerElement.valueOfSlot(prototypeSpecialSlotName)).toEqual("Object.prototype");
         });
 
-        test("the toString representation of the prototype is given by the Object.prototype.toString method; or is null", () => {
-            expect(openOutlinerFor(new Date()).valueOfSlot(prototypeSpecialSlotName)).toEqual("[object Object]");
+        test("the toString representation of the prototype is ...", () => {
+            expect(openOutlinerFor({ __proto__: Date.prototype }).valueOfSlot(prototypeSpecialSlotName)).toEqual("Date.prototype");
+            expect(openOutlinerFor({ __proto__: {} }).valueOfSlot(prototypeSpecialSlotName)).toEqual("[object Object]");
             expect(openOutlinerFor({ __proto__: null }).valueOfSlot(prototypeSpecialSlotName)).toEqual("null");
         });
 

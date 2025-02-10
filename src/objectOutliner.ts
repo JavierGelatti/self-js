@@ -26,6 +26,10 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     }
 
     override title() {
+        if (this._inspectedValue.constructor?.prototype === this._inspectedValue && this._inspectedValue.constructor.name !== "") {
+            return `${this._inspectedValue.constructor.name}.prototype`;
+        }
+
         const defaultString = this._asString(this._inspectedValue);
 
         if (defaultString !== "[object Object]") return defaultString;

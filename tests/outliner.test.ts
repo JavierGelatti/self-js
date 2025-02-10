@@ -32,7 +32,8 @@ describe("Outliners", () => {
         });
 
         test("show the default representation when it fails to obtain a custom one", () => {
-            expect(world.openOutliner(Date.prototype).title()).toEqual("un Object");
+            const problematicObject = { toString() { throw new TypeError(); }};
+            expect(world.openOutliner(problematicObject).title()).toEqual("un Object");
         });
 
         test("show a special title for functions", () => {
@@ -47,6 +48,12 @@ describe("Outliners", () => {
 
         test("shows the quoted value for strings", () => {
             expect(world.openOutliner("hola").title()).toEqual("\"hola\"");
+        });
+
+        test("shows a special title for 'prototypes' (i.e. objects like Self 'traits')", () => {
+            expect(world.openOutliner(Object.prototype).title()).toEqual("Object.prototype");
+            expect(world.openOutliner(Function.prototype).title()).toEqual("Function.prototype");
+            expect(world.openOutliner(Date.prototype).title()).toEqual("Date.prototype");
         });
     });
 
