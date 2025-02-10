@@ -91,12 +91,20 @@ abstract class ReadonlyInternalSlot<Owner extends InspectableObject | Primitive>
     }
 
     assign(_newValue: unknown): void {
-        throw new Error("This is a readonly slot");
+        // Do nothing
     }
 
     protected _changeValue(newValue: unknown) {
         this._currentValue = newValue;
         this.update();
+    }
+
+    protected _propertyAttributesElements(): Node {
+        return toggleEmoji("✏️", "writeable", false);
+    }
+
+    protected _icon(): string {
+        return "⚡";
     }
 }
 
@@ -114,10 +122,6 @@ export class PromiseStateInternalSlot extends ReadonlyInternalSlot<InspectableOb
     protected _name() {
         return "PromiseState";
     }
-
-    protected _icon(): string {
-        return "⚡";
-    }
 }
 
 export class PromiseResultInternalSlot extends ReadonlyInternalSlot<InspectableObject> {
@@ -134,12 +138,16 @@ export class PromiseResultInternalSlot extends ReadonlyInternalSlot<InspectableO
     protected _name() {
         return "PromiseResult";
     }
+}
 
-    protected _icon(): string {
-        return "⚡";
+export type BoxedPrimitive = String | Number | Boolean | BigInt | Symbol;
+
+export class PrimitiveValueInternalSlot extends ReadonlyInternalSlot<BoxedPrimitive & InspectableObject> {
+    constructor(owner: BoxedPrimitive, outliner: Outliner<BoxedPrimitive & InspectableObject>, world: World) {
+        super(owner.valueOf(), owner as BoxedPrimitive & InspectableObject, outliner, world);
     }
 
-    assign(_newValue: unknown): void {
-        throw new Error("This is a readonly internal slot");
+    protected _name() {
+        return "PrimitiveValue";
     }
 }

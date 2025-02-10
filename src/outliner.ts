@@ -8,7 +8,7 @@ import {
     InternalSlot,
     PromiseResultInternalSlot,
     PromiseStateInternalSlot,
-    PrototypeInternalSlot,
+    PrototypeInternalSlot, PrimitiveValueInternalSlot, BoxedPrimitive,
 } from "./internalSlot.ts";
 import {InspectableObject} from "./objectOutliner.ts";
 import {Primitive} from "./primitiveOutliner.ts";
@@ -41,6 +41,20 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
         this._domElement = this._createDomElement();
         this._domElement.dataset.type = this.type();
         this._setPosition(this._position);
+
+        if (
+            this._inspectedValue instanceof String ||
+            this._inspectedValue instanceof Number ||
+            this._inspectedValue instanceof Boolean ||
+            this._inspectedValue instanceof BigInt ||
+            this._inspectedValue instanceof Symbol
+        ) {
+            this._addInternalSlot(new PrimitiveValueInternalSlot(
+                this._inspectedValue,
+                this as Outliner<InspectableObject & BoxedPrimitive>,
+                this._world
+            ));
+        }
 
         if (this._inspectedValue instanceof Promise) {
             this._addInternalSlot(new PromiseStateInternalSlot(
