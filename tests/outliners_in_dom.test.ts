@@ -85,35 +85,56 @@ describe("The outliners in the world", () => {
             expect(outlinerElement.valueOfSlot("y")).toEqual("2");
         });
 
-        test("can add new properties to the inspected object", () => {
-            const anObject = {};
-            const outlinerElement = openOutlinerFor(anObject);
+        describe("adding properties", () => {
+            test("can add new properties to the inspected object", () => {
+                const anObject = {};
+                const outlinerElement = openOutlinerFor(anObject);
 
-            outlinerElement.createNewProperty("newProperty");
+                outlinerElement.createNewProperty("newProperty");
 
-            expect(Reflect.has(anObject, "newProperty")).toBe(true);
-            expect(outlinerElement.valueOfSlot("newProperty")).toEqual("undefined");
-        });
+                expect(outlinerElement.canAddProperties()).toBe(true);
+                expect(Reflect.has(anObject, "newProperty")).toBe(true);
+                expect(outlinerElement.valueOfSlot("newProperty")).toEqual("undefined");
+            });
 
-        test("if the newly added property already existed, nothing is changed", () => {
-            const anObject = { existingProperty: "previousValue" };
-            const outlinerElement = openOutlinerFor(anObject);
+            test("if the newly added property already existed, nothing is changed", () => {
+                const anObject = { existingProperty: "previousValue" };
+                const outlinerElement = openOutlinerFor(anObject);
 
-            outlinerElement.createNewProperty("existingProperty");
+                outlinerElement.createNewProperty("existingProperty");
 
-            expect(anObject.existingProperty).toEqual("previousValue");
-            expect(outlinerElement.valueOfSlot("existingProperty")).toEqual("previousValue");
-            expect(outlinerElement.numberOfProperties()).toEqual(1);
-        });
+                expect(anObject.existingProperty).toEqual("previousValue");
+                expect(outlinerElement.valueOfSlot("existingProperty")).toEqual("previousValue");
+                expect(outlinerElement.numberOfProperties()).toEqual(1);
+            });
 
-        test("if the user cancels the prompt, nothing is changed", () => {
-            const anObject = {};
-            const outlinerElement = openOutlinerFor(anObject);
+            test("if the user cancels the prompt, nothing is changed", () => {
+                const anObject = {};
+                const outlinerElement = openOutlinerFor(anObject);
 
-            outlinerElement.createNewProperty(null);
+                outlinerElement.createNewProperty(null);
 
-            expect(Object.keys(anObject)).toEqual([]);
-            expect(outlinerElement.numberOfProperties()).toEqual(0);
+                expect(Object.keys(anObject)).toEqual([]);
+                expect(outlinerElement.numberOfProperties()).toEqual(0);
+            });
+
+            test("cannot add new properties if the object was not extensible", () => {
+                const anObject = { existingProperty: "previousValue" };
+                Object.preventExtensions(anObject);
+
+                const outlinerElement = openOutlinerFor(anObject);
+
+                expect(outlinerElement.canAddProperties()).toBe(false);
+            });
+
+            test("cannot add new properties if the object is made not extensible", () => {
+                const anObject = { existingProperty: "previousValue" };
+                const outlinerElement = openOutlinerFor(anObject);
+
+                outlinerElement.doIt(`Object.preventExtensions(this)`);
+
+                expect(outlinerElement.canAddProperties()).toBe(false);
+            });
         });
 
         test("if a property value fails to be represented as string, a placeholder is shown", () => {
@@ -260,6 +281,67 @@ describe("The outliners in the world", () => {
                     'non-configurable',
                     'enumerable',
                     'non-writeable'
+                ]);
+            });
+        });
+
+        describe('object attributes', () => {
+            test("by default there are no indicators", () => {
+                const inspectedObject = { x: 1 };
+
+                const outlinerElement = openOutlinerFor(inspectedObject);
+
+                expect(outlinerElement.objectAttributes()).toEqual([]);
+            });
+
+            test("for non-extensible objects", () => {
+                const inspectedObject = { x: 1 };
+                Object.preventExtensions(inspectedObject);
+
+                const outlinerElement = openOutlinerFor(inspectedObject);
+
+                expect(outlinerElement.objectAttributes()).toEqual([
+                      "non-extensible",
+                ]);
+            });
+
+            test("for sealed objects", () => {
+                const inspectedObject = { x: 1 };
+                Object.seal(inspectedObject);
+
+                const outlinerElement = openOutlinerFor(inspectedObject);
+
+                expect(outlinerElement.objectAttributes()).toEqual([
+                    "sealed",
+                    "non-extensible",
+                ]);
+            });
+
+            test("for frozen objects", () => {
+                const inspectedObject = { x: 1 };
+                Object.freeze(inspectedObject);
+
+                const outlinerElement = openOutlinerFor(inspectedObject);
+
+                expect(outlinerElement.objectAttributes()).toEqual([
+                    "frozen",
+                    "sealed",
+                    "non-extensible",
+                ]);
+            });
+
+            test("updates if there are changes", () => {
+                const inspectedObject = { x: 1 };
+                const outlinerElement = openOutlinerFor(inspectedObject);
+
+                outlinerElement.doIt(`
+                    Object.freeze(this)
+                `);
+
+                expect(outlinerElement.objectAttributes()).toEqual([
+                    "frozen",
+                    "sealed",
+                    "non-extensible",
                 ]);
             });
         });
@@ -1278,6 +1360,36 @@ describe("The outliners in the world", () => {
             const newOutliner = lastOutliner();
             expect(newOutliner.title()).toContain("TypeError");
             expect(visibleArrowElements().length).toEqual(0);
+        });
+
+        test("shows nothing as the writeable 'attribute' of the prototype internal slot", () => {
+            expect(openOutlinerFor({}).attributesOf(prototypeSpecialSlotName)).toEqual([]);
+        });
+
+        test("shows a non-writeable indicator if the object is not extensible", () => {
+            const inspectedObject = {};
+            Object.preventExtensions(inspectedObject);
+
+            expect(openOutlinerFor(inspectedObject).attributesOf(prototypeSpecialSlotName)).toEqual([
+                "non-writeable"
+            ]);
+        });
+
+        test("shows a non-writeable indicator if the object is an prototype immutable exotic object", () => {
+            expect(openOutlinerFor(Object.prototype).attributesOf(prototypeSpecialSlotName)).toEqual([
+                "non-writeable"
+            ]);
+        });
+
+        test("updates the attribute indicator when the object is made not-extensible", () => {
+            const inspectedObject = {};
+            const outlinerElement = openOutlinerFor(inspectedObject);
+
+            outlinerElement.doIt(`Object.preventExtensions(this)`);
+
+            expect(outlinerElement.attributesOf(prototypeSpecialSlotName)).toEqual([
+                "non-writeable"
+            ]);
         });
     });
 

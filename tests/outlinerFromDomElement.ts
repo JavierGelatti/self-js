@@ -30,11 +30,17 @@ export class OutlinerFromDomElement {
     createNewProperty(newPropertyName: string | null) {
         vi.spyOn(window, "prompt").mockImplementationOnce(() => newPropertyName);
 
-        const addPropertyButton = within(this._domElement)
-            .getByRole("button", {description: "Add property"});
-
-        addPropertyButton.click();
+        this._addPropertyButton().click();
     };
+
+    private _addPropertyButton(): HTMLButtonElement {
+        return within(this._domElement)
+            .getByRole("button", {description: "Add property"});
+    }
+
+    canAddProperties() {
+        return !this._addPropertyButton().disabled;
+    }
 
     propertyNames() {
         return this._propertyRows()
@@ -166,6 +172,14 @@ export class OutlinerFromDomElement {
 
     attributesOf(propertyName: string) {
         const titleElements = within(this._slotRowFor(propertyName))
+            .getByTitle("Attributes")
+            .querySelectorAll<SVGTitleElement>("title");
+
+        return [...titleElements].map(element => element.textContent);
+    }
+
+    objectAttributes() {
+        const titleElements = within(this.header())
             .getByTitle("Attributes")
             .querySelectorAll<SVGTitleElement>("title");
 

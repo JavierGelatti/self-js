@@ -3,7 +3,7 @@ import {InspectableObject} from "./objectOutliner.ts";
 import {Primitive} from "./primitiveOutliner.ts";
 import {Outliner} from "./outliner.ts";
 import {World} from "./world.ts";
-import {createFragment} from "./dom.ts";
+import {createFragment, toggleEmoji} from "./dom.ts";
 
 export abstract class InternalSlot<Owner extends InspectableObject | Primitive = InspectableObject | Primitive> extends Slot<Owner> {
     constructor(owner: Owner, outliner: Outliner<Owner>, world: World) {
@@ -61,6 +61,15 @@ export class PrototypeInternalSlot extends InternalSlot {
             // @ts-expect-error
             newValue
         );
+    }
+
+    protected _propertyAttributesElements(): Node {
+        const fromExtensibleObject = Object.isExtensible(this._owner);
+        const isImmutablePrototypeExoticObject = this._owner as unknown === window || this._owner === Object.prototype;
+
+        return createFragment([
+            fromExtensibleObject && !isImmutablePrototypeExoticObject ? "" : toggleEmoji("✏️", "writeable", false),
+        ]);
     }
 }
 

@@ -1,7 +1,7 @@
 import {Selector} from "./slot.ts";
 import {Position} from "./position.ts";
 import {World} from "./world.ts";
-import {createElement, createFragment} from "./dom.ts";
+import {createElement, createFragment, emojiIcon} from "./dom.ts";
 import {Outliner} from "./outliner.ts";
 import {Property} from "./property.ts";
 import {createCodeViewElementWith} from "./codeEditor.ts";
@@ -10,6 +10,7 @@ export type InspectableObject = Record<string | symbol, unknown>;
 
 export class ObjectOutliner extends Outliner<InspectableObject> {
     declare private _internalSlotsSeparator: Element;
+    declare private _addPropertyButton: HTMLButtonElement;
     private _properties: Map<Selector, Property> = new Map();
 
     constructor(inspectedObject: InspectableObject, position: Position, world: World) {
@@ -41,11 +42,11 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
 
         try {
             return String(value);
-        } catch (e) {
-            if (e instanceof TypeError) {
+        } catch (error) {
+            if (error instanceof TypeError) {
                 return Object.prototype.toString.call(value);
             }
-            throw e;
+            throw error;
         }
     }
 
@@ -57,9 +58,10 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         return createElement("table", {title: "Slots"}, [
             this._internalSlotsSeparator = createElement("tr", {}, [
                 createElement("td", {colSpan: 3}, [
-                    createElement("button", {
+                    this._addPropertyButton = createElement("button", {
                         title: "Add property",
                         textContent: "➕ Nueva propiedad",
+                        disabled: !this._isExtensible(),
                         onclick: () => {
                             const newPropertyName = prompt("Nombre de la propiedad nueva");
                             if (newPropertyName === null) return;
@@ -107,6 +109,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         this._refreshTitle();
         this._refreshType();
         this._refreshProperties();
+        this._refreshAttributes();
     }
 
     private _refreshTitle() {
@@ -139,6 +142,29 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
 
     private _refreshType() {
         this._domElement.dataset.type = this.type();
+    }
+
+    protected _attributesElements(): Node {
+        const extensible = this._isExtensible();
+        const frozen = Object.isFrozen(this._inspectedValue);
+        const sealed = Object.isSealed(this._inspectedValue);
+
+        return createFragment([
+            frozen ? emojiIcon("❄️", "frozen") : "",
+            sealed ? emojiIcon("📦", "sealed") : "",
+            !extensible ? emojiIcon("🔒", "non-extensible") : "",
+        ]);
+    }
+
+    private _isExtensible() {
+        return Object.isExtensible(this._inspectedValue);
+    }
+
+    private _refreshAttributes() {
+        this._addPropertyButton.disabled = !this._isExtensible();
+        this._attributesElement.replaceChildren(
+            this._attributesElements()
+        );
     }
 }
 

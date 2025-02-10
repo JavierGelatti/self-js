@@ -21,6 +21,7 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
     protected _domElement: HTMLElement;
     protected _header!: HTMLElement;
     protected _slotsDomElement!: HTMLTableElement;
+    protected _attributesElement!: HTMLElement;
     protected _codeEditor!: CodeEditorElement;
     private _doItButton!: HTMLButtonElement;
     private _inspectItButton!: HTMLButtonElement;
@@ -125,6 +126,9 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
                 createElement("span", {
                     textContent: this.title(),
                 }),
+                this._attributesElement = createElement("span", { title: "Attributes", style: { display: "contents" } }, [
+                    this._attributesElements()
+                ]),
                 createElement("button", {
                     title: "Close",
                     textContent: "X",
@@ -261,5 +265,7 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
     hasVisibleAssociationFor(slotToInspect: Slot) {
         return !!this.associationFor(slotToInspect.selector());
     }
+
+    protected abstract _attributesElements(): Node;
 }
 

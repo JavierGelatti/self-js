@@ -47,4 +47,8 @@ export class PrimitiveOutliner extends Outliner<Primitive> {
             textContent: this._inspectedValue,
         });
     }
+
+    protected _attributesElements(): Node {
+        return createFragment();
+    }
 }
