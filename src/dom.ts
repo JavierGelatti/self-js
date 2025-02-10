@@ -71,17 +71,9 @@ export function makeDraggable(
 
     function grab(pointerId: number, pageGrabPosition: Position) {
         const { grabbedElement, onDrag, onDrop, onCancel } = onStart(pageGrabPosition);
-
-        draggableElement.classList.add("dragging");
-        grabbedElement.classList.add("dragging");
-
         const dragEnd = new AbortController();
 
-        draggableElement.addEventListener("pointerout", (event) => {
-            if (event.pointerId !== pointerId) return;
-
-            grabbedElement.setPointerCapture(pointerId);
-        }, {signal: dragEnd.signal});
+        grabbedElement.classList.add("dragging");
 
         let lastPosition: Position = pageGrabPosition;
 
@@ -110,18 +102,30 @@ export function makeDraggable(
         grabbedElement.addEventListener("pointercancel", endDragRunning(onCancel), {signal: dragEnd.signal});
         grabbedElement.addEventListener("pointerdown", () => { dragEnd.abort() }, {signal: dragEnd.signal});
 
-        draggableElement.addEventListener("pointerup", endDragRunning(onDrop), {signal: dragEnd.signal});
-        draggableElement.addEventListener("pointercancel", endDragRunning(onCancel), {signal: dragEnd.signal});
-        draggableElement.addEventListener("pointerdown", () => { dragEnd.abort() }, {signal: dragEnd.signal});
+        if (draggableElement !== grabbedElement) {
+            draggableElement.classList.add("dragging");
+
+            // Avoid implicit pointer capture on touch
+            draggableElement.releasePointerCapture(pointerId);
+
+            draggableElement.addEventListener("pointerout", (event) => {
+                if (event.pointerId !== pointerId) return;
+
+                grabbedElement.setPointerCapture(pointerId);
+            }, {signal: dragEnd.signal});
+
+            draggableElement.addEventListener("pointerup", endDragRunning(onDrop), {signal: dragEnd.signal});
+            draggableElement.addEventListener("pointercancel", endDragRunning(onCancel), {signal: dragEnd.signal});
+            draggableElement.addEventListener("pointerdown", () => { dragEnd.abort() }, {signal: dragEnd.signal});
+        } else {
+            grabbedElement.setPointerCapture(pointerId);
+        }
     }
 
     draggableElement.addEventListener("pointerdown", (event: PointerEvent) => {
         if (event.target !== draggableElement) return;
 
         event.preventDefault();
-
-        // Avoid implicit pointer capture on touch
-        draggableElement.releasePointerCapture(event.pointerId);
 
         grab(event.pointerId, pagePositionOf(event));
     });
