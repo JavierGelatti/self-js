@@ -52,16 +52,36 @@ function getSelectionOffset(codeElement: CodeEditorElement) {
     if (!anchorNode || !anchorOffset) return undefined;
 
     let charactersBeforeAnchor = anchorOffset;
-    let currentNode = anchorNode.parentElement === codeElement ?
-        anchorNode.previousSibling :
-        anchorNode.parentElement!.previousSibling;
+    let currentNode = previousNode(anchorNode, codeElement);
 
     while (currentNode) {
         charactersBeforeAnchor += currentNode.textContent?.length || 0;
-        currentNode = currentNode.previousSibling;
+        currentNode = previousNode(currentNode, codeElement);
     }
 
     return charactersBeforeAnchor;
+}
+
+function previousNode(currentNode: Node, rootElement: HTMLElement): Node | undefined {
+    const previousSibling = currentNode.previousSibling;
+
+    if (previousSibling === null) {
+        const parentNode = currentNode.parentNode;
+        if (parentNode === null || parentNode === rootElement) return undefined;
+        const parentPrevious = previousNode(parentNode, rootElement);
+        if (parentPrevious === undefined) return undefined;
+        return lastInnermostChildOf(parentPrevious);
+    }
+
+    return previousSibling;
+}
+
+function lastInnermostChildOf(node: Node): Node {
+    const lastChild = node.lastChild;
+
+    if (lastChild === null) return node;
+
+    return lastInnermostChildOf(lastChild);
 }
 
 function restoreSelectionFromOffset(charactersBeforeAnchor: number | undefined, codeElement: CodeEditorElement) {
@@ -71,7 +91,11 @@ function restoreSelectionFromOffset(charactersBeforeAnchor: number | undefined, 
     let currentNode = codeElement.firstChild;
     while (currentNode) {
         const nodeTextLength = currentNode.textContent?.length || 0;
-        if (leftToConsume <= nodeTextLength) break;
+        if (leftToConsume <= nodeTextLength) {
+            if (currentNode.childNodes.length === 0) break;
+            currentNode = currentNode.firstChild;
+            continue;
+        }
         leftToConsume -= nodeTextLength;
         currentNode = currentNode.nextSibling;
     }
