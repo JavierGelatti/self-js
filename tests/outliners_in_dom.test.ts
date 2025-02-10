@@ -117,6 +117,17 @@ describe("The outliners in the world", () => {
                 expect(outlinerElement.numberOfProperties()).toEqual(1);
             });
 
+            test("if the newly added property already existed but in the prototype of the object, it is added as its own", () => {
+                const anObject: InspectableObject = { __proto__: { x: 1 } };
+                const outlinerElement = openOutlinerFor(anObject);
+
+                outlinerElement.createNewProperty("x");
+
+                expect(anObject.x).toEqual(undefined);
+                expect(outlinerElement.valueOfSlot("x")).toEqual("undefined");
+                expect(outlinerElement.numberOfProperties()).toEqual(1);
+            });
+
             test("if the user cancels the prompt, nothing is changed", () => {
                 const anObject = {};
                 const outlinerElement = openOutlinerFor(anObject);

@@ -94,7 +94,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     }
 
     createNewProperty(newPropertyName: string) {
-        if (Reflect.has(this._inspectedValue, newPropertyName)) return;
+        if (Object.hasOwn(this._inspectedValue, newPropertyName)) return;
 
         this._inspectedValue[newPropertyName] = undefined;
 
