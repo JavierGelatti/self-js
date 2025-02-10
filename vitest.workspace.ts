@@ -5,6 +5,7 @@ export default defineWorkspace([
         test: {
             name: 'client-side',
             include: ['tests/*.test.ts'],
+            restoreMocks: true,
             browser: {
                 enabled: true,
                 api: {

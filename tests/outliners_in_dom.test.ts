@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, test} from "vitest";
+import {beforeEach, describe, expect, test, vitest} from "vitest";
 import {setupPointerCaptureSimulation} from "./pointer_capture_simulation";
 import {World} from "../src/world";
 import {
@@ -597,6 +597,50 @@ describe("The outliners in the world", () => {
 
                 const outlinerForProperty = lastOutliner();
                 expect(outlinerForProperty.title()).toEqual("Error");
+                expect(visibleArrowElements().length).toEqual(0);
+            });
+
+            test("if redirecting a property raises an error while setting the value, an outliner for the error is opened", () => {
+                const outlinerElement = openOutlinerFor({ set x(_: unknown) { throw new Error() }});
+
+                grabAssociationFromStartingPoint(outlinerElement, "x")
+                    .dropInto(outlinerElement.domElement());
+
+                const outlinerForProperty = lastOutliner();
+                expect(outlinerForProperty.title()).toEqual("Error");
+                expect(visibleArrowElements().length).toEqual(0);
+                expect(outlinerElement.domElement()).not.toHaveClass("hovered");
+            });
+
+            test("when redirecting a property that raises an error while getting the value, the arrow is removed and the error is logged (not inspected)", () => {
+                const consoleInfo = vitest.spyOn(console, "info");
+                const outlinerElement = openOutlinerFor({ get x() { throw new Error("GET") }});
+
+                grabAssociationFromStartingPoint(outlinerElement, "x")
+                    .dropInto(outlinerElement.domElement());
+
+                expect(lastOutliner()).toEqual(outlinerElement);
+                expect(visibleArrowElements().length).toEqual(0);
+                expect(consoleInfo).toHaveBeenCalledOnce();
+                expect(consoleInfo.mock.lastCall![0].toString()).toEqual("Error: GET");
+                expect(outlinerElement.domElement()).not.toHaveClass("hovered");
+            });
+
+            test("if redirecting a property raises an error both while setting and getting the value, an outliner for the set error is opened", () => {
+                const consoleInfo = vitest.spyOn(console, "info");
+                const outlinerElement = openOutlinerFor({
+                    get x() { throw new Error("GET") },
+                    set x(_: unknown) { throw new Error("SET") }
+                });
+
+                grabAssociationFromStartingPoint(outlinerElement, "x")
+                    .dropInto(outlinerElement.domElement());
+
+                const outlinerForProperty = lastOutliner();
+                expect(outlinerForProperty.title()).toEqual("Error: SET");
+                expect(visibleArrowElements().length).toEqual(0);
+                expect(consoleInfo).not.toHaveBeenCalled();
+                expect(outlinerElement.domElement()).not.toHaveClass("hovered");
             });
         });
     });

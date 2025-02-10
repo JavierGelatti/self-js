@@ -66,11 +66,11 @@ export class Association {
                 if (currentTargetOutliner) {
                     try {
                         this._slot.assign(currentTargetOutliner.inspectedValue());
+                        this._ownerOutliner.update();
                     } catch (error) {
                         this._world.openOutliner(error, currentPosition.plus(point(20, 20)));
                     }
 
-                    this._ownerOutliner.update();
                     currentTargetOutliner.domElement().classList.remove("hovered");
                     currentTargetOutliner = undefined;
                     this._valueOutliner?.shake();
@@ -163,7 +163,14 @@ export class Association {
     }
 
     update() {
-        const slotValue = this._slot.currentValue();
+        let slotValue: unknown;
+        try {
+            slotValue = this._slot.currentValue();
+        } catch (error) {
+            console.info(error);
+            this.remove();
+            return;
+        }
 
         if (this._valueOutliner !== undefined && this._valueOutliner.inspectedValue() === slotValue) return;
 
