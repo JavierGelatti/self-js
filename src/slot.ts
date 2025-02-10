@@ -16,6 +16,7 @@ export abstract class Slot<Owner extends InspectableObject | Primitive = Inspect
     private readonly _domElement: HTMLElement;
     private _propertyValueCell!: HTMLTableCellElement;
     private _inspectPropertyButton!: HTMLButtonElement;
+    private _propertyAttributesElement!: HTMLElement;
 
     constructor(key: Selector, owner: Owner, outliner: Outliner<Owner>, world: World) {
         this._outliner = outliner;
@@ -58,6 +59,9 @@ export abstract class Slot<Owner extends InspectableObject | Primitive = Inspect
             createElement("td", {textContent: this.name()}),
             this._propertyValueCell = createElement("td", {textContent: this._currentValueAsString()}),
             createElement("td", {}, [
+                this._propertyAttributesElement = createElement("span", { title: "Attributes", style: { display: "contents" } }, [
+                    this._propertyAttributesElements()
+                ]),
                 this._inspectPropertyButton = createElement("button", {
                     title: "Inspeccionar valor",
                     textContent: ">",
@@ -106,6 +110,7 @@ export abstract class Slot<Owner extends InspectableObject | Primitive = Inspect
     update() {
         if (this.isPresentInOwner()) {
             this._propertyValueCell.textContent = this._currentValueAsString();
+            this._propertyAttributesElement.replaceChildren(this._propertyAttributesElements());
         } else {
             this._domElement.remove();
         }
@@ -130,4 +135,6 @@ export abstract class Slot<Owner extends InspectableObject | Primitive = Inspect
     abstract currentValue(): unknown;
 
     abstract assign(newValue: unknown): void;
+
+    protected abstract _propertyAttributesElements(): Node
 }

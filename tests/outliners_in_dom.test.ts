@@ -22,7 +22,8 @@ import {
     ClientLocation,
     clientPositionOfDomElement,
     getElementAt,
-    positionOfDomElement, scrollPosition,
+    positionOfDomElement,
+    scrollPosition,
 } from "../src/dom.ts";
 import {OutlinerFromDomElement} from "./outlinerFromDomElement.ts";
 import {Selector} from "../src/slot.ts";
@@ -119,6 +120,148 @@ describe("The outliners in the world", () => {
             const outlinerElement = openOutlinerFor({ get x() { throw new Error() }});
 
             expect(outlinerElement.valueOfSlot("x")).toEqual("???");
+        });
+
+        describe('property attributes', () => {
+            test("explicitly shows non-configurable and non-writable property attributes", () => {
+                const inspectedObject = {};
+                Object.defineProperty(inspectedObject, "x", {
+                    configurable: false,
+                    enumerable: false,
+                    writable: false,
+                    value: 1
+                });
+
+                expect(openOutlinerFor(inspectedObject).attributesOf("x")).toEqual([
+                    "non-configurable",
+                    "non-writeable"
+                ]);
+            });
+
+            test("for writable, configurable and enumerable data property, only explicitly shows the enumerable attribute", () => {
+                const inspectedObject = {};
+                Object.defineProperty(inspectedObject, "x", {
+                    configurable: true,
+                    enumerable: true,
+                    writable: true,
+                    value: 1
+                });
+
+                expect(openOutlinerFor(inspectedObject).attributesOf("x")).toEqual([
+                    "enumerable"
+                ]);
+            });
+
+            test("shows non-writable attribute for read-only but configurable and enumerable data property", () => {
+                const inspectedObject = {};
+                Object.defineProperty(inspectedObject, "x", {
+                    configurable: true,
+                    enumerable: true,
+                    writable: false,
+                    value: 1
+                });
+
+                expect(openOutlinerFor(inspectedObject).attributesOf("x")).toEqual([
+                    "enumerable",
+                    "non-writeable"
+                ]);
+            });
+
+            test("shows accessor with getter only", () => {
+                const inspectedObject = {};
+                Object.defineProperty(inspectedObject, "x", {
+                    configurable: true,
+                    enumerable: true,
+                    get: () => 1
+                });
+
+                expect(openOutlinerFor(inspectedObject).attributesOf("x")).toEqual([
+                    "enumerable",
+                    "accessor: get"
+                ]);
+            });
+
+            test("shows accessor with setter only", () => {
+                const inspectedObject = {};
+                Object.defineProperty(inspectedObject, "x", {
+                    configurable: true,
+                    enumerable: true,
+                    set: () => {}
+                });
+
+                expect(openOutlinerFor(inspectedObject).attributesOf("x")).toEqual([
+                    "enumerable",
+                    "accessor: set"
+                ]);
+            });
+
+            test("shows accessor with both getter and setter", () => {
+                const inspectedObject = {};
+                Object.defineProperty(inspectedObject, "x", {
+                    configurable: true,
+                    enumerable: true,
+                    get: () => 1,
+                    set: () => {}
+                });
+
+                expect(openOutlinerFor(inspectedObject).attributesOf("x")).toEqual([
+                    "enumerable",
+                    "accessor: get set"
+                ]);
+            });
+
+            test("shows non-configurable, non-enumerable accessor", () => {
+                const inspectedObject = {};
+                Object.defineProperty(inspectedObject, "x", {
+                    configurable: false,
+                    enumerable: false,
+                    get: () => 1,
+                    set: () => {}
+                });
+
+                expect(openOutlinerFor(inspectedObject).attributesOf("x")).toEqual([
+                    "non-configurable",
+                    "accessor: get set"
+                ]);
+            });
+
+            test("shows nothing for non-enumerable, writeable and configurable data properties", () => {
+                const inspectedObject = {};
+                Object.defineProperty(inspectedObject, "x", {
+                    configurable: true,
+                    writable: true,
+                    enumerable: false,
+                    value: 1
+                });
+
+                expect(openOutlinerFor(inspectedObject).attributesOf("x")).toEqual([]);
+            });
+
+            test("updates the attribute indicators of a property when the attributes change", () => {
+                const inspectedObject = {};
+                Object.defineProperty(inspectedObject, "x", {
+                    configurable: true,
+                    writable: true,
+                    enumerable: false,
+                    value: 1
+                });
+
+                const outlinerElement = openOutlinerFor(inspectedObject);
+                outlinerElement.doIt(`
+                    Object.defineProperty(this, "x", {
+                        configurable: false,
+                        writable: false,
+                        enumerable: true,
+                        value: 1
+                    })
+                `);
+
+                expect(outlinerElement.attributesOf("x")).toEqual([
+                    'non-configurable',
+                    'enumerable',
+                    'non-writeable'
+                ]);
+            });
         });
 
         describe("code of functions", () => {

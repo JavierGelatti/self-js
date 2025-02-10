@@ -3,6 +3,7 @@ import {InspectableObject} from "./objectOutliner.ts";
 import {Primitive} from "./primitiveOutliner.ts";
 import {Outliner} from "./outliner.ts";
 import {World} from "./world.ts";
+import {createFragment} from "./dom.ts";
 
 export abstract class InternalSlot<Owner extends InspectableObject | Primitive = InspectableObject | Primitive> extends Slot<Owner> {
     constructor(owner: Owner, outliner: Outliner<Owner>, world: World) {
@@ -19,6 +20,10 @@ export abstract class InternalSlot<Owner extends InspectableObject | Primitive =
 
     name() {
         return `${this._icon()}[[${this._name()}]]`;
+    }
+
+    protected _propertyAttributesElements(): Node {
+        return createFragment();
     }
 
     protected abstract _name(): string;

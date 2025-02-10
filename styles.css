@@ -129,7 +129,11 @@ button[disabled] {
             }
 
             &:nth-child(3) {
-                width: 1px;
+                text-align: right;
+                display: flex;
+                gap: 1px;
+                justify-content: end;
+                align-items: center;
             }
 
             &:only-child {
@@ -244,4 +248,27 @@ svg {
     50% { transform: rotate(1deg); box-shadow: 0 0 15px #ff980070; }
     75% { transform: rotate(0deg); box-shadow: 0 0 5px #ff980070; }
     100% { transform: rotate(1deg); }
+}
+
+svg.attribute-icon {
+    pointer-events: all;
+    user-select: none;
+    display: inline-block;
+    overflow: visible;
+    width: 2em;
+    height: 2em;
+    border-radius: 50%;
+    opacity: .8;
+
+    text {
+        font-size: 1.3em;
+        text-anchor: middle;
+        dominant-baseline: middle;
+    }
+
+    line {
+        stroke-width: 3px;
+        stroke: red;
+        opacity: .8;
+    }
 }

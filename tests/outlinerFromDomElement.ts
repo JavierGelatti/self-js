@@ -163,4 +163,12 @@ export class OutlinerFromDomElement {
     functionCode() {
         return this._domElement.querySelector('pre:not([role="textbox"])')?.textContent ?? "";
     }
+
+    attributesOf(propertyName: string) {
+        const titleElements = within(this._slotRowFor(propertyName))
+            .getByTitle("Attributes")
+            .querySelectorAll<SVGTitleElement>("title");
+
+        return [...titleElements].map(element => element.textContent);
+    }
 }
