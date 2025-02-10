@@ -1,7 +1,7 @@
 import {Slot} from "./slot.ts";
 import {Outliner} from "./outliner.ts";
 import {Arrow, drawNewArrow, drawNewArrowToBox} from "./arrows.ts";
-import {boundingPageBoxOf, createElement, DragHandler, elementsAt, makeDraggable, scrollPosition} from "./dom.ts";
+import {boundingPageBoxOf, createElement, DragHandler, elementsAt, makeDraggable} from "./dom.ts";
 import {World} from "./world.ts";
 import {point, Position} from "./position.ts";
 
