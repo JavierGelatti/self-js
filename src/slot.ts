@@ -64,7 +64,7 @@ export abstract class Slot<Owner extends InspectableObject | Primitive = Inspect
                     this._propertyAttributesElements()
                 ]),
                 this._inspectPropertyButton = createElement("button", {
-                    title: "Inspeccionar valor",
+                    title: "Inspect value",
                     textContent: ">",
                     onclick: () => {
                         const currentAssociation = this.currentAssociation();

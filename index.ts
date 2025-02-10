@@ -11,7 +11,7 @@ document.body.append(
     svgDefinitions()
 );
 
-class Punto {
+class Point {
     private readonly _x: number;
     private readonly _y: number;
 
@@ -28,8 +28,8 @@ class Punto {
         return this._y;
     }
 
-    mas(otroPunto: Punto) {
-        return new Punto(this._x + otroPunto.x(), this._y + otroPunto.y());
+    plus(anotherPoint: Point) {
+        return new Point(this._x + anotherPoint.x(), this._y + anotherPoint.y());
     }
 }
 
@@ -50,4 +50,4 @@ window.createPromise = function () {
     return executor;
 }
 
-world.openOutliner(new Punto(1, 2), point(10, 10));
+world.openOutliner(new Point(1, 2), point(10, 10));

@@ -35,14 +35,14 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         if (defaultString !== "[object Object]") return defaultString;
 
         const inspectedObjectPrototype = Reflect.getPrototypeOf(this._inspectedValue);
-        if (inspectedObjectPrototype === null) return "un objeto";
+        if (inspectedObjectPrototype === null) return "an object";
 
-        return `un ${inspectedObjectPrototype.constructor.name}`;
+        return `an ${inspectedObjectPrototype.constructor.name}`;
     }
 
     private _asString(value: unknown) {
-        if (typeof value === "function") return `función ${value.name}`;
-        if (value instanceof Array) return `un Array`;
+        if (typeof value === "function") return `function ${value.name}`;
+        if (value instanceof Array) return `an Array`;
 
         try {
             return String(value);
@@ -64,10 +64,10 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
                 createElement("td", {colSpan: 3}, [
                     this._addPropertyButton = createElement("button", {
                         title: "Add property",
-                        textContent: "➕ Nueva propiedad",
+                        textContent: "➕ New property",
                         disabled: !this._isExtensible(),
                         onclick: () => {
-                            const newPropertyName = prompt("Nombre de la propiedad nueva");
+                            const newPropertyName = prompt("New property name");
                             if (newPropertyName === null) return;
                             this.createNewProperty(newPropertyName);
                         },

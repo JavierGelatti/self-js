@@ -13,14 +13,14 @@ describe("Outliners", () => {
         test("show the name of the object's prototype", () => {
             class Texto {}
 
-            expect(world.openOutliner({}).title()).toEqual("un Object");
-            expect(world.openOutliner(new Texto()).title()).toEqual("un Texto");
+            expect(world.openOutliner({}).title()).toEqual("an Object");
+            expect(world.openOutliner(new Texto()).title()).toEqual("a Texto");
         });
 
         test("show a default text if the object's prototype is null", () => {
             const anObject = { __proto__: null };
 
-            expect(world.openOutliner(anObject).title()).toEqual("un objeto");
+            expect(world.openOutliner(anObject).title()).toEqual("an object");
         });
 
         test("show custom string representations as title", () => {
@@ -33,17 +33,17 @@ describe("Outliners", () => {
 
         test("show the default representation when it fails to obtain a custom one", () => {
             const problematicObject = { toString() { throw new TypeError(); }};
-            expect(world.openOutliner(problematicObject).title()).toEqual("un Object");
+            expect(world.openOutliner(problematicObject).title()).toEqual("an Object");
         });
 
         test("show a special title for functions", () => {
             function f() {}
 
-            expect(world.openOutliner(f).title()).toEqual("función f");
+            expect(world.openOutliner(f).title()).toEqual("function f");
         });
 
         test("show a special title for arrays", () => {
-            expect(world.openOutliner([1, 2, 3]).title()).toEqual("un Array");
+            expect(world.openOutliner([1, 2, 3]).title()).toEqual("an Array");
         });
 
         test("shows the quoted value for strings", () => {

@@ -158,14 +158,14 @@ export abstract class Outliner<V extends InspectableObject | Primitive = Inspect
             }),
             this._doItButton = createElement("button", {
                 title: "Do it",
-                textContent: "Hacer 👉",
+                textContent: "Do it 👉",
                 disabled: true,
                 onclick: event => this._evaluateCodeAndDo(clientPositionOf(event), () => { /* nothing */})
             }),
             this._inspectItButton = createElement("button", {
                 title: "Inspect it",
                 className: "draggable",
-                textContent: "Obtener 🫴",
+                textContent: "Get it 🫴",
                 disabled: true,
                 onpointerdown: event => {
                     if (this._inspectItButton.disabled) return;

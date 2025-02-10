@@ -144,7 +144,7 @@ export class OutlinerFromDomElement {
 
     buttonToInspectProperty(propertyName: string) {
         const row = this._slotRowFor(propertyName);
-        return within(row).getByTitle("Inspeccionar valor");
+        return within(row).getByTitle("Inspect value");
     }
 
     domElement() {

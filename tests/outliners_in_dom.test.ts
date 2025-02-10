@@ -49,7 +49,7 @@ describe("The outliners in the world", () => {
     test("show a title for the object", () => {
         const outlinerElement = openOutlinerFor({});
 
-        expect(outlinerElement.title()).toEqual("un Object");
+        expect(outlinerElement.title()).toEqual("an Object");
     });
 
     test("can be closed", () => {
