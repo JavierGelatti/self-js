@@ -260,3 +260,15 @@ function nodeFromHtmlSource(html: string) {
     template.innerHTML = html;
     return template.content;
 }
+
+export function lastInnermostChildOf(node: Node): Node {
+    const lastChild = node.lastChild;
+
+    if (lastChild === null) return node;
+
+    return lastInnermostChildOf(lastChild);
+}
+
+export function textContentLengthOf(node: Node) {
+    return node.textContent?.length || 0;
+}

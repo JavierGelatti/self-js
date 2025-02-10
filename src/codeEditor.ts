@@ -1,4 +1,4 @@
-import {createElement} from "./dom.ts";
+import {createElement, textContentLengthOf} from "./dom.ts";
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
 import "highlight.js/styles/github.css";
@@ -36,7 +36,7 @@ export function createCodeViewElementWith(code: string) {
 }
 
 function highlightCode(codeElement: CodeEditorElement) {
-    const charactersBeforeAnchor = getSelectionOffset(codeElement);
+    const charactersBeforeAnchor = getSelectionOffset(codeElement) ?? 0;
 
     delete codeElement.dataset.highlighted;
     codeElement.textContent = String(codeElement.textContent);
@@ -47,15 +47,16 @@ function highlightCode(codeElement: CodeEditorElement) {
 
 function getSelectionOffset(codeElement: CodeEditorElement) {
     const selection = window.getSelection();
-    const anchorNode = selection?.anchorNode;
+    const anchorNode = selection?.anchorNode ?? undefined;
     const anchorOffset = selection?.anchorOffset;
-    if (!anchorNode || !anchorOffset) return undefined;
+    if (anchorNode === undefined || anchorOffset === undefined) return undefined;
+    if (!codeElement.contains(anchorNode)) return undefined;
 
     let charactersBeforeAnchor = anchorOffset;
     let currentNode = previousNode(anchorNode, codeElement);
 
-    while (currentNode) {
-        charactersBeforeAnchor += currentNode.textContent?.length || 0;
+    while (currentNode !== undefined) {
+        charactersBeforeAnchor += textContentLengthOf(currentNode);
         currentNode = previousNode(currentNode, codeElement);
     }
 
@@ -63,53 +64,36 @@ function getSelectionOffset(codeElement: CodeEditorElement) {
 }
 
 function previousNode(currentNode: Node, rootElement: HTMLElement): Node | undefined {
+    if (currentNode === rootElement) return undefined;
+
     const previousSibling = currentNode.previousSibling;
 
     if (previousSibling === null) {
         const parentNode = currentNode.parentNode;
-        if (parentNode === null || parentNode === rootElement) return undefined;
-        const parentPrevious = previousNode(parentNode, rootElement);
-        if (parentPrevious === undefined) return undefined;
-        return lastInnermostChildOf(parentPrevious);
+        if (parentNode === null) throw new Error("Node outside the root element; shouldn't have happened");
+        return previousNode(parentNode, rootElement);
     }
 
     return previousSibling;
 }
 
-function lastInnermostChildOf(node: Node): Node {
-    const lastChild = node.lastChild;
+function restoreSelectionFromOffset(charactersBeforeAnchor: number, codeElement: CodeEditorElement) {
+    const [anchor, offset] = selectionFromOffset(charactersBeforeAnchor, codeElement);
 
-    if (lastChild === null) return node;
-
-    return lastInnermostChildOf(lastChild);
+    window.getSelection()?.setBaseAndExtent(anchor, offset, anchor, offset);
 }
 
-function restoreSelectionFromOffset(charactersBeforeAnchor: number | undefined, codeElement: CodeEditorElement) {
-    if (charactersBeforeAnchor === undefined) return;
-
+function selectionFromOffset(charactersBeforeAnchor: number, currentNode: Node): readonly [Node, number] {
     let leftToConsume = charactersBeforeAnchor;
-    let currentNode = codeElement.firstChild;
-    while (currentNode) {
-        const nodeTextLength = currentNode.textContent?.length || 0;
-        if (leftToConsume <= nodeTextLength) {
-            if (currentNode.childNodes.length === 0) break;
-            currentNode = currentNode.firstChild;
-            continue;
-        }
-        leftToConsume -= nodeTextLength;
-        currentNode = currentNode.nextSibling;
+
+    while (leftToConsume > textContentLengthOf(currentNode)) {
+        leftToConsume -= textContentLengthOf(currentNode);
+        currentNode = currentNode.nextSibling!;
     }
 
-    if (!(currentNode instanceof Text)) {
-        currentNode = currentNode?.firstChild ?? null;
-    }
+    if (currentNode.hasChildNodes()) return selectionFromOffset(leftToConsume, currentNode.firstChild!);
 
-    if (currentNode === null) {
-        // Shouldn't happen...
-        return;
-    }
-
-    window.getSelection()?.setBaseAndExtent(currentNode, leftToConsume, currentNode, leftToConsume);
+    return [currentNode, leftToConsume];
 }
 
 export function codeOn(codeElement: CodeEditorElement) {

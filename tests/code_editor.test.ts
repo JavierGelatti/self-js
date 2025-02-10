@@ -1,6 +1,7 @@
 import {beforeEach, describe, expect, Mock, test, vitest} from "vitest";
 import {userEvent} from "@vitest/browser/context";
 import {CodeEditorElement, createCodeEditorElement} from "../src/codeEditor.ts";
+import {lastInnermostChildOf} from "../src/dom.ts";
 
 describe("Code editor", () => {
     let codeEditor: CodeEditorElement;
@@ -22,7 +23,7 @@ describe("Code editor", () => {
         expect(codeEditor.textContent).toEqual("this");
         expect(codeEditor.childElementCount).toEqual(1);
         expect(codeEditor.firstElementChild).toHaveClass("hljs-variable");
-        expect(currentSelection().anchorNode).toBe(lastNestedChildOf(codeEditor));
+        expect(currentSelection().anchorNode).toBe(lastInnermostChildOf(codeEditor));
         expect(currentSelection().anchorOffset).toBe(4);
     });
 
@@ -37,7 +38,7 @@ describe("Code editor", () => {
         expect(codeEditor.textContent).toEqual("this");
         expect(codeEditor.childElementCount).toEqual(1);
         expect(codeEditor.firstElementChild).toHaveClass("hljs-variable");
-        expect(currentSelection().anchorNode).toBe(lastNestedChildOf(codeEditor));
+        expect(currentSelection().anchorNode).toBe(lastInnermostChildOf(codeEditor));
         expect(currentSelection().anchorOffset).toBe(3);
     });
 
@@ -46,7 +47,7 @@ describe("Code editor", () => {
         await userEvent.keyboard("this.prototype");
 
         expect(codeEditor.textContent).toEqual("this.prototype");
-        expect(currentSelection().anchorNode).toBe(lastNestedChildOf(codeEditor));
+        expect(currentSelection().anchorNode).toBe(lastInnermostChildOf(codeEditor));
         expect(currentSelection().anchorOffset).toEqual(9);
     });
 
@@ -55,15 +56,20 @@ describe("Code editor", () => {
         await userEvent.keyboard("this.prototype(");
 
         expect(codeEditor.textContent).toEqual("this.prototype(");
-        expect(currentSelection().anchorNode).toBe(lastNestedChildOf(codeEditor));
+        expect(currentSelection().anchorNode).toBe(lastInnermostChildOf(codeEditor));
         expect(currentSelection().anchorOffset).toEqual(1);
     });
 
-    function lastNestedChildOf(node: Node) {
-        if (!node.hasChildNodes()) return node;
+    test("the selection is preserved when removing text", async () => {
+        codeEditor.focus();
+        await userEvent.keyboard("this");
 
-        return lastNestedChildOf(node.lastChild!);
-    }
+        await userEvent.keyboard("{backspace}".repeat(4));
+
+        expect(codeEditor.textContent).toEqual("");
+        expect(currentSelection().anchorNode).toBe(codeEditor);
+        expect(currentSelection().anchorOffset).toEqual(0);
+    });
 
     function currentSelection() {
         return window.getSelection()!;
