@@ -12,6 +12,9 @@ export function createCodeEditorElement(options: { onChange?: () => void } = {})
         role: "textbox",
         contentEditable: "true",
         className: "javascript",
+        autocapitalize: "off",
+        ariaAutoComplete: "none",
+        spellcheck: false,
         oninput: () => {
             highlightCode(codeElement as CodeEditorElement);
             options.onChange?.();
