@@ -624,7 +624,7 @@ describe("The outliners in the world", () => {
             });
 
             test("when redirecting a property that raises an error while getting the value, the arrow is removed and the error is logged (not inspected)", () => {
-                const consoleInfo = vitest.spyOn(console, "info");
+                const consoleInfo = vitest.spyOn(console, "info").mockImplementation(() => {});
                 const outlinerElement = openOutlinerFor({ get x() { throw new Error("GET") }});
 
                 grabAssociationFromStartingPoint(outlinerElement, "x")
