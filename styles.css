@@ -95,8 +95,8 @@ button[disabled] {
     }
 
     &[data-type="revoked-proxy"] > [role="heading"] {
-        --color1: #ff5500;
-        --color2: #ff7700;
+        --color1: grey;
+        --color2: #ff6000;
 
         background: repeating-linear-gradient(
             45deg,
