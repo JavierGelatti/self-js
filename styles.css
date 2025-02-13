@@ -94,6 +94,17 @@ button[disabled] {
         background: blue;
     }
 
+    &[data-type="revoked-proxy"] > [role="heading"] {
+        --color1: #ff5500;
+        --color2: #ff7700;
+
+        background: repeating-linear-gradient(
+            45deg,
+            var(--color1), var(--color1) 10px,
+            var(--color2) 10px, var(--color2) 20px
+        );
+    }
+
     &[data-type="primitive"] > [role="heading"] {
         background: #009688;
     }

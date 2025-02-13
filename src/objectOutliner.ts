@@ -6,6 +6,7 @@ import {Outliner} from "./outliner.ts";
 import {Property} from "./property.ts";
 import {createCodeViewElementWith} from "./codeEditor.ts";
 import {withArticle} from "./article.ts";
+import {isRevokedProxy} from "./metaprogramming.ts";
 
 export type InspectableObject = Record<string | symbol, unknown>;
 
@@ -21,13 +22,18 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     }
 
     type() {
+        if (isRevokedProxy(this._inspectedValue)) return "revoked-proxy";
         if (typeof this._inspectedValue === "function") return "function";
         if (this._inspectedValue instanceof Error) return "error";
         return "object";
     }
 
     override title() {
-        if (this._inspectedValue.constructor?.prototype === this._inspectedValue && this._inspectedValue.constructor.name !== "") {
+        if (isRevokedProxy(this._inspectedValue)) {
+            return "a revoked Proxy";
+        }
+
+        if (this._inspectedObjectIsPrototype() && this._inspectedValue.constructor.name !== "") {
             return `${this._inspectedValue.constructor.name}.prototype`;
         }
 
@@ -41,17 +47,26 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
         return withArticle(inspectedObjectPrototype.constructor.name);
     }
 
+    private _inspectedObjectIsPrototype() {
+        try {
+            return this._inspectedValue.constructor?.prototype === this._inspectedValue;
+        } catch (error) {
+            return false;
+        }
+    }
+
     private _asString(value: unknown) {
         if (typeof value === "function") return `function ${value.name}`;
         if (value instanceof Array) return withArticle("Array");
 
         try {
             return String(value);
-        } catch (error) {
-            if (error instanceof TypeError) {
+        } catch (error1) {
+            try {
                 return Object.prototype.toString.call(value);
+            } catch (error2) {
+                return "???";
             }
-            throw error;
         }
     }
 
@@ -123,7 +138,7 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     }
 
     private _refreshProperties() {
-        const currentKeys = Reflect.ownKeys(this._inspectedValue);
+        const currentKeys = isRevokedProxy(this._inspectedValue) ? [] : Reflect.ownKeys(this._inspectedValue);
         const newKeys = currentKeys.filter(key => !this._properties.has(key));
 
         for (const [key, property] of this._properties.entries()) {
@@ -150,6 +165,8 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     }
 
     protected _attributesElements(): Node {
+        if (isRevokedProxy(this._inspectedValue)) return createFragment();
+
         const extensible = this._isExtensible();
         const frozen = Object.isFrozen(this._inspectedValue);
         const sealed = Object.isSealed(this._inspectedValue);
@@ -162,6 +179,8 @@ export class ObjectOutliner extends Outliner<InspectableObject> {
     }
 
     private _isExtensible() {
+        if (isRevokedProxy(this._inspectedValue)) return false;
+
         return Object.isExtensible(this._inspectedValue);
     }
 

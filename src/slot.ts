@@ -5,6 +5,7 @@ import {point} from "./position.ts";
 import {Outliner} from "./outliner.ts";
 import {Association} from "./association.ts";
 import {Primitive} from "./primitiveOutliner.ts";
+import {isRevokedProxy} from "./metaprogramming.ts";
 
 export type Selector = string | symbol;
 
@@ -109,7 +110,7 @@ export abstract class Slot<Owner extends InspectableObject | Primitive = Inspect
     }
 
     update() {
-        if (this.isPresentInOwner()) {
+        if (!isRevokedProxy(this._owner) && this.isPresentInOwner()) {
             this._propertyValueCell.textContent = this._currentValueAsString();
             this._propertyAttributesElement.replaceChildren(this._propertyAttributesElements());
         } else {

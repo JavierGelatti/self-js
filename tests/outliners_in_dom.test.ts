@@ -94,6 +94,23 @@ describe("The outliners in the world", () => {
             expect(outlinerElement.valueOfSlot("x")).toEqual("this");
         });
 
+        test("does not show any property for revoked proxies", () => {
+            const revocableProxy = Proxy.revocable(
+                { x: 1 }, { get: () => 123 },
+            );
+            const outlinerElement = openOutlinerFor(revocableProxy.proxy);
+            expect(outlinerElement.valueOfSlot("x")).toEqual("123");
+
+            revocableProxy.revoke();
+            outlinerElement.update();
+
+            expect(outlinerElement.title()).toEqual("a revoked Proxy");
+            expect(outlinerElement.type()).toEqual("revoked-proxy");
+            expect(outlinerElement.numberOfProperties()).toEqual(0);
+            expect(outlinerElement.numberOfInternalSlots()).toEqual(0);
+            expect(outlinerElement.objectAttributes()).toEqual([]);
+        });
+
         describe("adding properties", () => {
             test("can add new properties to the inspected object", () => {
                 const anObject = {};

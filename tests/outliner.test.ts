@@ -55,6 +55,16 @@ describe("Outliners", () => {
             expect(world.openOutliner(Function.prototype).title()).toEqual("Function.prototype");
             expect(world.openOutliner(Date.prototype).title()).toEqual("Date.prototype");
         });
+
+        test("shows ??? if everything fails", () => {
+            const aProblematicObject = new Proxy({}, {
+                get() {
+                    throw new Error();
+                }
+            });
+
+            expect(world.openOutliner(aProblematicObject).title()).toEqual("???");
+        });
     });
 
     describe("from DOM element", () => {

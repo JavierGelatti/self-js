@@ -72,6 +72,10 @@ export class OutlinerFromDomElement {
         return this._propertyRows().length;
     }
 
+    numberOfInternalSlots() {
+        return this._internalSlotsRows().length;
+    }
+
     private _propertyRows() {
         return within(this._domElement)
             .queryAllByRole("row", {})
@@ -107,8 +111,8 @@ export class OutlinerFromDomElement {
 
     doIt(code: string) {
         this.inputCode(code);
-
         this._doItButton().click();
+        this.inputCode("");
     }
 
     canDoIt() {
@@ -184,5 +188,9 @@ export class OutlinerFromDomElement {
             .querySelectorAll<SVGTitleElement>("title");
 
         return [...titleElements].map(element => element.textContent);
+    }
+
+    update() {
+        this.doIt("0");
     }
 }
