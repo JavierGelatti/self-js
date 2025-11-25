@@ -8,7 +8,7 @@ export class Property extends Slot<InspectableObject> {
     }
 
     protected isPresentInOwner() {
-        return Reflect.has(this._owner, this._key);
+        return Object.hasOwn(this._owner, this._key);
     }
 
     currentValue() {

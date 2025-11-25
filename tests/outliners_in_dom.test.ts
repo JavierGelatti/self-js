@@ -699,6 +699,20 @@ describe("The outliners in the world", () => {
             expect(outlinerElement.numberOfProperties()).toEqual(0);
         });
 
+        test("when a property is removed from an object but it still inherits it", () => {
+            const parent = { oldProperty: 1 };
+            const anObject: InspectableObject = {
+                oldProperty: 0,
+                __proto__: parent
+            };
+            const outlinerElement = openOutlinerFor(anObject);
+
+            delete anObject.oldProperty;
+            updateOutliners();
+
+            expect(outlinerElement.numberOfProperties()).toEqual(0);
+        });
+
         test("when an existing property is updated", () => {
             const anObject: InspectableObject = {
                 existingProperty: 0
