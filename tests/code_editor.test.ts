@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, Mock, test, vitest} from "vitest";
-import {userEvent} from "@vitest/browser/context";
+import {userEvent} from "vitest/browser";
 import {CodeEditorElement, createCodeEditorElement} from "../src/codeEditor.ts";
 import {lastInnermostChildOf} from "../src/dom.ts";
 
